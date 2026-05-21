@@ -6349,5 +6349,377 @@ function clearAllData() {
 setLanguage("et");
 showOnboarding();
 </script>
+  <style>
+.onboarding-grid.goal-grid {
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.onboarding-option.goal-card,
+.onboarding-option.watch-device-card {
+  position: relative;
+  min-height: 132px;
+  align-items: flex-end;
+  overflow: hidden;
+  border-color: rgba(212,175,55,0.3);
+  background:
+    linear-gradient(0deg, rgba(0,0,0,0.86), rgba(0,0,0,0.18)),
+    var(--option-img);
+  background-size: cover;
+  background-position: center;
+}
+.onboarding-option.goal-card::before,
+.onboarding-option.watch-device-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0,0,0,0.72), rgba(0,0,0,0.16));
+}
+.onboarding-option.goal-card .option-mark,
+.onboarding-option.watch-device-card .option-mark,
+.onboarding-option.goal-card span,
+.onboarding-option.watch-device-card span {
+  position: relative;
+  z-index: 1;
+}
+.onboarding-option.goal-card > span:last-child,
+.onboarding-option.watch-device-card > span:last-child {
+  min-width: 0;
+}
+.onboarding-option.goal-card strong,
+.onboarding-option.watch-device-card strong {
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.72);
+  overflow-wrap: anywhere;
+}
+.onboarding-option.goal-card small,
+.onboarding-option.watch-device-card small {
+  color: rgba(255,255,255,0.76);
+  text-shadow: 0 2px 10px rgba(0,0,0,0.62);
+}
+.onboarding-option.goal-card.selected,
+.onboarding-option.watch-device-card.selected {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 2px rgba(212,175,55,0.55), 0 0 0 2px rgba(212,175,55,0.18);
+}
+.watch-device-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+.compact-fit-page {
+  height: calc(100svh - 86px);
+  min-height: 0;
+  padding-top: 58px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.compact-fit-page > h1 {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: 24px;
+  line-height: 1;
+}
+.compact-fit-page > .subtitle {
+  flex: 0 0 auto;
+  margin: 7px 0 10px;
+  font-size: 12px;
+  line-height: 1.25;
+}
+.compact-fit-page .feature-card,
+.compact-fit-page .plan-box,
+.compact-fit-page .fitness-dashboard {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.compact-fit-page .feature-card + .feature-card,
+.compact-fit-page .plan-box + .plan-box {
+  flex: 0 1 auto;
+}
+.compact-fit-page h2 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  line-height: 1.1;
+}
+.compact-fit-page h3 {
+  font-size: 14px;
+}
+.compact-fit-page .type-grid {
+  gap: 6px;
+  margin-top: 6px;
+}
+.compact-fit-page .type-pill {
+  padding: 9px 5px;
+  border-radius: 11px;
+  font-size: 13px;
+}
+.compact-fit-page .type-pill small {
+  display: none;
+}
+.compact-fit-page button,
+.compact-fit-page input,
+.compact-fit-page select,
+.compact-fit-page textarea {
+  min-height: 38px;
+  padding: 9px;
+  margin-top: 7px;
+  border-radius: 11px;
+  font-size: 13px;
+}
+.compact-fit-page .stats {
+  gap: 8px;
+  margin: 8px 0;
+}
+.compact-fit-page .card {
+  padding: 10px 6px;
+  border-radius: 12px;
+}
+.compact-fit-page .card strong {
+  font-size: 20px;
+}
+.compact-fit-page .card small,
+.compact-fit-page .small,
+.compact-fit-page .help-text {
+  font-size: 11px;
+  line-height: 1.25;
+}
+.compact-fit-page .progress {
+  height: 8px;
+}
+.compact-fit-page #profileProgress .stats {
+  grid-template-columns: repeat(4, 1fr);
+}
+.app.screen-fit {
+  height: 100svh;
+  overflow: hidden;
+}
+@media (max-width: 360px) {
+  .onboarding-grid.goal-grid {
+    gap: 8px;
+  }
+  .onboarding-option.goal-card {
+    min-height: 118px;
+    padding: 12px;
+  }
+  .onboarding-option.goal-card .option-mark {
+    width: 38px;
+    height: 38px;
+  }
+  .onboarding-option.goal-card strong {
+    font-size: 15px;
+  }
+}
+</style>
+<script>
+const eliteFitnessFullScreenPages = [
+  "home",
+  "myProfile",
+  "goals",
+  "progress",
+  "timer",
+  "recovery",
+  "watch"
+];
+const eliteFitnessCompactPages = [
+  "home",
+  "myProfile",
+  "goals",
+  "progress",
+  "recovery",
+  "watch"
+];
+const eliteFitnessGoalImages = {
+  muscle: "https://images.unsplash.com/photo-1605296867304-46d5465a13f1?auto=format&fit=crop&w=900&q=85",
+  fat: "https://images.unsplash.com/photo-1599058917765-a780eda07a3e?auto=format&fit=crop&w=900&q=85",
+  strength: "https://images.unsplash.com/photo-1605296867424-35fc25c9212a?auto=format&fit=crop&w=900&q=85",
+  endurance: "https://images.unsplash.com/photo-1486218119243-13883505764c?auto=format&fit=crop&w=900&q=85"
+};
+const eliteFitnessWatchDevices = [
+  {
+    id: "Apple Watch",
+    title: { et: "Ühenda Apple Watch", en: "Connect Apple Watch", ru: "Подключить Apple Watch" },
+    hint: { et: "Live pulss, kalorid ja sammud", en: "Live heart rate, calories and steps", ru: "Live пульс, калории и шаги" },
+    mark: "AW",
+    img: "https://images.unsplash.com/photo-1551816230-ef5deaed4a26?auto=format&fit=crop&w=900&q=85"
+  },
+  {
+    id: "Android Watch",
+    title: { et: "Ühenda Android Watch", en: "Connect Android Watch", ru: "Подключить Android Watch" },
+    hint: { et: "Wear OS ja muud Android kellad", en: "Wear OS and other Android watches", ru: "Wear OS и другие Android часы" },
+    mark: "AN",
+    img: "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=900&q=85"
+  },
+  {
+    id: "Garmin",
+    title: { et: "Ühenda Garmin", en: "Connect Garmin", ru: "Подключить Garmin" },
+    hint: { et: "Jooks, rattasõit ja vastupidavus", en: "Running, cycling and endurance", ru: "Бег, велосипед и выносливость" },
+    mark: "GA",
+    img: "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=900&q=85"
+  },
+  {
+    id: "Fitbit",
+    title: { et: "Ühenda Fitbit", en: "Connect Fitbit", ru: "Подключить Fitbit" },
+    hint: { et: "Päeva aktiivsus ja taastumine", en: "Daily activity and recovery", ru: "Активность дня и восстановление" },
+    mark: "FB",
+    img: "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?auto=format&fit=crop&w=900&q=85"
+  }
+];
+function eliteLangText(value) {
+  if (!value || typeof value === "string") return value || "";
+  return value[currentLang] || value.en || value.et || "";
+}
+function onboardingGoalCard(goal, label, hint, mark) {
+  return `
+    <div class="onboarding-option goal-card ${onboardingState.goal === goal ? "selected" : ""}"
+      style="--option-img:url('${eliteFitnessGoalImages[goal]}')"
+      onclick="onboardingPick('goal','${goal}')">
+      <span class="option-mark">${mark}</span>
+      <span><strong>${label}</strong><small>${hint || ""}</small></span>
+    </div>
+  `;
+}
+function onboardingWatchCard(device) {
+  const selected = onboardingState.watchDevice === device.id || connectedWatch === device.id;
+  return `
+    <div class="onboarding-option watch-device-card ${selected ? "selected" : ""}"
+      style="--option-img:url('${device.img}')"
+      onclick="onboardingPickWatch('${device.id}')">
+      <span class="option-mark">${device.mark}</span>
+      <span><strong>${eliteLangText(device.title)}</strong><small>${eliteLangText(device.hint)}</small></span>
+    </div>
+  `;
+}
+function onboardingPickWatch(deviceName) {
+  onboardingState.watch = true;
+  onboardingState.watchDevice = deviceName;
+  connectWatch(deviceName);
+  renderOnboarding();
+}
+const eliteFitnessOriginalInitOnboardingState = initOnboardingState;
+initOnboardingState = function() {
+  eliteFitnessOriginalInitOnboardingState();
+  onboardingState.watchDevice = connectedWatch || "Apple Watch";
+};
+const eliteFitnessOriginalCompleteOnboarding = completeOnboarding;
+completeOnboarding = function() {
+  eliteFitnessOriginalCompleteOnboarding();
+  setTimeout(() => showPage("myProfile"), 0);
+};
+renderOnboarding = function() {
+  const copy = obText();
+  const step = onboardingSteps[onboardingStep];
+  const progress = Math.round(((onboardingStep + 1) / onboardingSteps.length) * 100);
+  document.getElementById("onboardingProgress").style.width = `${progress}%`;
+  document.getElementById("onboardingSkip").textContent = copy.skip;
+  document.getElementById("onboardingBack").style.visibility = onboardingStep === 0 ? "hidden" : "visible";
+  document.getElementById("onboardingNext").textContent = onboardingStep === onboardingSteps.length - 1 ? copy.finish : copy.next;
+  let html = "";
+  if (step === "welcome") {
+    html = `
+      <div class="onboarding-hero" style="--hero-img:url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=90')"></div>
+      <h1>${copy.welcomeTitle}</h1>
+      <p>${copy.welcomeText}</p>
+    `;
+  }
+  if (step === "account") {
+    html = `
+      <h1>${copy.accountTitle}</h1>
+      <p>${copy.accountText}</p>
+      <div class="onboarding-form">
+        <div class="onboarding-input-card"><label>${copy.name}</label><input id="ob_name" type="text" value="${escapeAttr(onboardingState.name || "")}"></div>
+        <div class="onboarding-input-card"><label>${copy.email}</label><input id="ob_email" type="email" value="${escapeAttr(onboardingState.email || "")}"></div>
+      </div>
+    `;
+  }
+  if (step === "gender") {
+    html = `
+      <h1>${copy.genderTitle}</h1>
+      ${copy.genderText ? `<p>${copy.genderText}</p>` : ""}
+      <div class="onboarding-grid">
+        ${onboardingOption(copy.male, "", "M", onboardingState.gender === "male", "onboardingPick('gender','male')")}
+        ${onboardingOption(copy.female, "", "F", onboardingState.gender === "female", "onboardingPick('gender','female')")}
+      </div>
+    `;
+  }
+  if (step === "goal") {
+    html = `
+      <h1>${copy.goalTitle}</h1>
+      <p>${copy.goalText}</p>
+      <div class="onboarding-grid goal-grid">
+        ${onboardingGoalCard("muscle", copy.muscle, copy.muscleHint, "01")}
+        ${onboardingGoalCard("strength", copy.strength, copy.strengthHint, "02")}
+        ${onboardingGoalCard("fat", copy.fat, copy.fatHint, "03")}
+        ${onboardingGoalCard("endurance", copy.endurance, copy.enduranceHint, "04")}
+      </div>
+    `;
+  }
+  if (step === "metrics") {
+    html = `
+      <h1>${copy.metricsTitle}</h1>
+      <p>${copy.metricsText}</p>
+      <div class="onboarding-form">
+        <div class="onboarding-input-card"><label>${copy.weight}</label><div class="onboarding-unit-row"><input id="ob_weight" type="number" value="${onboardingState.weight || 75}"><span>kg</span></div></div>
+        <div class="onboarding-input-card"><label>${copy.height}</label><div class="onboarding-unit-row"><input id="ob_height" type="number" value="${onboardingState.height || 175}"><span>cm</span></div></div>
+        <div class="onboarding-input-card"><label>${copy.age}</label><div class="onboarding-unit-row"><input id="ob_age" type="number" value="${onboardingState.age || 30}"><span>${t[currentLang].yearsUnit || "y"}</span></div></div>
+      </div>
+    `;
+  }
+  if (step === "days") {
+    html = `
+      <h1>${copy.daysTitle}</h1>
+      <p>${copy.daysText}</p>
+      <div class="onboarding-list">
+        ${[1,2,3,4,5,6,7].map(days => onboardingOption(`${days} ${copy.days}`, "", String(days), onboardingState.days === days, `onboardingPick('days',${days})`)).join("")}
+      </div>
+    `;
+  }
+  if (step === "equipment") {
+    const equipment = [
+      ["fullGym", copy.fullGym, "FG"],
+      ["barbells", copy.barbells, "BB"],
+      ["dumbbells", copy.dumbbells, "DB"],
+      ["kettlebells", copy.kettlebells, "KB"],
+      ["machines", copy.machines, "M"],
+      ["home", copy.home, "H"]
+    ];
+    html = `
+      <h1>${copy.equipmentTitle}</h1>
+      <p>${copy.equipmentText}</p>
+      <div class="onboarding-list">
+        ${equipment.map(([id, label, mark]) => onboardingOption(label, "", mark, onboardingState.equipment?.includes(id), `onboardingToggleEquipment('${id}')`)).join("")}
+      </div>
+    `;
+  }
+  if (step === "watch") {
+    html = `
+      <h1>${copy.watchTitle}</h1>
+      <p>${copy.watchText}</p>
+      <div class="watch-device-list">
+        ${eliteFitnessWatchDevices.map(onboardingWatchCard).join("")}
+      </div>
+      <button class="dark-btn" onclick="completeOnboarding()">${copy.noWatch}</button>
+    `;
+  }
+  document.getElementById("onboardingContent").innerHTML = html;
+};
+const eliteFitnessOriginalShowPage = showPage;
+showPage = function(pageId) {
+  eliteFitnessOriginalShowPage(pageId);
+  const app = document.querySelector(".app");
+  const page = document.getElementById(pageId);
+  app.classList.toggle("screen-fit", eliteFitnessFullScreenPages.includes(pageId));
+  document.querySelectorAll(".page").forEach(item => item.classList.remove("compact-fit-page"));
+  if (page && eliteFitnessCompactPages.includes(pageId)) {
+    page.classList.add("compact-fit-page");
+  }
+};
+if (document.querySelector(".page.active")) {
+  showPage(document.querySelector(".page.active").id);
+}
+</script>
 </body>
 </html>
