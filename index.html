@@ -126,11 +126,20 @@ body.modal-open {
 .lang-panel,
 .menu-panel {
   display: none;
-  margin-top: 72px;
+  position: fixed;
+  top: 72px;
+  left: 50%;
+  width: min(430px, calc(100vw - 24px));
+  max-height: calc(100svh - 150px);
+  overflow-y: auto;
+  transform: translateX(-50%);
   background: rgba(8,8,8,0.96);
   border: 1px solid rgba(212,175,55,0.45);
   border-radius: 18px;
   padding: 14px;
+  z-index: 70;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.62);
+  backdrop-filter: blur(14px);
 }
 
 .lang-panel.active,
@@ -138,9 +147,9 @@ body.modal-open {
 
 .menu-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  margin-top: 14px;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 0;
 }
 
 .menu-item {
@@ -161,12 +170,12 @@ li:hover { border-color: #ffd86b; }
 .menu-card {
   position: relative;
   overflow: hidden;
-  min-height: 128px;
+  min-height: 92px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   text-align: left;
-  padding: 22px;
+  padding: 14px;
   color: white;
   border-color: rgba(212,175,55,0.28);
   background:
@@ -181,11 +190,11 @@ li:hover { border-color: #ffd86b; }
   position: relative;
   z-index: 1;
   color: white;
-  font-size: 24px;
+  font-size: 16px;
   line-height: 1.12;
   font-weight: 900;
   text-shadow: 0 2px 16px rgba(0,0,0,0.72);
-  max-width: 78%;
+  max-width: 92%;
 }
 
 h1, h2, h3 {
