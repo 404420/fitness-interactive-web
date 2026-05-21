@@ -2,11 +2,19 @@
 <html lang="et">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#050505" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Elite Fitness</title>
 
 <style>
 * { box-sizing: border-box; }
+
+html {
+  min-height: 100%;
+  background: #050505;
+}
 
 :root {
   --gold: #d4af37;
@@ -30,6 +38,7 @@ body {
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
+  overflow-x: hidden;
 }
 
 .app {
@@ -1646,6 +1655,151 @@ li {
   padding: 10px 16px;
   border-radius: 999px;
   font-size: 13px;
+}
+
+.app.home-fit {
+  height: 100svh;
+  min-height: 100svh;
+  overflow: hidden;
+  padding: max(10px, env(safe-area-inset-top)) 14px calc(74px + env(safe-area-inset-bottom));
+}
+
+.app.home-fit #home.page.active {
+  height: calc(100svh - 84px - env(safe-area-inset-bottom));
+  min-height: 0;
+  padding-top: 54px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app.home-fit .home-onboarding-btn {
+  flex: 0 0 auto;
+  min-height: 34px;
+  margin: 0 auto 6px;
+  padding: 7px 12px;
+  font-size: 12px;
+}
+
+.app.home-fit #home > h1 {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.app.home-fit #home > .subtitle {
+  flex: 0 0 auto;
+  margin: 5px 0 7px;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.app.home-fit .fitness-dashboard {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: 0;
+  padding: 10px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.app.home-fit .dashboard-top {
+  gap: 8px;
+}
+
+.app.home-fit .dashboard-eyebrow,
+.app.home-fit .watch-status-pill {
+  font-size: 10px;
+}
+
+.app.home-fit .watch-status-pill {
+  padding: 6px 8px;
+}
+
+.app.home-fit .dashboard-top h2 {
+  font-size: 20px;
+}
+
+.app.home-fit .range-tabs {
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.app.home-fit .range-tabs span {
+  padding: 4px 0;
+  font-size: 10px;
+}
+
+.app.home-fit .activity-bars {
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.app.home-fit .activity-bar {
+  grid-template-columns: 58px 1fr 38px;
+  gap: 6px;
+  font-size: 10px;
+}
+
+.app.home-fit .activity-track {
+  height: 10px;
+}
+
+.app.home-fit .metric-grid {
+  margin-top: 8px;
+}
+
+.app.home-fit .metric-tile {
+  min-height: 54px;
+  padding: 7px 5px;
+}
+
+.app.home-fit .metric-mark {
+  display: none;
+}
+
+.app.home-fit .metric-tile strong {
+  font-size: 18px;
+}
+
+.app.home-fit .metric-tile small {
+  margin-top: 3px;
+  font-size: 9px;
+}
+
+.app.home-fit .timeline-item {
+  margin-top: 7px;
+  padding-left: 8px;
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.app.home-fit .dashboard-actions {
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.app.home-fit .dashboard-actions button {
+  min-height: 34px;
+  padding: 8px;
+  margin-top: 0;
+  border-radius: 11px;
+  font-size: 12px;
+}
+
+@media (max-height: 700px) {
+  .app.home-fit #home.page.active {
+    padding-top: 50px;
+  }
+
+  .app.home-fit .range-tabs {
+    display: none;
+  }
+
+  .app.home-fit .timeline-item {
+    display: none;
+  }
 }
 
 .workout-card {
@@ -6733,6 +6887,7 @@ showPage = function(pageId) {
   eliteFitnessOriginalShowPage(pageId);
   const app = document.querySelector(".app");
   const page = document.getElementById(pageId);
+  app.classList.toggle("home-fit", pageId === "home");
   app.classList.toggle("screen-fit", eliteFitnessFullScreenPages.includes(pageId));
   document.querySelectorAll(".page").forEach(item => item.classList.remove("compact-fit-page"));
   if (page && eliteFitnessCompactPages.includes(pageId)) {
