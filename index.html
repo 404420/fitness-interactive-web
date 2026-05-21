@@ -2760,7 +2760,7 @@ li {
     <p class="subtitle" data-i18n="recoveryIntro">Uni, valmisolek, vesi ja harjumused.</p>
 
     <div class="feature-card">
-      <h2 data-i18n="readiness">Valmisoleku skoor</h2>
+      <h2 data-i18n="readiness">Recovery-Aware Training</h2>
       <div class="row">
         <input id="sleepHours" type="number" min="0" max="14" step="0.25" placeholder="Uni h" />
         <input id="sleepQualityScore" type="number" min="0" max="100" value="72" placeholder="Sleep score" />
@@ -6957,6 +6957,8 @@ function renderDashboard() {
   const activePct = percent(weekly.length, appData.goals.weeklyWorkouts);
   const caloriePct = percent(weeklyCalories, appData.goals.weeklyCalories);
   const waterPct = percent(todayWater, appData.goals.dailyWater);
+  const recoverySnapshot = getTodayRecoverySnapshot();
+  const adaptiveRecommendation = generateAdaptiveWorkoutRecommendation(recoverySnapshot);
 
   document.getElementById("homeSummary").innerHTML = `
     <div class="dashboard-top">
@@ -6971,6 +6973,12 @@ function renderDashboard() {
       <div class="activity-bar"><span>${dashLabels.active}</span><div class="activity-track"><span style="width:${activePct}%"></span></div><span>${activePct}%</span></div>
       <div class="activity-bar"><span>kcal</span><div class="activity-track"><span style="width:${caloriePct}%"></span></div><span>${caloriePct}%</span></div>
       <div class="activity-bar"><span>vesi</span><div class="activity-track"><span style="width:${waterPct}%"></span></div><span>${waterPct}%</span></div>
+    </div>
+    <div class="timeline-item">
+      <strong>Recovery-Aware Training</strong><br>
+      Recovery Score ${recoverySnapshot.recoveryScore}/100 · Readiness ${recoverySnapshot.readinessLevel} · Sleep Score ${recoverySnapshot.sleepQualityScore}<br>
+      ${adaptiveRecommendation.suggestedWorkoutAdjustment}<br>
+      <small>${adaptiveRecommendation.reason}</small>
     </div>
     <div class="metric-grid">
       <div class="metric-tile"><span class="metric-mark">TR</span><strong>${weekly.length}</strong><small>${dl.workouts7}</small></div>
@@ -7057,7 +7065,6 @@ function renderDashboard() {
   document.getElementById("waterAmount").textContent = todayWater;
   document.getElementById("waterPercent").textContent = `${dailyWaterPercent}%`;
 
-  const recoverySnapshot = getTodayRecoverySnapshot();
   document.getElementById("recoveryScore").innerHTML = renderRecoveryDashboardCard(recoverySnapshot);
   document.getElementById("sleepHours").value = recoverySnapshot.sleepDuration || "";
   document.getElementById("sleepQualityScore").value = recoverySnapshot.sleepQualityScore || 72;
