@@ -41,6 +41,10 @@ body {
   overflow-x: hidden;
 }
 
+body.modal-open {
+  overflow: hidden;
+}
+
 .app {
   width: 100%;
   max-width: 430px;
@@ -1040,6 +1044,22 @@ li {
     linear-gradient(180deg, #121212, #030303);
 }
 
+#workoutModal {
+  padding: 0;
+}
+
+#workoutModal .workout-modal-content {
+  width: min(430px, 100%);
+  max-width: 430px;
+  height: 100svh;
+  max-height: 100svh;
+  border-radius: 0;
+  padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
 .workout-header {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -1076,9 +1096,9 @@ li {
 }
 
 .workout-ring {
-  width: 190px;
-  height: 190px;
-  margin: 20px auto 16px;
+  width: min(150px, 34svh);
+  height: min(150px, 34svh);
+  margin: 10px auto 8px;
   border-radius: 50%;
   padding: 9px;
   background: conic-gradient(#ffd86b 0deg, rgba(255,255,255,0.08) 0deg);
@@ -1099,7 +1119,7 @@ li {
 
 .workout-ring-inner strong {
   color: white;
-  font-size: 44px;
+  font-size: clamp(32px, 8svh, 44px);
   line-height: 1;
 }
 
@@ -1117,8 +1137,8 @@ li {
 }
 
 .workout-zone {
-  margin-top: 12px;
-  padding: 12px;
+  margin-top: 6px;
+  padding: 9px;
   border-radius: 16px;
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(212,175,55,0.26);
@@ -1133,8 +1153,8 @@ li {
 }
 
 .workout-zone-track {
-  height: 11px;
-  margin-top: 10px;
+  height: 8px;
+  margin-top: 7px;
   border-radius: 999px;
   overflow: hidden;
   background: rgba(255,255,255,0.12);
@@ -1151,40 +1171,63 @@ li {
 
 .workout-metrics {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+  margin-top: 9px;
 }
 
 .workout-metric {
-  min-height: 84px;
-  border-radius: 16px;
+  min-height: 68px;
+  border-radius: 13px;
   border: 1px solid rgba(212,175,55,0.24);
   background: rgba(6,6,6,0.78);
-  padding: 12px;
+  padding: 8px 5px;
   text-align: center;
+}
+
+.workout-metric-icon {
+  display: block;
+  min-height: 18px;
+  color: #4ade80;
+  font-size: 16px;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+
+.workout-metric-icon.pulse-heart {
+  color: #ef4444;
 }
 
 .workout-metric strong {
   display: block;
   color: white;
-  font-size: 28px;
+  font-size: 20px;
   line-height: 1;
 }
 
 .workout-metric small {
   display: block;
   color: var(--muted);
-  margin-top: 8px;
-  font-size: 12px;
+  margin-top: 5px;
+  font-size: 9px;
   font-weight: 900;
   text-transform: uppercase;
 }
 
 .workout-actions {
   display: grid;
-  gap: 10px;
-  margin-top: 18px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 7px;
+  margin-top: auto;
+  padding-top: 9px;
+}
+
+.workout-actions button {
+  min-height: 38px;
+  padding: 9px 6px;
+  margin-top: 0;
+  border-radius: 11px;
+  font-size: 12px;
 }
 
 .small {
@@ -1666,6 +1709,65 @@ li {
 .watch-card h2 {
   font-size: 22px;
   max-width: 70%;
+}
+
+.watch-connect-panel {
+  display: none;
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(74,222,128,0.34);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(74,222,128,0.16), transparent 38%),
+    rgba(4,16,11,0.92);
+}
+
+.watch-connect-panel.active {
+  display: block;
+}
+
+.watch-connect-panel h2 {
+  margin: 0;
+  color: #4ade80;
+}
+
+.watch-connect-panel ol {
+  padding-left: 20px;
+  margin: 12px 0 0;
+  color: #fff0b8;
+  line-height: 1.4;
+}
+
+.watch-connect-panel li {
+  list-style: decimal;
+  background: transparent;
+  border: 0;
+  margin: 6px 0 0;
+  padding: 0;
+  border-radius: 0;
+  cursor: default;
+}
+
+.bluetooth-scan {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(0,0,0,0.44);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.bluetooth-scan strong,
+.bluetooth-scan small {
+  display: block;
+}
+
+.bluetooth-scan strong {
+  color: white;
+}
+
+.bluetooth-scan small {
+  margin-top: 4px;
+  color: var(--muted);
 }
 
 .home-onboarding-btn {
@@ -2650,19 +2752,20 @@ li {
     <div class="plan-box">
       <p id="watchText" data-i18n="watchNotConnected">Kell ei ole ühendatud</p>
       <div class="watch-device-grid">
-        <div class="image-card watch-card" onclick="connectWatch('Apple Watch')" style="--card-img:url('https://images.unsplash.com/photo-1551816230-ef5deaed4a26?auto=format&fit=crop&w=900&q=85')">
+        <div class="image-card watch-card" onclick="openWatchSetup('Apple Watch')" style="--card-img:url('https://images.unsplash.com/photo-1551816230-ef5deaed4a26?auto=format&fit=crop&w=900&q=85')">
           <h2 data-i18n="connectAppleWatch">Ühenda Apple Watch</h2>
         </div>
-        <div class="image-card watch-card" onclick="connectWatch('Android Watch')" style="--card-img:url('https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=900&q=85')">
+        <div class="image-card watch-card" onclick="openWatchSetup('Android Watch')" style="--card-img:url('https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=900&q=85')">
           <h2>Ühenda Android Watch</h2>
         </div>
-        <div class="image-card watch-card" onclick="connectWatch('Garmin')" style="--card-img:url('https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=900&q=85')">
+        <div class="image-card watch-card" onclick="openWatchSetup('Garmin')" style="--card-img:url('https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=900&q=85')">
           <h2>Ühenda Garmin</h2>
         </div>
-        <div class="image-card watch-card" onclick="connectWatch('Fitbit')" style="--card-img:url('https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?auto=format&fit=crop&w=900&q=85')">
+        <div class="image-card watch-card" onclick="openWatchSetup('Fitbit')" style="--card-img:url('https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?auto=format&fit=crop&w=900&q=85')">
           <h2>Ühenda Fitbit</h2>
         </div>
       </div>
+      <div id="watchConnectPanel" class="watch-connect-panel"></div>
       <div class="watch-actions">
         <button class="dark-btn" onclick="showOnboarding(true)" data-i18n="restartOnboarding">Käivita sissejuhatus uuesti</button>
       </div>
@@ -2710,14 +2813,14 @@ li {
     </div>
 
     <div class="workout-metrics">
-      <div class="workout-metric"><strong id="duration">0</strong><small>aeg min</small></div>
-      <div class="workout-metric"><strong id="calories">0</strong><small>kcal</small></div>
-      <div class="workout-metric"><strong id="steps">0</strong><small>sammud</small></div>
-      <div class="workout-metric"><strong id="distance">0.0</strong><small>distants km</small></div>
-      <div class="workout-metric"><strong id="activeCalories">0</strong><small>aktiivne kcal</small></div>
-      <div class="workout-metric"><strong id="avgHeart">0</strong><small>keskmine bpm</small></div>
-      <div class="workout-metric"><strong id="pace">--</strong><small>tempo min/km</small></div>
-      <div class="workout-metric"><strong id="watchSignal">--</strong><small>käekell</small></div>
+      <div class="workout-metric"><span class="workout-metric-icon">⏱</span><strong id="duration">0</strong><small>aeg min</small></div>
+      <div class="workout-metric"><span class="workout-metric-icon">🔥</span><strong id="calories">0</strong><small>kcal</small></div>
+      <div class="workout-metric"><span class="workout-metric-icon">👟</span><strong id="steps">0</strong><small>sammud</small></div>
+      <div class="workout-metric"><span class="workout-metric-icon">📍</span><strong id="distance">0.0</strong><small>km</small></div>
+      <div class="workout-metric"><span class="workout-metric-icon">⚡</span><strong id="activeCalories">0</strong><small>aktiivne</small></div>
+      <div class="workout-metric"><span class="workout-metric-icon pulse-heart">❤</span><strong id="avgHeart">0</strong><small>avg bpm</small></div>
+      <div class="workout-metric"><span class="workout-metric-icon">↗</span><strong id="pace">--</strong><small>tempo</small></div>
+      <div class="workout-metric"><span class="workout-metric-icon">⌚</span><strong id="watchSignal">--</strong><small>käekell</small></div>
     </div>
 
     <div class="workout-actions">
@@ -5181,14 +5284,72 @@ function connectWatch(watchName) {
   toast(`${watchName} ${t[currentLang].connected}`);
 }
 
+function openWatchSetup(watchName) {
+  const panel = document.getElementById("watchConnectPanel");
+  if (!panel) return;
+  panel.classList.add("active");
+  panel.innerHTML = `
+    <h2>${watchName}</h2>
+    <p class="help-text">Ühenda kell Bluetoothi kaudu ja luba terviseandmete jagamine, et pulss, kcal, sammud ja aeg jõuaksid live-treeningusse.</p>
+    <ol>
+      <li>Ava telefonis Bluetooth ja hoia ${watchName} telefoni lähedal.</li>
+      <li>Pane kell ühendusrežiimi või ava kella companion-app.</li>
+      <li>Vajuta all olevat nuppu, et otsida Bluetooth ühendust.</li>
+      <li>Kui seade leitakse, aktiveerib Elite Fitness live-andmed automaatselt.</li>
+    </ol>
+    <div id="bluetoothScanStatus" class="bluetooth-scan">
+      <strong>Valmis otsima</strong>
+      <small>Bluetooth otsing pole veel käivitatud.</small>
+    </div>
+    <button onclick="scanBluetoothWatch('${watchName}')">Otsi bluetooth ühendust</button>
+    <button class="dark-btn" onclick="connectWatch('${watchName}')">Ühenda automaatselt</button>
+  `;
+  panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+async function scanBluetoothWatch(watchName) {
+  const status = document.getElementById("bluetoothScanStatus");
+  if (status) {
+    status.innerHTML = `<strong>Otsin ${watchName} seadet...</strong><small>Hoia kell telefoni lähedal ja kinnita brauseri Bluetooth aken, kui see avaneb.</small>`;
+  }
+
+  if (navigator.bluetooth?.requestDevice) {
+    try {
+      await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: ["heart_rate", "battery_service"]
+      });
+      connectWatch(watchName);
+      if (status) {
+        status.innerHTML = `<strong>${watchName} ühendatud</strong><small>Bluetooth seade leiti ja live-andmed on valmis.</small>`;
+      }
+      return;
+    } catch {
+      if (status) {
+        status.innerHTML = `<strong>Bluetooth otsing katkestati</strong><small>Võid proovida uuesti või kasutada automaatset demoühendust.</small>`;
+      }
+      return;
+    }
+  }
+
+  setTimeout(() => {
+    connectWatch(watchName);
+    if (status) {
+      status.innerHTML = `<strong>${watchName} ühendatud</strong><small>See brauser ei toeta Web Bluetoothit, seega aktiveeriti automaatne ühendus.</small>`;
+    }
+  }, 900);
+}
+
 function openWorkout(workoutName) {
   currentWorkout = workoutName;
   document.getElementById("selectedWorkoutTitle").textContent = workoutLabel(workoutName);
   updateLiveData();
+  document.body.classList.add("modal-open");
   document.getElementById("workoutModal").classList.add("active");
 }
 
 function closeWorkout() {
+  document.body.classList.remove("modal-open");
   document.getElementById("workoutModal").classList.remove("active");
 }
 
