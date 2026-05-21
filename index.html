@@ -344,34 +344,25 @@ button:active { transform: translateY(1px); }
 }
 
 .body-preview {
-  width: 54px;
-  height: 72px;
-  display: grid;
-  place-items: center;
-  color: #ffd86b;
+  width: 100%;
+  height: 92px;
+  display: block;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid rgba(212,175,55,0.26);
+  background: #080808;
 }
 
 .type-pill.active .body-preview {
-  color: var(--green);
+  border-color: rgba(74,222,128,0.68);
 }
 
-.body-preview svg {
+.body-preview img {
   width: 100%;
   height: 100%;
   display: block;
-  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.42));
-}
-
-.body-preview .body-fill {
-  fill: currentColor;
-}
-
-.body-preview .body-line {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  object-fit: cover;
+  object-position: center top;
 }
 
 .type-pill strong {
@@ -3960,6 +3951,23 @@ const bodyTypes = {
   E: { label: "E", shape: "heavy", title: { et:"Kõrgem rasv", en:"Higher body fat", ru:"Больше жира" }, text: { et:"Pehmem keskosa, rasvapõletuse fookus", en:"Softer midsection, fat-loss focus", ru:"Мягче корпус, фокус на жиросжигании" }, weeks: 20 }
 };
 
+const bodyTypeImages = {
+  male: {
+    A: "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?auto=format&fit=crop&w=500&q=85",
+    B: "https://images.unsplash.com/photo-1605296867304-46d5465a13f1?auto=format&fit=crop&w=500&q=85",
+    C: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=500&q=85",
+    D: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=500&q=85",
+    E: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=500&q=85"
+  },
+  female: {
+    A: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=500&q=85",
+    B: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=500&q=85",
+    C: "https://images.unsplash.com/photo-1571019613914-85f342c6a11e?auto=format&fit=crop&w=500&q=85",
+    D: "https://images.unsplash.com/photo-1594381898411-846e7d193883?auto=format&fit=crop&w=500&q=85",
+    E: "https://images.unsplash.com/photo-1599058917765-a780eda07a3e?auto=format&fit=crop&w=500&q=85"
+  }
+};
+
 const nutritionTemplates = {
   fat: {
     title: "Rasvapõletuse toitumiskava",
@@ -5168,6 +5176,10 @@ function setLanguage(lang) {
     <option value="male">${t[lang].male}</option>
     <option value="female">${t[lang].female}</option>
   `;
+  document.getElementById("gender").onchange = event => {
+    appData.profile.gender = event.target.value || "male";
+    renderBodyTypeSelectors();
+  };
 
   document.getElementById("goal").innerHTML = `
     <option value="fat">${t[lang].fat}</option>
@@ -6430,24 +6442,21 @@ function renderBodyTypeSelectors() {
 
 function bodyTypeCard(key, selected, onclick) {
   const type = bodyTypes[key];
+  const gender = appData.profile.gender === "female" ? "female" : "male";
   return `
     <div class="type-pill ${selected ? "active" : ""}" onclick="${onclick}">
-      <span class="body-preview">${bodyTypePreview(type.shape)}</span>
+      <span class="body-preview">${bodyTypePreview(key, gender)}</span>
       <strong>${key} · ${langText(type.title)}</strong>
       <small>${langText(type.text)}</small>
     </div>
   `;
 }
 
-function bodyTypePreview(shape) {
-  const shapes = {
-    lean: `<svg viewBox="0 0 64 88" aria-hidden="true"><circle class="body-fill" cx="32" cy="10" r="7"/><path class="body-line" d="M32 19v31M24 25l8 8 8-8M27 50l-8 28M37 50l8 28"/><path class="body-line" d="M26 34h12"/></svg>`,
-    athletic: `<svg viewBox="0 0 64 88" aria-hidden="true"><circle class="body-fill" cx="32" cy="10" r="7"/><path class="body-fill" d="M24 22h16l6 25-8 8H26l-8-8 6-25z"/><path class="body-line" d="M24 28l-10 18M40 28l10 18M27 55l-7 25M37 55l7 25"/></svg>`,
-    average: `<svg viewBox="0 0 64 88" aria-hidden="true"><circle class="body-fill" cx="32" cy="10" r="7"/><path class="body-fill" d="M22 22h20l8 28-8 11H22l-8-11 8-28z"/><path class="body-line" d="M23 31l-9 18M41 31l9 18M25 61l-5 19M39 61l5 19"/></svg>`,
-    strong: `<svg viewBox="0 0 64 88" aria-hidden="true"><circle class="body-fill" cx="32" cy="10" r="7"/><path class="body-fill" d="M18 23h28l8 24-10 12H20L10 47l8-24z"/><path class="body-line" d="M18 28L8 43M46 28l10 15M23 59l-6 22M41 59l6 22M24 35h16"/></svg>`,
-    heavy: `<svg viewBox="0 0 64 88" aria-hidden="true"><circle class="body-fill" cx="32" cy="10" r="7"/><path class="body-fill" d="M18 23h28c8 12 10 28 3 42H15C8 51 10 35 18 23z"/><path class="body-line" d="M18 31L8 48M46 31l10 17M24 65l-5 16M40 65l5 16"/></svg>`
-  };
-  return shapes[shape] || shapes.average;
+function bodyTypePreview(key, gender) {
+  const image = bodyTypeImages[gender]?.[key] || bodyTypeImages.male[key] || bodyTypeImages.male.C;
+  const type = bodyTypes[key];
+  const alt = `${langText(type.title)} ${gender === "female" ? "naise" : "mehe"} kehatüübi foto`;
+  return `<img src="${image}" alt="${alt}" loading="lazy">`;
 }
 
 function selectBodyType(field, value) {
@@ -6943,8 +6952,7 @@ showOnboarding();
   border-radius: 11px;
 }
 .compact-fit-page .body-preview {
-  width: 40px;
-  height: 52px;
+  height: 66px;
 }
 .compact-fit-page .type-pill strong {
   font-size: 11px;
