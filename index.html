@@ -555,6 +555,80 @@ li {
 .plan-box h2,
 .plan-box h3 { margin-top: 0; }
 
+.metrics-drawer {
+  position: fixed;
+  top: 96px;
+  left: max(0px, calc(50% - 215px));
+  z-index: 42;
+  width: min(332px, calc(100vw - 64px));
+  transform: translateX(calc(-100% + 10px));
+  transition: transform 0.28s ease;
+  pointer-events: none;
+}
+
+.metrics-drawer.active {
+  transform: translateX(12px);
+}
+
+.metrics-panel {
+  max-height: calc(100svh - 166px);
+  overflow-y: auto;
+  margin-top: 0;
+  padding: 14px;
+  box-shadow: 12px 18px 42px rgba(0,0,0,0.45);
+  pointer-events: auto;
+}
+
+.metrics-panel .stats {
+  margin: 12px 0 0;
+  gap: 8px;
+}
+
+.metrics-panel .card {
+  padding: 11px 6px;
+  border-radius: 13px;
+}
+
+.metrics-panel .card strong {
+  font-size: 20px;
+}
+
+.metrics-panel .card small {
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.metrics-toggle {
+  position: absolute;
+  top: 0;
+  right: -44px;
+  width: 44px;
+  height: 48px;
+  min-height: 48px;
+  margin: 0;
+  padding: 0;
+  border-radius: 0 999px 999px 0;
+  border: 1px solid rgba(212,175,55,0.65);
+  border-left: 0;
+  background: linear-gradient(145deg, #facc15, #8a6b14);
+  color: #050505;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 8px 12px 28px rgba(0,0,0,0.35);
+  pointer-events: auto;
+}
+
+@media (max-width: 430px) {
+  .metrics-drawer {
+    top: 88px;
+  }
+
+  .metrics-drawer.active {
+    transform: translateX(10px);
+  }
+}
+
 .form-field {
   margin-top: 16px;
 }
@@ -2499,7 +2573,10 @@ li {
 
   <div id="programDetail" class="page">
     <button class="dark-btn" onclick="showPage('plans')" data-i18n="backToPlans">Tagasi treeningkavadesse</button>
-    <div id="bodyMetrics" class="plan-box"></div>
+    <div id="metricsDrawer" class="metrics-drawer">
+      <button class="metrics-toggle" onclick="toggleMetricsDrawer()" aria-label="Kehaandmed">i</button>
+      <div id="bodyMetrics" class="plan-box metrics-panel"></div>
+    </div>
     <div id="planOutput" class="plan-box"></div>
   </div>
 
@@ -5348,11 +5425,17 @@ function showPage(pageId) {
   document.getElementById(pageId).classList.add("active");
   document.querySelector(".app").classList.toggle("screen-fit", ["timer"].includes(pageId));
   document.getElementById("menuPanel").classList.remove("active");
+  if (pageId !== "programDetail") {
+    document.getElementById("metricsDrawer")?.classList.remove("active");
+  }
   document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === pageId));
   window.scrollTo({ top: 0, behavior: "smooth" });
   renderDashboard();
 }
 
+function toggleMetricsDrawer() {
+  document.getElementById("metricsDrawer")?.classList.toggle("active");
+}
 function connectWatch(watchName) {
   connectedWatch = watchName;
   document.getElementById("watchText").innerHTML =
@@ -5970,7 +6053,6 @@ function generateProgramPlan(programId = appData.selectedProgram || "generalMusc
       <h2>${programTitle}</h2>
     </div>
     <div class="plan-box">
-      <span class="badge">${t[currentLang].planVersion} ${appData.planVersion || 1}</span>
       <h2>${programTitle}</h2>
       <p>${langText(program.summary)}</p>
       <div class="article-note"><strong>Kuu fookus:</strong> ${aiMonthlyTrainingBlock(program.goal)}</div>
