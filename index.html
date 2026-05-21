@@ -4022,31 +4022,58 @@ const achievements = [
   { id: "progressSaved", title: "Progress kirjas", text: "Lisa esimene kaal või mõõt.", test: data => data.progress.length >= 1 }
 ];
 
-const bodyTypes = {
-  A: { label: "A", shape: "lean", title: { et:"Väga sale", en:"Very lean", ru:"Очень худой" }, text: { et:"Algtase, vähe lihasmassi", en:"Beginner, low muscle mass", ru:"Новичок, мало мышц" }, weeks: 16 },
-  B: { label: "B", shape: "athletic", title: { et:"Sportlik kuiv", en:"Athletic lean", ru:"Спортивный сухой" }, text: { et:"Selgem lihasjoon", en:"More visible muscle lines", ru:"Более заметный рельеф" }, weeks: 12 },
-  C: { label: "C", shape: "average", title: { et:"Keskmine vorm", en:"Average shape", ru:"Средняя форма" }, text: { et:"Tasakaalus, arenguruumiga", en:"Balanced, room to improve", ru:"Баланс, есть куда расти" }, weeks: 10 },
-  D: { label: "D", shape: "strong", title: { et:"Tugev mass", en:"Strong mass", ru:"Сильная масса" }, text: { et:"Laiem õlg ja rohkem lihast", en:"Broader shoulders, more muscle", ru:"Шире плечи, больше мышц" }, weeks: 14 },
-  E: { label: "E", shape: "heavy", title: { et:"Kõrgem rasv", en:"Higher body fat", ru:"Больше жира" }, text: { et:"Pehmem keskosa, rasvapõletuse fookus", en:"Softer midsection, fat-loss focus", ru:"Мягче корпус, фокус на жиросжигании" }, weeks: 20 }
+const currentBodyTypes = {
+  A: { label: "A", title: { et:"Väga sale", en:"Very skinny", ru:"Очень худой" }, text: { et:"Kitsas raam, vähe lihast ja rasva", en:"Narrow frame, low muscle and fat", ru:"Узкая фигура, мало мышц и жира" }, weeks: 16 },
+  B: { label: "B", title: { et:"Sale, vähe lihast", en:"Lean, low muscle", ru:"Худой, мало мышц" }, text: { et:"Õhuke ülakeha, jõu ja massi fookus", en:"Thin upper body, strength and size focus", ru:"Тонкий верх тела, фокус на силу и массу" }, weeks: 14 },
+  C: { label: "C", title: { et:"Kerge kõht ees", en:"Slight belly", ru:"Небольшой живот" }, text: { et:"Skinny-fat: pehmem keskosa, vähe lihasjoont", en:"Skinny-fat: softer middle, limited definition", ru:"Skinny-fat: мягче середина, мало рельефа" }, weeks: 12 },
+  D: { label: "D", title: { et:"Kõht ees", en:"Belly forward", ru:"Живот вперед" }, text: { et:"Kõrgem rasvaprotsent, rasvapõletuse algus", en:"Higher body fat, fat-loss start", ru:"Больше жира, старт жиросжигания" }, weeks: 20 },
+  E: { label: "E", title: { et:"Tugev, aga pehme", en:"Strong but soft", ru:"Сильный, но мягкий" }, text: { et:"Massi on, kuid keskkoht vajab kuivemaks tööd", en:"Mass is there, waist needs leaning out", ru:"Масса есть, талию нужно подсушить" }, weeks: 18 }
 };
+
+const targetBodyTypes = {
+  A: { label: "A", title: { et:"Toonuses sale", en:"Lean toned", ru:"Сухой тонус" }, text: { et:"Kerge, vormis keha ilma suure massita", en:"Light fit body without bulky mass", ru:"Легкая форма без большой массы" }, goal: "muscle", program: "fullBody45", weeks: 12 },
+  B: { label: "B", title: { et:"Kuiv six-pack", en:"Defined six-pack", ru:"Сухой пресс" }, text: { et:"Madal rasv, nähtav kõhulihas ja selge vöö", en:"Lower fat, visible abs and clear waist", ru:"Ниже жир, видимый пресс и талия" }, goal: "fat", program: "sixPackAbs", weeks: 16 },
+  C: { label: "C", title: { et:"Sportlik üldvorm", en:"Athletic all-round", ru:"Атлетичная форма" }, text: { et:"Vastupidav, liikuv ja mõõdukalt lihaseline", en:"Conditioned, mobile and moderately muscular", ru:"Выносливый, подвижный и умеренно мышечный" }, goal: "endurance", program: "crossfit", weeks: 12 },
+  D: { label: "D", title: { et:"Lihasmassi kasv", en:"Muscle gain", ru:"Набор мышц" }, text: { et:"Suurem rind, selg, käed ja jalad", en:"Bigger chest, back, arms and legs", ru:"Больше грудь, спина, руки и ноги" }, goal: "muscle", program: "generalMuscle", weeks: 16 },
+  E: { label: "E", title: { et:"Jõuline lai keha", en:"Strong broad build", ru:"Сильная широкая фигура" }, text: { et:"Laiem ülakeha, jõud ja tugev raam", en:"Broader upper body, strength and frame", ru:"Шире верх, сила и крепкий каркас" }, goal: "strength", program: "powerlifting", weeks: 18 }
+};
+
+const bodyTypes = currentBodyTypes;
 
 const bodyTypeImages = {
   male: {
-    A: "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?auto=format&fit=crop&w=500&q=85",
-    B: "https://images.unsplash.com/photo-1605296867304-46d5465a13f1?auto=format&fit=crop&w=500&q=85",
-    C: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=500&q=85",
-    D: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=500&q=85",
-    E: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=500&q=85"
+    current: {
+      A: "https://source.unsplash.com/featured/500x650/?skinny,male,fitness",
+      B: "https://source.unsplash.com/featured/500x650/?lean,male,fitness,beginner",
+      C: "https://source.unsplash.com/featured/500x650/?skinny-fat,male,fitness",
+      D: "https://source.unsplash.com/featured/500x650/?overweight,man,fitness",
+      E: "https://source.unsplash.com/featured/500x650/?strong,man,gym"
+    },
+    target: {
+      A: "https://source.unsplash.com/featured/500x650/?lean,male,body,fitness",
+      B: "https://source.unsplash.com/featured/500x650/?male,abs,six-pack,fitness",
+      C: "https://source.unsplash.com/featured/500x650/?athletic,man,training",
+      D: "https://source.unsplash.com/featured/500x650/?muscular,man,gym",
+      E: "https://source.unsplash.com/featured/500x650/?powerlifter,man,gym"
+    }
   },
   female: {
-    A: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=500&q=85",
-    B: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=500&q=85",
-    C: "https://images.unsplash.com/photo-1571019613914-85f342c6a11e?auto=format&fit=crop&w=500&q=85",
-    D: "https://images.unsplash.com/photo-1594381898411-846e7d193883?auto=format&fit=crop&w=500&q=85",
-    E: "https://images.unsplash.com/photo-1599058917765-a780eda07a3e?auto=format&fit=crop&w=500&q=85"
+    current: {
+      A: "https://source.unsplash.com/featured/500x650/?slim,woman,fitness",
+      B: "https://source.unsplash.com/featured/500x650/?lean,woman,fitness",
+      C: "https://source.unsplash.com/featured/500x650/?beginner,woman,fitness",
+      D: "https://source.unsplash.com/featured/500x650/?overweight,woman,fitness",
+      E: "https://source.unsplash.com/featured/500x650/?strong,woman,gym"
+    },
+    target: {
+      A: "https://source.unsplash.com/featured/500x650/?toned,woman,fitness",
+      B: "https://source.unsplash.com/featured/500x650/?fit,woman,abs",
+      C: "https://source.unsplash.com/featured/500x650/?athletic,woman,training",
+      D: "https://source.unsplash.com/featured/500x650/?muscular,woman,gym",
+      E: "https://source.unsplash.com/featured/500x650/?strong,woman,weights"
+    }
   }
 };
-
 const nutritionTemplates = {
   fat: {
     title: "Rasvapõletuse toitumiskava",
@@ -6516,30 +6543,30 @@ function bodyTypeIndex(type) {
 function renderBodyTypeSelectors() {
   const current = appData.profile.currentType || "C";
   const target = appData.profile.targetType || "B";
-  document.getElementById("currentBodyTypes").innerHTML = Object.keys(bodyTypes).map(key =>
-    bodyTypeCard(key, current === key, `selectBodyType('currentType','${key}')`)
+  document.getElementById("currentBodyTypes").innerHTML = Object.keys(currentBodyTypes).map(key =>
+    bodyTypeCard(key, current === key, `selectBodyType('currentType','${key}')`, "current")
   ).join("");
-  document.getElementById("targetBodyTypes").innerHTML = Object.keys(bodyTypes).map(key =>
-    bodyTypeCard(key, target === key, `selectBodyType('targetType','${key}')`)
+  document.getElementById("targetBodyTypes").innerHTML = Object.keys(targetBodyTypes).map(key =>
+    bodyTypeCard(key, target === key, `selectBodyType('targetType','${key}')`, "target")
   ).join("");
 }
 
-function bodyTypeCard(key, selected, onclick) {
-  const type = bodyTypes[key];
+function bodyTypeCard(key, selected, onclick, mode = "current") {
+  const type = mode === "target" ? targetBodyTypes[key] : currentBodyTypes[key];
   const gender = appData.profile.gender === "female" ? "female" : "male";
   return `
     <div class="type-pill ${selected ? "active" : ""}" onclick="${onclick}">
-      <span class="body-preview">${bodyTypePreview(key, gender)}</span>
+      <span class="body-preview">${bodyTypePreview(key, gender, mode)}</span>
       <strong>${key} · ${langText(type.title)}</strong>
       <small>${langText(type.text)}</small>
     </div>
   `;
 }
 
-function bodyTypePreview(key, gender) {
-  const image = bodyTypeImages[gender]?.[key] || bodyTypeImages.male[key] || bodyTypeImages.male.C;
-  const type = bodyTypes[key];
-  const alt = `${langText(type.title)} ${gender === "female" ? "naise" : "mehe"} kehatüübi foto`;
+function bodyTypePreview(key, gender, mode = "current") {
+  const image = bodyTypeImages[gender]?.[mode]?.[key] || bodyTypeImages.male[mode]?.[key] || bodyTypeImages.male.current.C;
+  const type = mode === "target" ? targetBodyTypes[key] : currentBodyTypes[key];
+  const alt = `${langText(type.title)} ${gender === "female" ? "naise" : "mehe"} ${mode === "target" ? "eesmärgi" : "kehatüübi"} foto`;
   return `<img src="${image}" alt="${alt}" loading="lazy">`;
 }
 
@@ -6549,16 +6576,32 @@ function selectBodyType(field, value) {
   renderDashboard();
 }
 
+function bodyCourseProgram(current, target) {
+  const targetType = targetBodyTypes[target] || targetBodyTypes.B;
+  if (["D", "E"].includes(current) && ["A", "B", "C"].includes(target)) return "fatLossCircuit";
+  if (current === "C" && target === "B") return "sixPackAbs";
+  return targetType.program || "generalMuscle";
+}
+
 function saveBodyCourse() {
   const current = appData.profile.currentType || "C";
   const target = appData.profile.targetType || "B";
   const distance = Math.abs(bodyTypeIndex(current) - bodyTypeIndex(target)) || 1;
-  const baseWeeks = bodyTypes[target].weeks;
-  appData.profile.courseWeeks = baseWeeks + distance * 4;
+  const targetType = targetBodyTypes[target] || targetBodyTypes.B;
+  const selectedProgram = bodyCourseProgram(current, target);
+  const selectedGoal = trainingPrograms[selectedProgram]?.goal || targetType.goal || "muscle";
+  appData.profile.courseWeeks = Number(targetType.weeks || 12) + distance * 4;
   appData.profile.intensity = distance >= 3 ? "high" : distance === 2 ? "mediumHigh" : "medium";
   appData.profile.courseStart = appData.profile.courseStart || new Date().toISOString();
+  appData.selectedProgram = selectedProgram;
+  appData.selectedGoal = selectedGoal;
+  const goalSelect = document.getElementById("goal");
+  const nutritionGoal = document.getElementById("nutritionGoal");
+  if (goalSelect) goalSelect.value = selectedGoal;
+  if (nutritionGoal) nutritionGoal.value = selectedGoal;
   saveData();
-  toast(currentLang === "ru" ? "???€? ????€????" : currentLang === "en" ? "Course saved" : "Treeningkuur salvestatud");
+  renderDashboard();
+  toast(currentLang === "ru" ? "Курс сохранен" : currentLang === "en" ? "Course saved and plan recommended" : "Treeningkuur salvestatud ja kava soovitatud");
 }
 
 function profileProgressPercent() {
