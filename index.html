@@ -1624,13 +1624,28 @@ li {
 
 .watch-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 10px;
+}
+
+.watch-device-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
 }
 
 .watch-card h2 {
   font-size: 22px;
   max-width: 70%;
+}
+
+.home-onboarding-btn {
+  width: auto;
+  display: block;
+  margin: 0 auto 12px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 13px;
 }
 
 .workout-card {
@@ -2092,6 +2107,7 @@ li {
   </div>
 
   <div id="home" class="page active">
+    <button class="home-onboarding-btn dark-btn" onclick="showOnboarding(true)" data-i18n="restartOnboarding">Käivita sissejuhatus uuesti</button>
     <h1>Elite Fitness</h1>
     <p class="subtitle" data-i18n="subtitle">Premium treeningkogemus sinu nutikellaga</p>
 
@@ -2459,13 +2475,21 @@ li {
 
     <div class="plan-box">
       <p id="watchText" data-i18n="watchNotConnected">Kell ei ole ühendatud</p>
-      <div class="image-card watch-card" onclick="connectWatch('Apple Watch')" style="--card-img:url('https://images.unsplash.com/photo-1551816230-ef5deaed4a26?auto=format&fit=crop&w=900&q=85')">
-        <h2 data-i18n="connectAppleWatch">Ühenda Apple Watch</h2>
+      <div class="watch-device-grid">
+        <div class="image-card watch-card" onclick="connectWatch('Apple Watch')" style="--card-img:url('https://images.unsplash.com/photo-1551816230-ef5deaed4a26?auto=format&fit=crop&w=900&q=85')">
+          <h2 data-i18n="connectAppleWatch">Ühenda Apple Watch</h2>
+        </div>
+        <div class="image-card watch-card" onclick="connectWatch('Android Watch')" style="--card-img:url('https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=900&q=85')">
+          <h2>Ühenda Android Watch</h2>
+        </div>
+        <div class="image-card watch-card" onclick="connectWatch('Garmin')" style="--card-img:url('https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=900&q=85')">
+          <h2>Ühenda Garmin</h2>
+        </div>
+        <div class="image-card watch-card" onclick="connectWatch('Fitbit')" style="--card-img:url('https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?auto=format&fit=crop&w=900&q=85')">
+          <h2>Ühenda Fitbit</h2>
+        </div>
       </div>
       <div class="watch-actions">
-        <button onclick="connectWatch('Android Watch')">Android Watch</button>
-        <button onclick="connectWatch('Garmin')">Garmin</button>
-        <button onclick="connectWatch('Fitbit')">Fitbit</button>
         <button class="dark-btn" onclick="showOnboarding(true)" data-i18n="restartOnboarding">Käivita sissejuhatus uuesti</button>
       </div>
     </div>
