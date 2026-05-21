@@ -321,7 +321,7 @@ button:active { transform: translateY(1px); }
 }
 
 .type-pill {
-  padding: 14px 8px;
+  padding: 12px 8px;
   border-radius: 14px;
   border: 1px solid rgba(212,175,55,0.35);
   background: rgba(10,10,10,0.9);
@@ -329,11 +329,63 @@ button:active { transform: translateY(1px); }
   text-align: center;
   cursor: pointer;
   font-weight: bold;
+  min-height: 138px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
 }
 
 .type-pill.active {
   border-color: var(--green);
   color: var(--green);
+  box-shadow: inset 0 0 0 1px rgba(74,222,128,0.32), 0 0 18px rgba(74,222,128,0.12);
+}
+
+.body-preview {
+  width: 54px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  color: #ffd86b;
+}
+
+.type-pill.active .body-preview {
+  color: var(--green);
+}
+
+.body-preview svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.42));
+}
+
+.body-preview .body-fill {
+  fill: currentColor;
+}
+
+.body-preview .body-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.type-pill strong {
+  display: block;
+  color: white;
+  font-size: 13px;
+  line-height: 1.12;
+}
+
+.type-pill small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.2;
 }
 
 .workout-type-grid {
@@ -3901,11 +3953,11 @@ const achievements = [
 ];
 
 const bodyTypes = {
-  A: { label: "A", text: { et:"Väga sale / algtase", en:"Very lean / beginner", ru:"Очень худой / новичок" }, weeks: 16 },
-  B: { label: "B", text: { et:"Sportlik ja kuiv", en:"Athletic and lean", ru:"Спортивный и сухой" }, weeks: 12 },
-  C: { label: "C", text: { et:"Keskmine vorm", en:"Average shape", ru:"Средняя форма" }, weeks: 10 },
-  D: { label: "D", text: { et:"Tugev, rohkem massi", en:"Strong, more mass", ru:"Сильный, больше массы" }, weeks: 14 },
-  E: { label: "E", text: { et:"Kõrgem rasvaprotsent", en:"Higher body-fat level", ru:"Более высокий процент жира" }, weeks: 20 }
+  A: { label: "A", shape: "lean", title: { et:"Väga sale", en:"Very lean", ru:"Очень худой" }, text: { et:"Algtase, vähe lihasmassi", en:"Beginner, low muscle mass", ru:"Новичок, мало мышц" }, weeks: 16 },
+  B: { label: "B", shape: "athletic", title: { et:"Sportlik kuiv", en:"Athletic lean", ru:"Спортивный сухой" }, text: { et:"Selgem lihasjoon", en:"More visible muscle lines", ru:"Более заметный рельеф" }, weeks: 12 },
+  C: { label: "C", shape: "average", title: { et:"Keskmine vorm", en:"Average shape", ru:"Средняя форма" }, text: { et:"Tasakaalus, arenguruumiga", en:"Balanced, room to improve", ru:"Баланс, есть куда расти" }, weeks: 10 },
+  D: { label: "D", shape: "strong", title: { et:"Tugev mass", en:"Strong mass", ru:"Сильная масса" }, text: { et:"Laiem õlg ja rohkem lihast", en:"Broader shoulders, more muscle", ru:"Шире плечи, больше мышц" }, weeks: 14 },
+  E: { label: "E", shape: "heavy", title: { et:"Kõrgem rasv", en:"Higher body fat", ru:"Больше жира" }, text: { et:"Pehmem keskosa, rasvapõletuse fookus", en:"Softer midsection, fat-loss focus", ru:"Мягче корпус, фокус на жиросжигании" }, weeks: 20 }
 };
 
 const nutritionTemplates = {
@@ -6369,11 +6421,33 @@ function renderBodyTypeSelectors() {
   const current = appData.profile.currentType || "C";
   const target = appData.profile.targetType || "B";
   document.getElementById("currentBodyTypes").innerHTML = Object.keys(bodyTypes).map(key =>
-    `<div class="type-pill ${current === key ? "active" : ""}" onclick="selectBodyType('currentType','${key}')">${key}<br><small>${langText(bodyTypes[key].text)}</small></div>`
+    bodyTypeCard(key, current === key, `selectBodyType('currentType','${key}')`)
   ).join("");
   document.getElementById("targetBodyTypes").innerHTML = Object.keys(bodyTypes).map(key =>
-    `<div class="type-pill ${target === key ? "active" : ""}" onclick="selectBodyType('targetType','${key}')">${key}<br><small>${langText(bodyTypes[key].text)}</small></div>`
+    bodyTypeCard(key, target === key, `selectBodyType('targetType','${key}')`)
   ).join("");
+}
+
+function bodyTypeCard(key, selected, onclick) {
+  const type = bodyTypes[key];
+  return `
+    <div class="type-pill ${selected ? "active" : ""}" onclick="${onclick}">
+      <span class="body-preview">${bodyTypePreview(type.shape)}</span>
+      <strong>${key} · ${langText(type.title)}</strong>
+      <small>${langText(type.text)}</small>
+    </div>
+  `;
+}
+
+function bodyTypePreview(shape) {
+  const shapes = {
+    lean: `<svg viewBox="0 0 64 88" aria-hidden="true"><circle class="body-fill" cx="32" cy="10" r="7"/><path class="body-line" d="M32 19v31M24 25l8 8 8-8M27 50l-8 28M37 50l8 28"/><path class="body-line" d="M26 34h12"/></svg>`,
+    athletic: `<svg viewBox="0 0 64 88" aria-hidden="true"><circle class="body-fill" cx="32" cy="10" r="7"/><path class="body-fill" d="M24 22h16l6 25-8 8H26l-8-8 6-25z"/><path class="body-line" d="M24 28l-10 18M40 28l10 18M27 55l-7 25M37 55l7 25"/></svg>`,
+    average: `<svg viewBox="0 0 64 88" aria-hidden="true"><circle class="body-fill" cx="32" cy="10" r="7"/><path class="body-fill" d="M22 22h20l8 28-8 11H22l-8-11 8-28z"/><path class="body-line" d="M23 31l-9 18M41 31l9 18M25 61l-5 19M39 61l5 19"/></svg>`,
+    strong: `<svg viewBox="0 0 64 88" aria-hidden="true"><circle class="body-fill" cx="32" cy="10" r="7"/><path class="body-fill" d="M18 23h28l8 24-10 12H20L10 47l8-24z"/><path class="body-line" d="M18 28L8 43M46 28l10 15M23 59l-6 22M41 59l6 22M24 35h16"/></svg>`,
+    heavy: `<svg viewBox="0 0 64 88" aria-hidden="true"><circle class="body-fill" cx="32" cy="10" r="7"/><path class="body-fill" d="M18 23h28c8 12 10 28 3 42H15C8 51 10 35 18 23z"/><path class="body-line" d="M18 31L8 48M46 31l10 17M24 65l-5 16M40 65l5 16"/></svg>`
+  };
+  return shapes[shape] || shapes.average;
 }
 
 function selectBodyType(field, value) {
@@ -6864,12 +6938,19 @@ showOnboarding();
   margin-top: 6px;
 }
 .compact-fit-page .type-pill {
-  padding: 9px 5px;
+  min-height: 116px;
+  padding: 8px 5px;
   border-radius: 11px;
-  font-size: 13px;
+}
+.compact-fit-page .body-preview {
+  width: 40px;
+  height: 52px;
+}
+.compact-fit-page .type-pill strong {
+  font-size: 11px;
 }
 .compact-fit-page .type-pill small {
-  display: none;
+  font-size: 9px;
 }
 .compact-fit-page button,
 .compact-fit-page input,
