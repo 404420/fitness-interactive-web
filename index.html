@@ -2920,22 +2920,21 @@ li {
     <p class="subtitle" data-i18n="recoveryIntro">Uni, valmisolek, vesi ja harjumused.</p>
 
     <div class="feature-card">
-      <h2 data-i18n="readiness">Recovery-Aware Training</h2>
-      <p class="subtitle">Uneandmed tulevad hiljem Apple Watch une reziimist. Praegu kasutab kaart turvalisi näidisandmeid.</p>
+      <h2 data-i18n="readiness">Unepõhine treeningusoovitus</h2>
       <button onclick="saveRecovery()" data-i18n="saveRecovery">Salvesta taastumine</button>
       <div id="recoveryScore"></div>
       <details class="sleep-source-fields">
         <summary>Muuda une ja koormuse sisendit</summary>
         <div class="row">
           <input id="sleepHours" type="number" min="0" max="14" step="0.25" placeholder="Uni h" />
-          <input id="sleepQualityScore" type="number" min="0" max="100" value="72" placeholder="Sleep score" />
+          <input id="sleepQualityScore" type="number" min="0" max="100" value="72" placeholder="Uneskoor" />
         </div>
         <div class="row">
-          <input id="restingHeartRate" type="number" min="35" max="120" value="58" placeholder="Resting HR" />
+          <input id="restingHeartRate" type="number" min="35" max="120" value="58" placeholder="Puhkepulss" />
           <input id="hrv" type="number" min="5" max="180" value="55" placeholder="HRV" />
         </div>
         <div class="row">
-          <input id="previousWorkoutLoad" type="number" min="0" max="100" value="45" placeholder="Load 0-100" />
+          <input id="previousWorkoutLoad" type="number" min="0" max="100" value="45" placeholder="Koormus 0-100" />
           <select id="mood">
             <option value="3">Hea tuju</option>
             <option value="2">Keskmine</option>
@@ -3255,7 +3254,7 @@ const t = {
     dailyStepsLabel:"Sammude eesmärk päevas", dailyStepsHelp:"Mitu sammu soovid päevas teha? Näide: 8000 või 10000.",
     dailyWaterLabel:"Vee eesmärk päevas", dailyWaterHelp:"Kui palju vett soovid päevas juua milliliitrites? Näide: 2000 tähendab 2 liitrit.",
     saveProgress:"Salvesta progress", achievements:"Saavutused", startTimer:"Käivita taimer",
-    stopTimer:"Peata taimer", readiness:"Valmisoleku skoor", saveRecovery:"Salvesta taastumine",
+    stopTimer:"Peata taimer", readiness:"Unepõhine treeningusoovitus", saveRecovery:"Salvesta taastumine",
     waterTracker:"Veetarbimine", dailyGoal:"päeva eesmärk", resetWater:"Nulli tänane vesi",
     saveProfile:"Salvesta profiil", editProfile:"Muuda isikuandmeid seadetes", dataSettings:"Andmed", importData:"Impordi andmed", clearData:"Kustuta demoandmed", backToPlans:"Tagasi treeningkavadesse",
     selectWorkoutPlan:"Vali treeningplaan", useWorkoutBuilder:"KASUTA TREENINGU EHITAJAT", appleWatchTracking:"Apple Watch live-jälgimine", liveTrackingIntro:"Vali treening, käivita jälgimine ja loe pulssi, aega ning kaloreid käekella kaudu.", watchStreaming:"Käekella live-andmed", recentTracking:"Viimati kasutatud", allTrackingTypes:"Treeningu tüübid", handbook:"Käsiraamat", encyclopedia:"Entsüklopeedia", yourWeight:"Sinu kaal", yourHeight:"Sinu pikkus", connectAppleWatch:"Ühenda Apple Watch",
@@ -3300,7 +3299,7 @@ const t = {
     dailyStepsLabel:"Daily step goal", dailyStepsHelp:"How many steps do you want to take per day? Example: 8000 or 10000.",
     dailyWaterLabel:"Daily water goal", dailyWaterHelp:"How much water do you want to drink per day in milliliters? Example: 2000 means 2 liters.",
     saveProgress:"Save progress", achievements:"Achievements", startTimer:"Start timer",
-    stopTimer:"Stop timer", readiness:"Readiness score", saveRecovery:"Save recovery",
+    stopTimer:"Stop timer", readiness:"Sleep-based training recommendation", saveRecovery:"Save recovery",
     waterTracker:"Water tracker", dailyGoal:"daily goal", resetWater:"Reset today's water",
     saveProfile:"Save profile", editProfile:"Edit personal data in settings", dataSettings:"Data", importData:"Import data", clearData:"Clear demo data", backToPlans:"Back to training plans",
     selectWorkoutPlan:"Select your workout plan", useWorkoutBuilder:"USE WORKOUT BUILDER", appleWatchTracking:"Apple Watch live tracking", liveTrackingIntro:"Choose a workout, start tracking and read heart rate, time and calories from your watch.", watchStreaming:"Watch live data", recentTracking:"Most recent", allTrackingTypes:"Workout types", handbook:"Handbook", encyclopedia:"Encyclopedia", yourWeight:"Your weight", yourHeight:"Your height", connectAppleWatch:"Connect Apple Watch",
@@ -3345,7 +3344,7 @@ const t = {
     dailyStepsLabel:"Цель по шагам в день", dailyStepsHelp:"Сколько шагов ты хочешь делать в день? Например: 8000 или 10000.",
     dailyWaterLabel:"Цель по воде в день", dailyWaterHelp:"Сколько воды ты хочешь пить в день в миллилитрах? Например: 2000 означает 2 литра.",
     saveProgress:"Сохранить прогресс", achievements:"Достижения", startTimer:"Запустить таймер",
-    stopTimer:"Остановить таймер", readiness:"Оценка готовности", saveRecovery:"Сохранить восстановление",
+    stopTimer:"Остановить таймер", readiness:"Рекомендация тренировки по сну", saveRecovery:"Сохранить восстановление",
     waterTracker:"Вода", dailyGoal:"цель дня", resetWater:"Сбросить воду за день",
     saveProfile:"Сохранить профиль", editProfile:"Изменить личные данные", dataSettings:"Данные", importData:"Импорт данных", clearData:"Удалить демо-данные", backToPlans:"Назад к планам",
     selectWorkoutPlan:"Выбери план тренировки", useWorkoutBuilder:"ИСПОЛЬЗОВАТЬ КОНСТРУКТОР", appleWatchTracking:"Apple Watch live-трекинг", liveTrackingIntro:"Выбери тренировку, запусти трекинг и считывай пульс, время и калории с часов.", watchStreaming:"Live-данные часов", recentTracking:"Недавние", allTrackingTypes:"Типы тренировок", handbook:"Справочник", encyclopedia:"Энциклопедия", yourWeight:"Твой вес", yourHeight:"Твой рост", connectAppleWatch:"Подключить Apple Watch",
@@ -6573,34 +6572,40 @@ function calculateRecoveryScore(input) {
 
 function generateAdaptiveWorkoutRecommendation(recovery) {
   const warnings = [];
-  if (recovery.sleepDuration < 6 && recovery.previousWorkoutLoad >= 70) warnings.push("low sleep + high previous load");
-  if (recovery.hrv < 35 && recovery.readinessLevel !== "low") warnings.push("low HRV: cap intensity");
-  if (recovery.recoveryScore < 45) warnings.push("recovery below safe threshold");
+  if (recovery.sleepDuration < 6 && recovery.previousWorkoutLoad >= 70) warnings.push("uni oli lühike ja eelmine koormus oli kõrge");
+  if (recovery.hrv < 35 && recovery.readinessLevel !== "low") warnings.push("HRV on madal, seega koormus tuleb piirata");
+  if (recovery.recoveryScore < 45) warnings.push("taastumisskoor on allpool turvalist piiri");
 
   if (recovery.readinessLevel === "low") {
     return {
-      recommendedIntensity: "low",
-      warningMessage: warnings.length ? `Overtraining risk: ${warnings.join(", ")}` : "Recovery is low. Avoid hard training today.",
-      suggestedWorkoutAdjustment: "Choose rest, mobility, walking, or a deload session. Do not use max intensity.",
-      reason: "Sleep, HRV/load balance or soreness suggests your body is not ready for heavy stress."
+      recommendedIntensity: "puhkus",
+      intensityLabel: "Puhkus või väga kerge liikumine",
+      warningMessage: warnings.length ? `Ülekoormuse risk: ${warnings.join(", ")}.` : "Taastumine on madal. Väldi täna rasket treeningut.",
+      suggestedWorkoutAdjustment: "Täna soovitan puhata, teha rahulikku kõndi või 15-25 min liikuvust. Ära tee tänase kava raskeid seeriaid.",
+      planAdjustment: "Kui plaanis oli jõutrenn, jäta rasked põhiharjutused vahele ja tee ainult kerge soojendus, liikuvus ning venitused.",
+      reason: "Uneskoor ja taastumine näitavad, et keha energiavarud pole piisavalt taastunud."
     };
   }
 
   if (recovery.readinessLevel === "medium") {
     return {
-      recommendedIntensity: "medium",
-      warningMessage: warnings.length ? `Watch load: ${warnings.join(", ")}` : "Moderate session is appropriate.",
-      suggestedWorkoutAdjustment: "Keep the planned workout, but reduce sets or load by 10-20% if fatigue appears.",
-      reason: "Readiness is acceptable, but not high enough for aggressive progression."
+      recommendedIntensity: "keskmine",
+      intensityLabel: "Keskmine koormus",
+      warningMessage: warnings.length ? `Jälgi koormust: ${warnings.join(", ")}.` : "Keskmine koormus sobib täna.",
+      suggestedWorkoutAdjustment: "Tee tänane kava, kuid vähenda mahtu: 1 seeria vähem igal harjutusel või 10-20% kergem raskus.",
+      planAdjustment: "Äpp kohandab sinu praegust kava nii, et harjutused jäävad samaks, aga korduste, seeriate või raskuse maht väheneb.",
+      reason: "Taastumine on piisav mõõdukaks tööks, kuid mitte maksimaalseks pingutuseks."
     };
   }
 
   const cappedByHrv = recovery.hrv < 35;
   return {
-    recommendedIntensity: cappedByHrv ? "medium" : "high",
-    warningMessage: cappedByHrv ? "Low HRV detected. Heavy work is capped to medium intensity." : "Readiness is high.",
-    suggestedWorkoutAdjustment: cappedByHrv ? "Train moderately and monitor heart rate response." : "Progressive overload is allowed today. Add load or volume conservatively.",
-    reason: cappedByHrv ? "Safety logic prevents high intensity when HRV is suppressed." : "Sleep, recovery score and soreness support a harder session."
+    recommendedIntensity: cappedByHrv ? "keskmine" : "kõrge",
+    intensityLabel: cappedByHrv ? "Keskmine koormus" : "Intensiivne treening",
+    warningMessage: cappedByHrv ? "HRV on madal. Äpp ei soovita täna maksimaalset intensiivsust." : "Taastumine on hea.",
+    suggestedWorkoutAdjustment: cappedByHrv ? "Tee tänane kava mõõduka tempoga ja hoia raskused kontrolli all." : "Võid teha tänase kava intensiivsemalt: lisa veidi raskust või üks lisaseeria põhiharjutustele.",
+    planAdjustment: cappedByHrv ? "Harjutused jäävad samaks, kuid äpp piirab raskust ja seeriate arvu." : "Äpp kasutab sinu praegust kava ja lubab progressiivset ülekoormust ilma liigse stressita.",
+    reason: cappedByHrv ? "Madal HRV võib tähendada närvisüsteemi väsimust." : "Uneskoor, taastumisskoor ja valulikkus lubavad täna tugevamat treeningut."
   };
 }
 
@@ -6622,36 +6627,37 @@ function getTodayRecoverySnapshot() {
 function renderRecoveryDashboardCard(recovery) {
   const recommendation = generateAdaptiveWorkoutRecommendation(recovery);
   const sleep = sleepAnalysisFromRecovery(recovery);
-  const warning = recovery.readinessLevel === "low" || recommendation.recommendedIntensity === "low";
+  const warning = recovery.readinessLevel === "low" || recommendation.recommendedIntensity === "puhkus";
   return `
     <div class="sleep-card">
       <div class="sleep-card-top">
         <div>
-          <div class="sleep-eyebrow">Apple Watch Sleep Analysis</div>
+          <div class="sleep-eyebrow">Uneanalüüs</div>
           <h3>${formatSleepMinutes(sleep.total)} und</h3>
-          <p class="small">Sleep Score ${recovery.sleepQualityScore} · Recovery ${recovery.recoveryScore}/100 · readiness ${recovery.readinessLevel}</p>
+          <p class="small">Uneskoor ${recovery.sleepQualityScore} · taastumine ${recovery.recoveryScore}/100 · soovitus: ${recommendation.intensityLabel}</p>
         </div>
         <div class="sleep-score-ring" style="--score-angle:${recovery.sleepQualityScore * 3.6}deg"><span>${recovery.sleepQualityScore}</span></div>
       </div>
       <div class="sleep-stage-stack" style="--awake:${sleep.awakePercent}fr;--rem:${sleep.remPercent}fr;--core:${sleep.corePercent}fr;--deep:${sleep.deepPercent}fr">
-        <span title="Awake"></span><span title="REM"></span><span title="Core"></span><span title="Deep"></span>
+        <span title="Ärkvel"></span><span title="REM"></span><span title="Kerge uni"></span><span title="Sügav uni"></span>
       </div>
       <div class="sleep-stage-grid">
-        <div class="sleep-stage awake"><strong>${formatSleepMinutes(sleep.stages.awake)}</strong><small>Awake</small></div>
+        <div class="sleep-stage awake"><strong>${formatSleepMinutes(sleep.stages.awake)}</strong><small>Ärkvel</small></div>
         <div class="sleep-stage rem"><strong>${formatSleepMinutes(sleep.stages.rem)}</strong><small>REM</small></div>
-        <div class="sleep-stage core"><strong>${formatSleepMinutes(sleep.stages.core)}</strong><small>Core</small></div>
-        <div class="sleep-stage deep"><strong>${formatSleepMinutes(sleep.stages.deep)}</strong><small>Deep</small></div>
+        <div class="sleep-stage core"><strong>${formatSleepMinutes(sleep.stages.core)}</strong><small>Kerge uni</small></div>
+        <div class="sleep-stage deep"><strong>${formatSleepMinutes(sleep.stages.deep)}</strong><small>Sügav uni</small></div>
       </div>
       <div class="sleep-comparison">
-        <strong>Comparison:</strong> ${sleep.comparison}. Awake aeg on diagrammil punane, sest see vähendab taastumise kvaliteeti.
+        <strong>Võrdlus:</strong> ${sleep.comparison}. Ärkvel oldud aeg on diagrammil punane, sest see vähendab taastumise kvaliteeti.
       </div>
       <div class="sleep-recommendation ${warning ? "warning" : ""}">
         <span>
           <strong>Tänane treeningusoovitus</strong>
-          <small>${recommendation.reason}</small>
+          <small>${recommendation.suggestedWorkoutAdjustment}</small>
         </span>
-        <button class="dark-btn" onclick="showRecoveryPopup(getTodayRecoverySnapshot())">${recommendation.recommendedIntensity}</button>
+        <button class="dark-btn" onclick="showRecoveryPopup(getTodayRecoverySnapshot())">${recommendation.intensityLabel}</button>
       </div>
+      <p class="small">${recommendation.planAdjustment}</p>
     </div>
   `;
 }
@@ -6677,20 +6683,21 @@ function saveRecovery() {
 function renderRecoveryPopupContent(recovery) {
   const recommendation = generateAdaptiveWorkoutRecommendation(recovery);
   const sleep = sleepAnalysisFromRecovery(recovery);
-  const shouldRest = recommendation.recommendedIntensity === "low";
+  const shouldRest = recommendation.recommendedIntensity === "puhkus";
   return `
     <div class="sleep-card">
       <div class="sleep-eyebrow">Hommikune taastumise teade</div>
-      <h3>${shouldRest ? "Pigem puhka täna" : "Treeni kohandatud intensiivsusega"}</h3>
+      <h3>${shouldRest ? "Täna soovitan puhata" : recommendation.intensityLabel}</h3>
       <p>${recommendation.suggestedWorkoutAdjustment}</p>
+      <p class="small">${recommendation.planAdjustment}</p>
       <div class="sleep-stage-stack" style="--awake:${sleep.awakePercent}fr;--rem:${sleep.remPercent}fr;--core:${sleep.corePercent}fr;--deep:${sleep.deepPercent}fr">
         <span></span><span></span><span></span><span></span>
       </div>
       <div class="sleep-stage-grid">
-        <div class="sleep-stage awake"><strong>${formatSleepMinutes(sleep.stages.awake)}</strong><small>Awake</small></div>
+        <div class="sleep-stage awake"><strong>${formatSleepMinutes(sleep.stages.awake)}</strong><small>Ärkvel</small></div>
         <div class="sleep-stage rem"><strong>${formatSleepMinutes(sleep.stages.rem)}</strong><small>REM</small></div>
-        <div class="sleep-stage core"><strong>${formatSleepMinutes(sleep.stages.core)}</strong><small>Core</small></div>
-        <div class="sleep-stage deep"><strong>${formatSleepMinutes(sleep.stages.deep)}</strong><small>Deep</small></div>
+        <div class="sleep-stage core"><strong>${formatSleepMinutes(sleep.stages.core)}</strong><small>Kerge uni</small></div>
+        <div class="sleep-stage deep"><strong>${formatSleepMinutes(sleep.stages.deep)}</strong><small>Sügav uni</small></div>
       </div>
       <p class="small">${recommendation.warningMessage}</p>
     </div>
@@ -7237,8 +7244,8 @@ function renderDashboard() {
       <div class="activity-bar"><span>vesi</span><div class="activity-track"><span style="width:${waterPct}%"></span></div><span>${waterPct}%</span></div>
     </div>
     <div class="sleep-home-card" onclick="showPage('recovery')">
-      <strong>Sleep Recovery ${recoverySnapshot.sleepQualityScore}</strong>
-      <small>${formatSleepMinutes(sleepSnapshot.total)} · ${recoverySnapshot.readinessLevel} readiness · ${adaptiveRecommendation.recommendedIntensity} trenn</small>
+      <strong>Uneskoor ${recoverySnapshot.sleepQualityScore}: ${adaptiveRecommendation.intensityLabel}</strong>
+      <small>${formatSleepMinutes(sleepSnapshot.total)} und · ${adaptiveRecommendation.suggestedWorkoutAdjustment}</small>
     </div>
     <div class="metric-grid">
       <div class="metric-tile"><span class="metric-mark">TR</span><strong>${weekly.length}</strong><small>${dl.workouts7}</small></div>
