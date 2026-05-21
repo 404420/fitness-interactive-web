@@ -559,9 +559,9 @@ li {
   position: fixed;
   top: 50%;
   left: max(0px, calc(50% - 215px));
-  z-index: 42;
+  z-index: 80;
   width: min(332px, calc(100vw - 58px));
-  transform: translate(calc(-100% + 1px), -50%);
+  transform: translate(calc(-100% + 34px), -50%);
   transition: transform 0.28s ease;
   pointer-events: none;
 }
@@ -601,15 +601,15 @@ li {
 .metrics-toggle {
   position: absolute;
   top: 10px;
-  right: -30px;
+  right: 2px;
   width: 30px;
   height: 36px;
   min-height: 36px;
   margin: 0;
   padding: 0;
-  border-radius: 0 999px 999px 0;
+  border-radius: 999px;
   border: 1px solid rgba(212,175,55,0.65);
-  border-left: 0;
+  border-left: 1px solid rgba(212,175,55,0.65);
   background: linear-gradient(145deg, #facc15, #8a6b14);
   color: #050505;
   font-size: 15px;
