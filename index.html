@@ -2762,7 +2762,15 @@ li {
     <div class="feature-card">
       <h2 data-i18n="readiness">Valmisoleku skoor</h2>
       <div class="row">
-        <input id="sleepHours" type="number" />
+        <input id="sleepHours" type="number" min="0" max="14" step="0.25" placeholder="Uni h" />
+        <input id="sleepQualityScore" type="number" min="0" max="100" value="72" placeholder="Sleep score" />
+      </div>
+      <div class="row">
+        <input id="restingHeartRate" type="number" min="35" max="120" value="58" placeholder="Resting HR" />
+        <input id="hrv" type="number" min="5" max="180" value="55" placeholder="HRV" />
+      </div>
+      <div class="row">
+        <input id="previousWorkoutLoad" type="number" min="0" max="100" value="45" placeholder="Load 0-100" />
         <select id="mood">
           <option value="3">Hea tuju</option>
           <option value="2">Keskmine</option>
@@ -3031,6 +3039,7 @@ const defaultData = {
   meals: [],
   progress: [],
   recovery: {},
+  wearableMovement: {},
   water: {},
   subscription: false,
   aiCoach: { lastRefresh: "", monthlyFocus: "", recommendedProgram: "", notes: [] }
@@ -6289,12 +6298,149 @@ function addProgressEntry() {
   toast("Progress salvestatud");
 }
 
+/**
+ * RecoveryScoreInput model for future Apple Health / HealthKit data.
+ * Fields: sleepDuration, sleepQualityScore, restingHeartRate, hrv,
+ * previousWorkoutLoad, sorenessLevel, recoveryScore, readinessLevel.
+ */
+function clampNumber(value, min, max) {
+  return Math.max(min, Math.min(max, Number(value || 0)));
+}
+
+function readinessFromScore(score) {
+  if (score < 55) return "low";
+  if (score < 75) return "medium";
+  return "high";
+}
+
+function defaultWristMovementSignal() {
+  return {
+    movementPattern: "unknown",
+    wristVelocity: 0,
+    repLikeMotionDetected: false,
+    confidenceScore: 0
+  };
+}
+
+function latestWorkoutLoadScore() {
+  const recent = weekItems(appData.history || []);
+  const minutes = total(recent, "duration");
+  const calories = total(recent, "calories");
+  return clampNumber(Math.round(minutes * 0.18 + calories * 0.015), 0, 100);
+}
+
+function recoveryInputFromForm() {
+  const sorenessLevel = Number(document.getElementById("soreness")?.value || 4);
+  return {
+    sleepDuration: Number(document.getElementById("sleepHours")?.value || 7),
+    sleepQualityScore: Number(document.getElementById("sleepQualityScore")?.value || 72),
+    restingHeartRate: Number(document.getElementById("restingHeartRate")?.value || 58),
+    hrv: Number(document.getElementById("hrv")?.value || 55),
+    previousWorkoutLoad: Number(document.getElementById("previousWorkoutLoad")?.value || latestWorkoutLoadScore()),
+    sorenessLevel,
+    wristMovement: defaultWristMovementSignal()
+  };
+}
+
+function calculateRecoveryScore(input) {
+  const sleepScore = clampNumber((input.sleepDuration / 8) * 100, 0, 100);
+  const qualityScore = clampNumber(input.sleepQualityScore, 0, 100);
+  const hrvScore = clampNumber((input.hrv / 70) * 100, 0, 100);
+  const rhrScore = clampNumber(100 - Math.max(0, input.restingHeartRate - 50) * 2, 0, 100);
+  const loadScore = clampNumber(100 - input.previousWorkoutLoad, 0, 100);
+  const sorenessScore = clampNumber((11 - input.sorenessLevel) * 10, 0, 100);
+  const recoveryScore = Math.round(
+    sleepScore * 0.24 +
+    qualityScore * 0.20 +
+    hrvScore * 0.18 +
+    rhrScore * 0.14 +
+    loadScore * 0.14 +
+    sorenessScore * 0.10
+  );
+  return {
+    ...input,
+    recoveryScore: clampNumber(recoveryScore, 0, 100),
+    readinessLevel: readinessFromScore(recoveryScore)
+  };
+}
+
+function generateAdaptiveWorkoutRecommendation(recovery) {
+  const warnings = [];
+  if (recovery.sleepDuration < 6 && recovery.previousWorkoutLoad >= 70) warnings.push("low sleep + high previous load");
+  if (recovery.hrv < 35 && recovery.readinessLevel !== "low") warnings.push("low HRV: cap intensity");
+  if (recovery.recoveryScore < 45) warnings.push("recovery below safe threshold");
+
+  if (recovery.readinessLevel === "low") {
+    return {
+      recommendedIntensity: "low",
+      warningMessage: warnings.length ? `Overtraining risk: ${warnings.join(", ")}` : "Recovery is low. Avoid hard training today.",
+      suggestedWorkoutAdjustment: "Choose rest, mobility, walking, or a deload session. Do not use max intensity.",
+      reason: "Sleep, HRV/load balance or soreness suggests your body is not ready for heavy stress."
+    };
+  }
+
+  if (recovery.readinessLevel === "medium") {
+    return {
+      recommendedIntensity: "medium",
+      warningMessage: warnings.length ? `Watch load: ${warnings.join(", ")}` : "Moderate session is appropriate.",
+      suggestedWorkoutAdjustment: "Keep the planned workout, but reduce sets or load by 10-20% if fatigue appears.",
+      reason: "Readiness is acceptable, but not high enough for aggressive progression."
+    };
+  }
+
+  const cappedByHrv = recovery.hrv < 35;
+  return {
+    recommendedIntensity: cappedByHrv ? "medium" : "high",
+    warningMessage: cappedByHrv ? "Low HRV detected. Heavy work is capped to medium intensity." : "Readiness is high.",
+    suggestedWorkoutAdjustment: cappedByHrv ? "Train moderately and monitor heart rate response." : "Progressive overload is allowed today. Add load or volume conservatively.",
+    reason: cappedByHrv ? "Safety logic prevents high intensity when HRV is suppressed." : "Sleep, recovery score and soreness support a harder session."
+  };
+}
+
+function getTodayRecoverySnapshot() {
+  const saved = appData.recovery?.[todayKey()];
+  if (saved?.recoveryScore) return saved;
+  return calculateRecoveryScore({
+    sleepDuration: Number(saved?.sleepDuration || saved?.sleep || 7),
+    sleepQualityScore: Number(saved?.sleepQualityScore || 72),
+    restingHeartRate: Number(saved?.restingHeartRate || 58),
+    hrv: Number(saved?.hrv || 55),
+    previousWorkoutLoad: Number(saved?.previousWorkoutLoad || latestWorkoutLoadScore()),
+    sorenessLevel: Number(saved?.sorenessLevel || saved?.soreness || 4),
+    wristMovement: saved?.wristMovement || defaultWristMovementSignal()
+  });
+}
+
+function renderRecoveryDashboardCard(recovery) {
+  const recommendation = generateAdaptiveWorkoutRecommendation(recovery);
+  return `
+    <div class="stats">
+      <div class="card"><strong>${recovery.recoveryScore}</strong><small>Recovery Score</small></div>
+      <div class="card"><strong>${recovery.readinessLevel}</strong><small>Readiness Level</small></div>
+      <div class="card"><strong>${recovery.sleepQualityScore}</strong><small>Sleep Score</small></div>
+      <div class="card"><strong>${recommendation.recommendedIntensity}</strong><small>Today intensity</small></div>
+    </div>
+    <div class="article-note">
+      <strong>Today's Training Recommendation:</strong> ${recommendation.suggestedWorkoutAdjustment}<br>
+      <strong>Why?</strong> ${recommendation.reason}<br>
+      <span class="small">${recommendation.warningMessage}</span>
+    </div>
+  `;
+}
+
 function saveRecovery() {
-  const sleep = Number(document.getElementById("sleepHours").value || 0);
-  const mood = Number(document.getElementById("mood").value);
-  const soreness = Number(document.getElementById("soreness").value);
-  const score = Math.max(5, Math.min(100, Math.round((sleep / 8) * 45 + mood * 15 + (11 - soreness) * 1.5)));
-  appData.recovery[todayKey()] = { sleep, mood, soreness, score };
+  const recovery = calculateRecoveryScore(recoveryInputFromForm());
+  const recommendation = generateAdaptiveWorkoutRecommendation(recovery);
+  // Future Apple Watch / HealthKit / WatchConnectivity bridge:
+  // replace form values with HKQuantity sleep, resting HR, HRV and workout load samples here.
+  // Wrist movement stays a supporting signal only; this app is not doing automatic rep counting yet.
+  appData.recovery[todayKey()] = {
+    ...recovery,
+    score: recovery.recoveryScore,
+    recommendation
+  };
+  appData.wearableMovement = appData.wearableMovement || {};
+  appData.wearableMovement[todayKey()] = recovery.wristMovement || defaultWristMovementSignal();
   saveData();
   toast("Taastumine salvestatud");
 }
@@ -6725,6 +6871,9 @@ function trackingRow(workoutName, meta = "") {
 }
 
 function renderLiveTracking() {
+  // Future wearable bridge: hydrate recovery inputs from Apple Health / HealthKit
+  // and WatchConnectivity here, alongside the existing live workout stream.
+  // Wrist movement supports readiness later; this is not automatic rep counting.
   const panel = document.getElementById("watchStreamPanel");
   const recent = document.getElementById("recentTrackingList");
   const all = document.getElementById("allTrackingList");
@@ -6908,9 +7057,14 @@ function renderDashboard() {
   document.getElementById("waterAmount").textContent = todayWater;
   document.getElementById("waterPercent").textContent = `${dailyWaterPercent}%`;
 
-  document.getElementById("recoveryScore").innerHTML = lastRecovery
-    ? `<div class="card"><strong>${lastRecovery.score}</strong><small>valmisoleku skoor / 100</small></div>`
-    : `<p class="small">Täna pole taastumist veel salvestatud.</p>`;
+  const recoverySnapshot = getTodayRecoverySnapshot();
+  document.getElementById("recoveryScore").innerHTML = renderRecoveryDashboardCard(recoverySnapshot);
+  document.getElementById("sleepHours").value = recoverySnapshot.sleepDuration || "";
+  document.getElementById("sleepQualityScore").value = recoverySnapshot.sleepQualityScore || 72;
+  document.getElementById("restingHeartRate").value = recoverySnapshot.restingHeartRate || 58;
+  document.getElementById("hrv").value = recoverySnapshot.hrv || 55;
+  document.getElementById("previousWorkoutLoad").value = recoverySnapshot.previousWorkoutLoad || latestWorkoutLoadScore();
+  document.getElementById("soreness").value = recoverySnapshot.sorenessLevel || 4;
 
   document.getElementById("userName").value = appData.profile.name;
   document.getElementById("userEmail").value = appData.profile.email;
