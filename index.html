@@ -1726,6 +1726,15 @@ li {
   display: block;
 }
 
+.watch-connect-back {
+  width: auto;
+  min-width: 128px;
+  margin: 0 0 10px;
+  padding: 9px 13px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
 .watch-connect-panel h2 {
   margin: 0;
   color: #4ade80;
@@ -5260,14 +5269,17 @@ function renderArticleDetail(articleId) {
 function toggleLang() {
   document.getElementById("langPanel").classList.toggle("active");
   document.getElementById("menuPanel").classList.remove("active");
+  closeWatchSetup();
 }
 
 function toggleMenu() {
   document.getElementById("menuPanel").classList.toggle("active");
   document.getElementById("langPanel").classList.remove("active");
+  closeWatchSetup();
 }
 
 function showPage(pageId) {
+  closeWatchSetup();
   document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
   document.getElementById(pageId).classList.add("active");
   document.querySelector(".app").classList.toggle("screen-fit", ["timer"].includes(pageId));
@@ -5284,11 +5296,19 @@ function connectWatch(watchName) {
   toast(`${watchName} ${t[currentLang].connected}`);
 }
 
+function closeWatchSetup() {
+  const panel = document.getElementById("watchConnectPanel");
+  if (!panel) return;
+  panel.classList.remove("active");
+  panel.innerHTML = "";
+}
+
 function openWatchSetup(watchName) {
   const panel = document.getElementById("watchConnectPanel");
   if (!panel) return;
   panel.classList.add("active");
   panel.innerHTML = `
+    <button class="dark-btn watch-connect-back" onclick="closeWatchSetup()">Tagasi kellade valikusse</button>
     <h2>${watchName}</h2>
     <p class="help-text">Ühenda kell Bluetoothi kaudu ja luba terviseandmete jagamine, et pulss, kcal, sammud ja aeg jõuaksid live-treeningusse.</p>
     <ol>
@@ -7100,6 +7120,7 @@ showPage = function(pageId) {
   eliteFitnessOriginalShowPage(pageId);
   const app = document.querySelector(".app");
   const page = document.getElementById(pageId);
+  if (pageId !== "watch") closeWatchSetup();
   app.classList.toggle("home-fit", pageId === "home");
   app.classList.toggle("screen-fit", eliteFitnessFullScreenPages.includes(pageId));
   document.querySelectorAll(".page").forEach(item => item.classList.remove("compact-fit-page"));
