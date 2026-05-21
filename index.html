@@ -1131,6 +1131,161 @@ li {
   color: #fff0b8;
 }
 
+.sleep-card {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(9,11,22,0.96), rgba(3,3,8,0.96));
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 18px 46px rgba(0,0,0,0.34);
+}
+
+.sleep-card-top,
+.sleep-recommendation {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.sleep-eyebrow {
+  color: #8fb4ff;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.sleep-card h3 {
+  margin: 4px 0 0;
+  color: white;
+  font-size: 22px;
+}
+
+.sleep-score-ring {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(#66d9ff var(--score-angle), rgba(255,255,255,0.09) 0);
+}
+
+.sleep-score-ring span {
+  width: 60px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #05070d;
+  color: white;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.sleep-stage-stack {
+  display: grid;
+  grid-template-columns: var(--awake) var(--rem) var(--core) var(--deep);
+  height: 20px;
+  overflow: hidden;
+  border-radius: 999px;
+  margin: 16px 0 12px;
+  background: rgba(255,255,255,0.08);
+}
+
+.sleep-stage-stack span:nth-child(1) { background: #ff4d57; }
+.sleep-stage-stack span:nth-child(2) { background: #b85cff; }
+.sleep-stage-stack span:nth-child(3) { background: #2997ff; }
+.sleep-stage-stack span:nth-child(4) { background: #2547d0; }
+
+.sleep-stage-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.sleep-stage {
+  padding: 10px 8px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.055);
+}
+
+.sleep-stage strong,
+.sleep-stage small {
+  display: block;
+}
+
+.sleep-stage strong {
+  color: white;
+  font-size: 15px;
+}
+
+.sleep-stage small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.sleep-stage.awake strong { color: #ff5d66; }
+.sleep-stage.rem strong { color: #c982ff; }
+.sleep-stage.core strong { color: #66b5ff; }
+.sleep-stage.deep strong { color: #6f86ff; }
+
+.sleep-comparison {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  color: #dbeafe;
+  background: rgba(41,151,255,0.1);
+  border: 1px solid rgba(102,181,255,0.18);
+}
+
+.sleep-recommendation {
+  margin-top: 12px;
+  padding: 13px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.sleep-recommendation.warning {
+  border-color: rgba(255,77,87,0.5);
+  background: rgba(255,77,87,0.1);
+}
+
+.sleep-home-card {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(41,151,255,0.1);
+  border: 1px solid rgba(102,181,255,0.2);
+}
+
+.sleep-home-card strong {
+  display: block;
+  color: white;
+  font-size: 14px;
+}
+
+.sleep-home-card small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.sleep-source-fields {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.sleep-source-fields summary {
+  cursor: pointer;
+  color: #8fb4ff;
+  font-weight: 900;
+}
+
 .modal {
   display: none;
   position: fixed;
@@ -1951,7 +2106,7 @@ li {
   margin-top: 0;
   padding: 10px;
   border-radius: 16px;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .app.home-fit .dashboard-top {
@@ -2044,10 +2199,6 @@ li {
   }
 
   .app.home-fit .range-tabs {
-    display: none;
-  }
-
-  .app.home-fit .timeline-item {
     display: none;
   }
 }
@@ -2761,25 +2912,29 @@ li {
 
     <div class="feature-card">
       <h2 data-i18n="readiness">Recovery-Aware Training</h2>
-      <div class="row">
-        <input id="sleepHours" type="number" min="0" max="14" step="0.25" placeholder="Uni h" />
-        <input id="sleepQualityScore" type="number" min="0" max="100" value="72" placeholder="Sleep score" />
-      </div>
-      <div class="row">
-        <input id="restingHeartRate" type="number" min="35" max="120" value="58" placeholder="Resting HR" />
-        <input id="hrv" type="number" min="5" max="180" value="55" placeholder="HRV" />
-      </div>
-      <div class="row">
-        <input id="previousWorkoutLoad" type="number" min="0" max="100" value="45" placeholder="Load 0-100" />
-        <select id="mood">
-          <option value="3">Hea tuju</option>
-          <option value="2">Keskmine</option>
-          <option value="1">Väsinud</option>
-        </select>
-      </div>
-      <input id="soreness" type="range" min="1" max="10" value="4" />
+      <p class="subtitle">Uneandmed tulevad hiljem Apple Watch une reziimist. Praegu kasutab kaart turvalisi näidisandmeid.</p>
       <button onclick="saveRecovery()" data-i18n="saveRecovery">Salvesta taastumine</button>
       <div id="recoveryScore"></div>
+      <details class="sleep-source-fields">
+        <summary>Muuda une ja koormuse sisendit</summary>
+        <div class="row">
+          <input id="sleepHours" type="number" min="0" max="14" step="0.25" placeholder="Uni h" />
+          <input id="sleepQualityScore" type="number" min="0" max="100" value="72" placeholder="Sleep score" />
+        </div>
+        <div class="row">
+          <input id="restingHeartRate" type="number" min="35" max="120" value="58" placeholder="Resting HR" />
+          <input id="hrv" type="number" min="5" max="180" value="55" placeholder="HRV" />
+        </div>
+        <div class="row">
+          <input id="previousWorkoutLoad" type="number" min="0" max="100" value="45" placeholder="Load 0-100" />
+          <select id="mood">
+            <option value="3">Hea tuju</option>
+            <option value="2">Keskmine</option>
+            <option value="1">Väsinud</option>
+          </select>
+        </div>
+        <input id="soreness" type="range" min="1" max="10" value="4" />
+      </details>
     </div>
 
     <div class="feature-card">
@@ -2922,6 +3077,13 @@ li {
     <button class="tab-btn" data-tab="myProfile" onclick="showPage('myProfile')"><span>◌</span><small data-i18n="myProfile">Minu profiil</small></button>
     <button class="tab-btn" data-tab="handbook" onclick="showPage('handbook')"><span>□</span><small data-i18n="handbook">Käsiraamat</small></button>
     <button class="tab-btn" data-tab="settings" onclick="showPage('settings')"><span>⋯</span><small data-i18n="settings">Seaded</small></button>
+  </div>
+</div>
+
+<div id="recoveryPopup" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeRecoveryPopup()">×</button>
+    <div id="recoveryPopupContent"></div>
   </div>
 </div>
 
@@ -6322,6 +6484,41 @@ function defaultWristMovementSignal() {
   };
 }
 
+function defaultSleepStages(sleepDuration = 7) {
+  // Future Apple Watch sleep mode bridge: replace this placeholder with HealthKit sleep stage samples after wake.
+  const totalMinutes = Math.round(clampNumber(sleepDuration, 0, 14) * 60);
+  const awake = Math.max(8, Math.round(totalMinutes * 0.07));
+  const rem = Math.round(totalMinutes * 0.22);
+  const deep = Math.round(totalMinutes * 0.17);
+  const core = Math.max(0, totalMinutes - awake - rem - deep);
+  return { awake, rem, core, deep };
+}
+
+function formatSleepMinutes(minutes) {
+  const safeMinutes = Math.max(0, Math.round(Number(minutes || 0)));
+  const hours = Math.floor(safeMinutes / 60);
+  const rest = safeMinutes % 60;
+  return hours ? `${hours}h ${rest}m` : `${rest}m`;
+}
+
+function sleepAnalysisFromRecovery(recovery) {
+  const stages = recovery.sleepStages || defaultSleepStages(recovery.sleepDuration);
+  const total = Math.max(1, stages.awake + stages.rem + stages.core + stages.deep);
+  const comparisonMinutes = Math.round((recovery.sleepDuration - 8) * 60);
+  const comparison = comparisonMinutes >= 0
+    ? `${formatSleepMinutes(comparisonMinutes)} rohkem kui 8h eesmärk`
+    : `${formatSleepMinutes(Math.abs(comparisonMinutes))} vähem kui 8h eesmärk`;
+  return {
+    stages,
+    total,
+    comparison,
+    awakePercent: Math.round((stages.awake / total) * 100),
+    remPercent: Math.round((stages.rem / total) * 100),
+    corePercent: Math.round((stages.core / total) * 100),
+    deepPercent: Math.round((stages.deep / total) * 100)
+  };
+}
+
 function latestWorkoutLoadScore() {
   const recent = weekItems(appData.history || []);
   const minutes = total(recent, "duration");
@@ -6338,6 +6535,7 @@ function recoveryInputFromForm() {
     hrv: Number(document.getElementById("hrv")?.value || 55),
     previousWorkoutLoad: Number(document.getElementById("previousWorkoutLoad")?.value || latestWorkoutLoadScore()),
     sorenessLevel,
+    sleepStages: defaultSleepStages(Number(document.getElementById("sleepHours")?.value || 7)),
     wristMovement: defaultWristMovementSignal()
   };
 }
@@ -6407,23 +6605,44 @@ function getTodayRecoverySnapshot() {
     hrv: Number(saved?.hrv || 55),
     previousWorkoutLoad: Number(saved?.previousWorkoutLoad || latestWorkoutLoadScore()),
     sorenessLevel: Number(saved?.sorenessLevel || saved?.soreness || 4),
+    sleepStages: saved?.sleepStages || defaultSleepStages(Number(saved?.sleepDuration || saved?.sleep || 7)),
     wristMovement: saved?.wristMovement || defaultWristMovementSignal()
   });
 }
 
 function renderRecoveryDashboardCard(recovery) {
   const recommendation = generateAdaptiveWorkoutRecommendation(recovery);
+  const sleep = sleepAnalysisFromRecovery(recovery);
+  const warning = recovery.readinessLevel === "low" || recommendation.recommendedIntensity === "low";
   return `
-    <div class="stats">
-      <div class="card"><strong>${recovery.recoveryScore}</strong><small>Recovery Score</small></div>
-      <div class="card"><strong>${recovery.readinessLevel}</strong><small>Readiness Level</small></div>
-      <div class="card"><strong>${recovery.sleepQualityScore}</strong><small>Sleep Score</small></div>
-      <div class="card"><strong>${recommendation.recommendedIntensity}</strong><small>Today intensity</small></div>
-    </div>
-    <div class="article-note">
-      <strong>Today's Training Recommendation:</strong> ${recommendation.suggestedWorkoutAdjustment}<br>
-      <strong>Why?</strong> ${recommendation.reason}<br>
-      <span class="small">${recommendation.warningMessage}</span>
+    <div class="sleep-card">
+      <div class="sleep-card-top">
+        <div>
+          <div class="sleep-eyebrow">Apple Watch Sleep Analysis</div>
+          <h3>${formatSleepMinutes(sleep.total)} und</h3>
+          <p class="small">Sleep Score ${recovery.sleepQualityScore} · Recovery ${recovery.recoveryScore}/100 · readiness ${recovery.readinessLevel}</p>
+        </div>
+        <div class="sleep-score-ring" style="--score-angle:${recovery.sleepQualityScore * 3.6}deg"><span>${recovery.sleepQualityScore}</span></div>
+      </div>
+      <div class="sleep-stage-stack" style="--awake:${sleep.awakePercent}fr;--rem:${sleep.remPercent}fr;--core:${sleep.corePercent}fr;--deep:${sleep.deepPercent}fr">
+        <span title="Awake"></span><span title="REM"></span><span title="Core"></span><span title="Deep"></span>
+      </div>
+      <div class="sleep-stage-grid">
+        <div class="sleep-stage awake"><strong>${formatSleepMinutes(sleep.stages.awake)}</strong><small>Awake</small></div>
+        <div class="sleep-stage rem"><strong>${formatSleepMinutes(sleep.stages.rem)}</strong><small>REM</small></div>
+        <div class="sleep-stage core"><strong>${formatSleepMinutes(sleep.stages.core)}</strong><small>Core</small></div>
+        <div class="sleep-stage deep"><strong>${formatSleepMinutes(sleep.stages.deep)}</strong><small>Deep</small></div>
+      </div>
+      <div class="sleep-comparison">
+        <strong>Comparison:</strong> ${sleep.comparison}. Awake aeg on diagrammil punane, sest see vähendab taastumise kvaliteeti.
+      </div>
+      <div class="sleep-recommendation ${warning ? "warning" : ""}">
+        <span>
+          <strong>Tänane treeningusoovitus</strong>
+          <small>${recommendation.reason}</small>
+        </span>
+        <button class="dark-btn" onclick="showRecoveryPopup(getTodayRecoverySnapshot())">${recommendation.recommendedIntensity}</button>
+      </div>
     </div>
   `;
 }
@@ -6442,7 +6661,40 @@ function saveRecovery() {
   appData.wearableMovement = appData.wearableMovement || {};
   appData.wearableMovement[todayKey()] = recovery.wristMovement || defaultWristMovementSignal();
   saveData();
+  showRecoveryPopup(recovery);
   toast("Taastumine salvestatud");
+}
+
+function renderRecoveryPopupContent(recovery) {
+  const recommendation = generateAdaptiveWorkoutRecommendation(recovery);
+  const sleep = sleepAnalysisFromRecovery(recovery);
+  const shouldRest = recommendation.recommendedIntensity === "low";
+  return `
+    <div class="sleep-card">
+      <div class="sleep-eyebrow">Hommikune taastumise teade</div>
+      <h3>${shouldRest ? "Pigem puhka täna" : "Treeni kohandatud intensiivsusega"}</h3>
+      <p>${recommendation.suggestedWorkoutAdjustment}</p>
+      <div class="sleep-stage-stack" style="--awake:${sleep.awakePercent}fr;--rem:${sleep.remPercent}fr;--core:${sleep.corePercent}fr;--deep:${sleep.deepPercent}fr">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="sleep-stage-grid">
+        <div class="sleep-stage awake"><strong>${formatSleepMinutes(sleep.stages.awake)}</strong><small>Awake</small></div>
+        <div class="sleep-stage rem"><strong>${formatSleepMinutes(sleep.stages.rem)}</strong><small>REM</small></div>
+        <div class="sleep-stage core"><strong>${formatSleepMinutes(sleep.stages.core)}</strong><small>Core</small></div>
+        <div class="sleep-stage deep"><strong>${formatSleepMinutes(sleep.stages.deep)}</strong><small>Deep</small></div>
+      </div>
+      <p class="small">${recommendation.warningMessage}</p>
+    </div>
+  `;
+}
+
+function showRecoveryPopup(recovery) {
+  document.getElementById("recoveryPopupContent").innerHTML = renderRecoveryPopupContent(recovery);
+  document.getElementById("recoveryPopup").classList.add("active");
+}
+
+function closeRecoveryPopup() {
+  document.getElementById("recoveryPopup").classList.remove("active");
 }
 
 function addWater(amount) {
@@ -6959,6 +7211,7 @@ function renderDashboard() {
   const waterPct = percent(todayWater, appData.goals.dailyWater);
   const recoverySnapshot = getTodayRecoverySnapshot();
   const adaptiveRecommendation = generateAdaptiveWorkoutRecommendation(recoverySnapshot);
+  const sleepSnapshot = sleepAnalysisFromRecovery(recoverySnapshot);
 
   document.getElementById("homeSummary").innerHTML = `
     <div class="dashboard-top">
@@ -6974,11 +7227,9 @@ function renderDashboard() {
       <div class="activity-bar"><span>kcal</span><div class="activity-track"><span style="width:${caloriePct}%"></span></div><span>${caloriePct}%</span></div>
       <div class="activity-bar"><span>vesi</span><div class="activity-track"><span style="width:${waterPct}%"></span></div><span>${waterPct}%</span></div>
     </div>
-    <div class="timeline-item">
-      <strong>Recovery-Aware Training</strong><br>
-      Recovery Score ${recoverySnapshot.recoveryScore}/100 · Readiness ${recoverySnapshot.readinessLevel} · Sleep Score ${recoverySnapshot.sleepQualityScore}<br>
-      ${adaptiveRecommendation.suggestedWorkoutAdjustment}<br>
-      <small>${adaptiveRecommendation.reason}</small>
+    <div class="sleep-home-card" onclick="showPage('recovery')">
+      <strong>Sleep Recovery ${recoverySnapshot.sleepQualityScore}</strong>
+      <small>${formatSleepMinutes(sleepSnapshot.total)} · ${recoverySnapshot.readinessLevel} readiness · ${adaptiveRecommendation.recommendedIntensity} trenn</small>
     </div>
     <div class="metric-grid">
       <div class="metric-tile"><span class="metric-mark">TR</span><strong>${weekly.length}</strong><small>${dl.workouts7}</small></div>
