@@ -128,10 +128,10 @@ body.modal-open {
   display: none;
   position: fixed;
   top: 0;
-  bottom: 68px;
+  bottom: auto;
   left: 50%;
   width: min(430px, 100vw);
-  max-height: none;
+  max-height: calc(100svh - 68px);
   overflow: hidden;
   transform: translateX(-50%);
   background: rgba(8,8,8,0.96);
@@ -179,9 +179,9 @@ body.modal-open {
 .menu-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(5, minmax(0, 1fr));
+  grid-template-rows: repeat(5, clamp(54px, 10.5svh, 70px));
   gap: 8px;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
   margin-top: 0;
 }
@@ -204,13 +204,13 @@ li:hover { border-color: #ffd86b; }
 .menu-card {
   position: relative;
   overflow: hidden;
-  min-height: 0;
-  height: 100%;
+  min-height: 54px;
+  height: auto;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   text-align: left;
-  padding: 12px;
+  padding: 10px;
   color: white;
   border-color: rgba(212,175,55,0.28);
   background:
@@ -225,7 +225,7 @@ li:hover { border-color: #ffd86b; }
   position: relative;
   z-index: 1;
   color: white;
-  font-size: clamp(12px, 3.2vw, 15px);
+  font-size: clamp(11px, 3vw, 14px);
   line-height: 1.1;
   font-weight: 900;
   text-shadow: 0 2px 16px rgba(0,0,0,0.72);
@@ -3174,12 +3174,11 @@ li {
       </div>
 
       <button onclick="saveProfile()" data-i18n="saveProfile">Salvesta profiil</button>
-      <button class="dark-btn" onclick="showOnboarding(true)" data-i18n="restartOnboarding">Käivita sissejuhatus uuesti</button>
     </div>
 
     <div class="plan-box">
-      <h2>Subscription</h2>
-      <p data-i18n="trial">Prooviperiood: 1 kuu tasuta</p>
+      <h2 data-i18n="subscriptionTitle">Tellimus</h2>
+      <p data-i18n="trial">Prooviperiood: 7 päeva tasuta</p>
       <p data-i18n="price">Hind pärast prooviperioodi: 5 € / kuu</p>
       <p data-i18n="renewal">Iga kuu lõpus uuendatakse sinu treeningkavad automaatselt koos uue kuumaksega.</p>
     </div>
@@ -3190,13 +3189,15 @@ li {
       <input id="cardNumber" type="text" maxlength="19" />
       <input id="cardExpiry" type="text" maxlength="5" />
       <input id="cardCvc" type="password" maxlength="4" />
-      <button onclick="activateSubscription()" data-i18n="activateTrial">Alusta 1 kuu tasuta prooviperioodi</button>
+      <button onclick="activateSubscription()" data-i18n="activateTrial">Alusta 7 päeva tasuta prooviperioodi</button>
       <p id="paymentStatus" class="small" data-i18n="paymentMissing">Makseviis puudub.</p>
     </div>
 
     <div class="plan-box">
-      <h2 data-i18n="dataSettings">Andmed</h2>
+      <h2 data-i18n="dataSettings">Andmete varukoopia</h2>
+      <p class="help-text" data-i18n="dataHelp">Siin saad oma äpi andmetest varukoopia teha või varem salvestatud varukoopia tagasi laadida.</p>
       <textarea id="importBox"></textarea>
+      <button class="dark-btn" onclick="exportData()" data-i18n="exportBackup">Loo varukoopia tekst</button>
       <button onclick="importData()" data-i18n="importData">Impordi andmed</button>
       <button class="stop" onclick="clearAllData()" data-i18n="clearData">Kustuta demoandmed</button>
     </div>
@@ -3223,9 +3224,6 @@ li {
         </div>
       </div>
       <div id="watchConnectPanel" class="watch-connect-panel"></div>
-      <div class="watch-actions">
-        <button class="dark-btn" onclick="showOnboarding(true)" data-i18n="restartOnboarding">Käivita sissejuhatus uuesti</button>
-      </div>
     </div>
   </div>
 
@@ -3352,7 +3350,7 @@ const goalProgramMap = { fat: "fatLossCircuit", strength: "powerlifting", muscle
 const todayKey = () => new Date().toISOString().slice(0, 10);
 
 const defaultData = {
-  profile: { name: "Kasutaja", email: "user@email.com", height: 175, weight: 75, age: 30, gender: "male", currentType: "C", targetType: "B", courseStart: "", courseWeeks: 12, intensity: "Keskmine", experience: "beginner", sleepQuality: 72, limitation: "" },
+  profile: { name: "", email: "", height: 175, weight: 75, age: 30, gender: "male", currentType: "C", targetType: "B", courseStart: "", courseWeeks: 12, intensity: "Keskmine", experience: "beginner", sleepQuality: 72, limitation: "" },
   goals: { weeklyWorkouts: 4, weeklyCalories: 1800, dailySteps: 8000, dailyWater: 2500 },
   selectedGoal: "fat",
   selectedProgram: "generalMuscle",
@@ -3391,16 +3389,16 @@ const t = {
     goalsIntro:"Sea nädala treeningute, kalorite, sammude ja vee eesmärgid.",
     progressIntro:"Jälgi kehakaalu, mõõte ja saavutusi.", timerIntro:"Intervalltaimer töö- ja puhkusefaasidega.",
     recoveryIntro:"Uni, valmisolek, vesi ja harjumused.", settingsSubtitle:"Sinu konto, tellimus ja maksed",
-    myAccount:"Minu konto", trial:"Prooviperiood: 1 kuu tasuta", price:"Hind pärast prooviperioodi: 5 € / kuu",
+    myAccount:"Minu konto", subscriptionTitle:"Tellimus", trial:"Prooviperiood: 7 päeva tasuta", price:"Hind pärast prooviperioodi: 5 € / kuu",
     renewal:"Iga kuu lõpus uuendatakse sinu treeningkavad automaatselt koos uue kuumaksega.",
-    paymentSystem:"Maksesüsteem", activateTrial:"Alusta 1 kuu tasuta prooviperioodi", paymentMissing:"Makseviis puudub.",
+    paymentSystem:"Maksesüsteem", activateTrial:"Alusta 7 päeva tasuta prooviperioodi", paymentMissing:"Makseviis puudub.",
     watchSubtitle:"Vali oma seade, et live-andmed aktiveerida.", watchNotConnected:"Kell ei ole ühendatud",
     start:"Start", stop:"Stop ja salvesta", close:"Sulge",
     height:"Pikkus cm", weight:"Kaal kg", age:"Vanus", male:"Mees", female:"Naine",
     fat:"Rasvapõletus", strength:"Jõutreening", muscle:"Lihastreening", endurance:"Vastupidavustreening",
     profile:"Profiil", focus:"Fookus", sets:"Seeriad", rest:"Puhkepaus", cue:"Juhis",
     connected:"ühendatud", fillData:"Palun salvesta seadetes pikkus, kaal, vanus ja sugu.", connectFirst:"Palun ühenda enne kell.",
-    paymentOk:"Subscription aktiveeritud: 1 kuu tasuta, edasi 5 € / kuu.",
+    paymentOk:"Subscription aktiveeritud: 7 päeva tasuta, edasi 5 € / kuu.",
     source:"Allikas: WeightTraining.guide", openDatabase:"Ava WeightTraining.guide harjutuste andmebaas",
     imageFailed:"Pilt ei laadinud — ava juhend allikast",
     address:"Aadress", openMaps:"Ava Google Mapsis", mapsRating:"Vaata reitingut Google Mapsis",
@@ -3415,7 +3413,7 @@ const t = {
     saveProgress:"Salvesta progress", achievements:"Saavutused", startTimer:"Käivita taimer",
     stopTimer:"Peata taimer", readiness:"Unepõhine treeningusoovitus", saveRecovery:"Salvesta taastumine",
     waterTracker:"Veetarbimine", dailyGoal:"päeva eesmärk", resetWater:"Nulli tänane vesi",
-    saveProfile:"Salvesta profiil", editProfile:"Muuda isikuandmeid seadetes", dataSettings:"Andmed", importData:"Impordi andmed", clearData:"Kustuta demoandmed", backToPlans:"Tagasi treeningkavadesse",
+    saveProfile:"Salvesta profiil", editProfile:"Muuda isikuandmeid seadetes", dataSettings:"Andmete varukoopia", dataHelp:"Siin saad oma äpi andmetest varukoopia teha või varem salvestatud varukoopia tagasi laadida.", exportBackup:"Loo varukoopia tekst", importData:"Taasta varukoopiast", clearData:"Kustuta demoandmed", backToPlans:"Tagasi treeningkavadesse",
     selectWorkoutPlan:"Vali treeningplaan", useWorkoutBuilder:"KASUTA TREENINGU EHITAJAT", appleWatchTracking:"Apple Watch live-jälgimine", liveTrackingIntro:"Vali treening, käivita jälgimine ja loe pulssi, aega ning kaloreid käekella kaudu.", watchStreaming:"Käekella live-andmed", recentTracking:"Viimati kasutatud", allTrackingTypes:"Treeningu tüübid", handbook:"Käsiraamat", encyclopedia:"Entsüklopeedia", yourWeight:"Sinu kaal", yourHeight:"Sinu pikkus", connectAppleWatch:"Ühenda Apple Watch",
     profileFormHelp:"Täida oma andmed otse pildikaartide sees. Neid andmeid kasutatakse treeningkavade, kalorite ja progressi arvutamiseks.",
     profileNameLabel:"Kasutaja nimi", profileEmailLabel:"E-post", profileAgeLabel:"Vanus", profileGenderLabel:"Sugu", yearsUnit:"a",
@@ -3436,16 +3434,16 @@ const t = {
     goalsIntro:"Set weekly workout, calorie, step and water goals.",
     progressIntro:"Track body weight, measurements and achievements.", timerIntro:"Interval timer with work and rest phases.",
     recoveryIntro:"Sleep, readiness, water and habits.", settingsSubtitle:"Your account, subscription and payments",
-    myAccount:"My account", trial:"Trial: 1 month free", price:"Price after trial: €5 / month",
+    myAccount:"My account", subscriptionTitle:"Subscription", trial:"Trial: 7 days free", price:"Price after trial: €5 / month",
     renewal:"At the end of every month, your plans refresh automatically with the new monthly payment.",
-    paymentSystem:"Payment system", activateTrial:"Start 1 month free trial", paymentMissing:"No payment method added.",
+    paymentSystem:"Payment system", activateTrial:"Start 7-day free trial", paymentMissing:"No payment method added.",
     watchSubtitle:"Choose your device to activate live data.", watchNotConnected:"Watch is not connected",
     start:"Start", stop:"Stop and save", close:"Close",
     height:"Height cm", weight:"Weight kg", age:"Age", male:"Male", female:"Female",
     fat:"Fat loss", strength:"Strength training", muscle:"Muscle building", endurance:"Endurance training",
     profile:"Profile", focus:"Focus", sets:"Sets", rest:"Rest", cue:"Guide",
     connected:"connected", fillData:"Please save height, weight, age and gender in settings.", connectFirst:"Please connect a watch first.",
-    paymentOk:"Subscription activated: 1 month free, then €5 / month.",
+    paymentOk:"Subscription activated: 7 days free, then €5 / month.",
     source:"Source: WeightTraining.guide", openDatabase:"Open WeightTraining.guide exercise database",
     imageFailed:"Image failed to load — open the guide source",
     address:"Address", openMaps:"Open in Google Maps", mapsRating:"See rating on Google Maps",
@@ -3460,7 +3458,7 @@ const t = {
     saveProgress:"Save progress", achievements:"Achievements", startTimer:"Start timer",
     stopTimer:"Stop timer", readiness:"Sleep-based training recommendation", saveRecovery:"Save recovery",
     waterTracker:"Water tracker", dailyGoal:"daily goal", resetWater:"Reset today's water",
-    saveProfile:"Save profile", editProfile:"Edit personal data in settings", dataSettings:"Data", importData:"Import data", clearData:"Clear demo data", backToPlans:"Back to training plans",
+    saveProfile:"Save profile", editProfile:"Edit personal data in settings", dataSettings:"Data backup", dataHelp:"Here you can create a backup of your app data or restore a backup saved earlier.", exportBackup:"Create backup text", importData:"Restore from backup", clearData:"Clear demo data", backToPlans:"Back to training plans",
     selectWorkoutPlan:"Select your workout plan", useWorkoutBuilder:"USE WORKOUT BUILDER", appleWatchTracking:"Apple Watch live tracking", liveTrackingIntro:"Choose a workout, start tracking and read heart rate, time and calories from your watch.", watchStreaming:"Watch live data", recentTracking:"Most recent", allTrackingTypes:"Workout types", handbook:"Handbook", encyclopedia:"Encyclopedia", yourWeight:"Your weight", yourHeight:"Your height", connectAppleWatch:"Connect Apple Watch",
     profileFormHelp:"Fill in your details directly inside the image cards. These values are used for training plans, calories and progress calculations.",
     profileNameLabel:"User name", profileEmailLabel:"Email", profileAgeLabel:"Age", profileGenderLabel:"Gender", yearsUnit:"y",
@@ -3481,16 +3479,16 @@ const t = {
     goalsIntro:"Задай цели тренировок, калорий, шагов и воды.",
     progressIntro:"Отслеживай вес, замеры и достижения.", timerIntro:"Интервальный таймер работы и отдыха.",
     recoveryIntro:"Сон, готовность, вода и привычки.", settingsSubtitle:"Аккаунт, подписка и платежи",
-    myAccount:"Мой аккаунт", trial:"Пробный период: 1 месяц бесплатно", price:"Цена после пробного периода: 5 € / месяц",
+    myAccount:"Мой аккаунт", subscriptionTitle:"Подписка", trial:"Пробный период: 7 дней бесплатно", price:"Цена после пробного периода: 5 € / месяц",
     renewal:"В конце каждого месяца планы обновляются вместе с новым платежом.",
-    paymentSystem:"Платёжная система", activateTrial:"Начать бесплатный месяц", paymentMissing:"Способ оплаты не добавлен.",
+    paymentSystem:"Платёжная система", activateTrial:"Начать 7 дней бесплатно", paymentMissing:"Способ оплаты не добавлен.",
     watchSubtitle:"Выбери устройство, чтобы активировать live-данные.", watchNotConnected:"Часы не подключены",
     start:"Старт", stop:"Стоп и сохранить", close:"Закрыть",
     height:"Рост см", weight:"Вес кг", age:"Возраст", male:"Мужчина", female:"Женщина",
     fat:"Сжигание жира", strength:"Силовая тренировка", muscle:"Набор мышц", endurance:"Выносливость",
     profile:"Профиль", focus:"Фокус", sets:"Подходы", rest:"Отдых", cue:"Инструкция",
     connected:"подключены", fillData:"Сохраните рост, вес, возраст и пол в настройках.", connectFirst:"Сначала подключите часы.",
-    paymentOk:"Подписка активирована: 1 месяц бесплатно, затем 5 € / месяц.",
+    paymentOk:"Подписка активирована: 7 дней бесплатно, затем 5 € / месяц.",
     source:"Источник: WeightTraining.guide", openDatabase:"Открыть базу упражнений WeightTraining.guide",
     imageFailed:"Изображение не загрузилось — откройте источник",
     address:"Адрес", openMaps:"Открыть в Google Maps", mapsRating:"Посмотреть рейтинг в Google Maps",
@@ -3505,7 +3503,7 @@ const t = {
     saveProgress:"Сохранить прогресс", achievements:"Достижения", startTimer:"Запустить таймер",
     stopTimer:"Остановить таймер", readiness:"Рекомендация тренировки по сну", saveRecovery:"Сохранить восстановление",
     waterTracker:"Вода", dailyGoal:"цель дня", resetWater:"Сбросить воду за день",
-    saveProfile:"Сохранить профиль", editProfile:"Изменить личные данные", dataSettings:"Данные", importData:"Импорт данных", clearData:"Удалить демо-данные", backToPlans:"Назад к планам",
+    saveProfile:"Сохранить профиль", editProfile:"Изменить личные данные", dataSettings:"Резервная копия данных", dataHelp:"Здесь можно создать резервную копию данных приложения или восстановить сохраненную копию.", exportBackup:"Создать текст копии", importData:"Восстановить из копии", clearData:"Удалить демо-данные", backToPlans:"Назад к планам",
     selectWorkoutPlan:"Выбери план тренировки", useWorkoutBuilder:"ИСПОЛЬЗОВАТЬ КОНСТРУКТОР", appleWatchTracking:"Apple Watch live-трекинг", liveTrackingIntro:"Выбери тренировку, запусти трекинг и считывай пульс, время и калории с часов.", watchStreaming:"Live-данные часов", recentTracking:"Недавние", allTrackingTypes:"Типы тренировок", handbook:"Справочник", encyclopedia:"Энциклопедия", yourWeight:"Твой вес", yourHeight:"Твой рост", connectAppleWatch:"Подключить Apple Watch",
     profileFormHelp:"Заполни свои данные прямо внутри карточек с фото. Эти данные используются для планов тренировок, калорий и расчета прогресса.",
     profileNameLabel:"Имя пользователя", profileEmailLabel:"Эл. почта", profileAgeLabel:"Возраст", profileGenderLabel:"Пол", yearsUnit:"л",
@@ -4381,34 +4379,34 @@ const bodyTypes = currentBodyTypes;
 const bodyTypeImages = {
   male: {
     current: {
-      A: "https://source.unsplash.com/featured/500x650/?skinny,male,fitness",
-      B: "https://source.unsplash.com/featured/500x650/?lean,male,fitness,beginner",
-      C: "https://source.unsplash.com/featured/500x650/?skinny-fat,male,fitness",
-      D: "https://source.unsplash.com/featured/500x650/?overweight,man,fitness",
-      E: "https://source.unsplash.com/featured/500x650/?strong,man,gym"
+      A: "https://images.pexels.com/photos/6799566/pexels-photo-6799566.jpeg?auto=compress&cs=tinysrgb&w=900",
+      B: "https://images.pexels.com/photos/5932421/pexels-photo-5932421.jpeg?auto=compress&cs=tinysrgb&w=900",
+      C: "https://images.pexels.com/photos/10619456/pexels-photo-10619456.jpeg?auto=compress&cs=tinysrgb&w=900",
+      D: "https://images.pexels.com/photos/7298427/pexels-photo-7298427.jpeg?auto=compress&cs=tinysrgb&w=900",
+      E: "https://images.pexels.com/photos/11385977/pexels-photo-11385977.jpeg?auto=compress&cs=tinysrgb&w=900"
     },
     target: {
-      A: "https://source.unsplash.com/featured/500x650/?lean,male,body,fitness",
-      B: "https://source.unsplash.com/featured/500x650/?male,abs,six-pack,fitness",
-      C: "https://source.unsplash.com/featured/500x650/?athletic,man,training",
-      D: "https://source.unsplash.com/featured/500x650/?muscular,man,gym",
-      E: "https://source.unsplash.com/featured/500x650/?powerlifter,man,gym"
+      A: "https://images.pexels.com/photos/5932421/pexels-photo-5932421.jpeg?auto=compress&cs=tinysrgb&w=900",
+      B: "https://images.pexels.com/photos/8875036/pexels-photo-8875036.jpeg?auto=compress&cs=tinysrgb&w=900",
+      C: "https://images.pexels.com/photos/11385977/pexels-photo-11385977.jpeg?auto=compress&cs=tinysrgb&w=900",
+      D: "https://images.pexels.com/photos/8874380/pexels-photo-8874380.jpeg?auto=compress&cs=tinysrgb&w=900",
+      E: "https://images.pexels.com/photos/8875036/pexels-photo-8875036.jpeg?auto=compress&cs=tinysrgb&w=900"
     }
   },
   female: {
     current: {
-      A: "https://source.unsplash.com/featured/500x650/?slim,woman,fitness",
-      B: "https://source.unsplash.com/featured/500x650/?lean,woman,fitness",
-      C: "https://source.unsplash.com/featured/500x650/?beginner,woman,fitness",
-      D: "https://source.unsplash.com/featured/500x650/?overweight,woman,fitness",
-      E: "https://source.unsplash.com/featured/500x650/?strong,woman,gym"
+      A: "https://images.pexels.com/photos/7065291/pexels-photo-7065291.jpeg?auto=compress&cs=tinysrgb&w=900",
+      B: "https://images.pexels.com/photos/4970985/pexels-photo-4970985.jpeg?auto=compress&cs=tinysrgb&w=900",
+      C: "https://images.pexels.com/photos/6456321/pexels-photo-6456321.jpeg?auto=compress&cs=tinysrgb&w=900",
+      D: "https://images.pexels.com/photos/6550828/pexels-photo-6550828.jpeg?auto=compress&cs=tinysrgb&w=900",
+      E: "https://images.pexels.com/photos/136409/pexels-photo-136409.jpeg?auto=compress&cs=tinysrgb&w=900"
     },
     target: {
-      A: "https://source.unsplash.com/featured/500x650/?toned,woman,fitness",
-      B: "https://source.unsplash.com/featured/500x650/?fit,woman,abs",
-      C: "https://source.unsplash.com/featured/500x650/?athletic,woman,training",
-      D: "https://source.unsplash.com/featured/500x650/?muscular,woman,gym",
-      E: "https://source.unsplash.com/featured/500x650/?strong,woman,weights"
+      A: "https://images.pexels.com/photos/196640/pexels-photo-196640.jpeg?auto=compress&cs=tinysrgb&w=900",
+      B: "https://images.pexels.com/photos/136409/pexels-photo-136409.jpeg?auto=compress&cs=tinysrgb&w=900",
+      C: "https://images.pexels.com/photos/15494408/pexels-photo-15494408.jpeg?auto=compress&cs=tinysrgb&w=900",
+      D: "https://images.pexels.com/photos/7991916/pexels-photo-7991916.jpeg?auto=compress&cs=tinysrgb&w=900",
+      E: "https://images.pexels.com/photos/136409/pexels-photo-136409.jpeg?auto=compress&cs=tinysrgb&w=900"
     }
   }
 };
@@ -4458,7 +4456,7 @@ const exerciseNames = {
   "Plank": { et: "Plank", en: "Plank", ru: "Планка" },
   "Hanging leg raise": { et: "Rippes jalgade tõste", en: "Hanging leg raise", ru: "Подъем ног в висе" },
   "Kettlebell swing": { et: "Sangpommi hoog", en: "Kettlebell swing", ru: "Махи гирей" },
-  "Burpee": { et: "Burpee", en: "Burpee", ru: "Берпи" }
+  "Burpee": { et: "Kükist toenglamangusse hüpe", en: "Burpee", ru: "Берпи" }
 };
 
 Object.assign(exerciseNames, {
@@ -5033,8 +5031,8 @@ function escapeAttr(value) {
 
 function initOnboardingState() {
   onboardingState = {
-    name: appData.profile.name || "",
-    email: appData.profile.email || "",
+    name: appData.profile.name === "Kasutaja" ? "" : (appData.profile.name || ""),
+    email: appData.profile.email === "user@email.com" ? "" : (appData.profile.email || ""),
     gender: appData.profile.gender || "male",
     goal: appData.selectedGoal || "fat",
     weight: Number(appData.profile.weight || 75),
@@ -5117,8 +5115,8 @@ function completeOnboarding() {
   const waterGoal = Math.min(3500, Math.max(2000, Math.round(weight * 35)));
   appData.profile = {
     ...appData.profile,
-    name: onboardingState.name || appData.profile.name || "Kasutaja",
-    email: onboardingState.email || appData.profile.email || "user@email.com",
+    name: onboardingState.name || "",
+    email: onboardingState.email || "",
     gender: onboardingState.gender || "male",
     weight,
     height: Number(onboardingState.height || 175),
@@ -5607,9 +5605,9 @@ function setLanguage(lang) {
   document.getElementById("age").placeholder = t[lang].age;
   document.getElementById("progressWeight").placeholder = t[lang].weight;
   const placeholders = {
-    et: { waist:"Vööümbermõõt cm", note:"Märkus progressi kohta", meal:"Söögi nimi", protein:"Valk g", carbs:"Süsivesikud g", fat:"Rasv g", weeklyWorkouts:"Treeninguid nädalas", weeklyCalories:"Kcal nädalas", dailySteps:"Samme päevas", dailyWater:"Vett ml päevas", sleep:"Unetunnid", work:"Töö sekundid", rest:"Puhkus sekundid", rounds:"Ringid", name:"Nimi", email:"E-post", importBox:"Kleebi eksporditud JSON siia" },
-    en: { waist:"Waist cm", note:"Progress note", meal:"Meal name", protein:"Protein g", carbs:"Carbs g", fat:"Fat g", weeklyWorkouts:"Workouts per week", weeklyCalories:"Kcal per week", dailySteps:"Steps per day", dailyWater:"Water ml per day", sleep:"Sleep hours", work:"Work seconds", rest:"Rest seconds", rounds:"Rounds", name:"Name", email:"Email", importBox:"Paste exported JSON here" },
-    ru: { waist:"Талия см", note:"Заметка о прогрессе", meal:"Название приема пищи", protein:"Белок г", carbs:"Углеводы г", fat:"Жиры г", weeklyWorkouts:"Тренировок в неделю", weeklyCalories:"Ккал в неделю", dailySteps:"Шагов в день", dailyWater:"Вода мл в день", sleep:"Часы сна", work:"Работа сек", rest:"Отдых сек", rounds:"Раунды", name:"Имя", email:"Эл. почта", importBox:"Вставь экспортированный JSON" }
+    et: { waist:"Vööümbermõõt cm", note:"Märkus progressi kohta", meal:"Söögi nimi", protein:"Valk g", carbs:"Süsivesikud g", fat:"Rasv g", weeklyWorkouts:"Treeninguid nädalas", weeklyCalories:"Kcal nädalas", dailySteps:"Samme päevas", dailyWater:"Vett ml päevas", sleep:"Unetunnid", work:"Töö sekundid", rest:"Puhkus sekundid", rounds:"Ringid", importBox:"Varukoopia tekst ilmub siia, kui vajutad varukoopia nuppu." },
+    en: { waist:"Waist cm", note:"Progress note", meal:"Meal name", protein:"Protein g", carbs:"Carbs g", fat:"Fat g", weeklyWorkouts:"Workouts per week", weeklyCalories:"Kcal per week", dailySteps:"Steps per day", dailyWater:"Water ml per day", sleep:"Sleep hours", work:"Work seconds", rest:"Rest seconds", rounds:"Rounds", importBox:"Backup text appears here when you press the backup button." },
+    ru: { waist:"Талия см", note:"Заметка о прогрессе", meal:"Название приема пищи", protein:"Белок г", carbs:"Углеводы г", fat:"Жиры г", weeklyWorkouts:"Тренировок в неделю", weeklyCalories:"Ккал в неделю", dailySteps:"Шагов в день", dailyWater:"Вода мл в день", sleep:"Часы сна", work:"Работа сек", rest:"Отдых сек", rounds:"Раунды", importBox:"Текст резервной копии появится здесь после нажатия кнопки." }
   }[lang];
 
   document.getElementById("progressWaist").placeholder = placeholders.waist;
@@ -5627,8 +5625,8 @@ function setLanguage(lang) {
   document.getElementById("workSeconds").placeholder = placeholders.work;
   document.getElementById("restSeconds").placeholder = placeholders.rest;
   document.getElementById("rounds").placeholder = placeholders.rounds;
-  document.getElementById("userName").placeholder = placeholders.name;
-  document.getElementById("userEmail").placeholder = placeholders.email;
+  document.getElementById("userName").placeholder = "";
+  document.getElementById("userEmail").placeholder = "";
   document.getElementById("importBox").placeholder = placeholders.importBox;
   document.getElementById("articleSearch").placeholder =
     lang === "ru" ? "Поиск" : lang === "en" ? "Search" : "Otsi";
@@ -6759,42 +6757,69 @@ function calculateRecoveryScore(input) {
   };
 }
 
+function adaptiveCopy() {
+  return {
+    et: {
+      overtraining:"Ülekoormuse risk", watchLoad:"Jälgi koormust", lowSleepLoad:"uni oli lühike ja eelmine koormus oli kõrge", lowHrv:"HRV on madal, seega koormus tuleb piirata", lowScore:"taastumisskoor on allpool turvalist piiri",
+      rest:"Puhkus või väga kerge liikumine", medium:"Keskmine koormus", high:"Intensiivne treening",
+      lowWarn:"Taastumine on madal. Väldi täna rasket treeningut.", lowAdjust:"Täna soovitan puhata, teha rahulikku kõndi või 15-25 min liikuvust. Ära tee tänase kava raskeid seeriaid.", lowPlan:"Kui plaanis oli jõutrenn, jäta rasked põhiharjutused vahele ja tee ainult kerge soojendus, liikuvus ning venitused.", lowReason:"Uneskoor ja taastumine näitavad, et keha energiavarud pole piisavalt taastunud.",
+      mediumWarn:"Keskmine koormus sobib täna.", mediumAdjust:"Tee tänane kava, kuid vähenda mahtu: 1 seeria vähem igal harjutusel või 10-20% kergem raskus.", mediumPlan:"Äpp kohandab sinu praegust kava nii, et harjutused jäävad samaks, aga korduste, seeriate või raskuse maht väheneb.", mediumReason:"Taastumine on piisav mõõdukaks tööks, kuid mitte maksimaalseks pingutuseks.",
+      hrvWarn:"HRV on madal. Äpp ei soovita täna maksimaalset intensiivsust.", goodWarn:"Taastumine on hea.", hrvAdjust:"Tee tänane kava mõõduka tempoga ja hoia raskused kontrolli all.", highAdjust:"Võid teha tänase kava intensiivsemalt: lisa veidi raskust või üks lisaseeria põhiharjutustele.", hrvPlan:"Harjutused jäävad samaks, kuid äpp piirab raskust ja seeriate arvu.", highPlan:"Äpp kasutab sinu praegust kava ja lubab progressiivset ülekoormust ilma liigse stressita.", hrvReason:"Madal HRV võib tähendada närvisüsteemi väsimust.", highReason:"Uneskoor, taastumisskoor ja valulikkus lubavad täna tugevamat treeningut."
+    },
+    en: {
+      overtraining:"Overtraining risk", watchLoad:"Watch the load", lowSleepLoad:"sleep was short and previous load was high", lowHrv:"HRV is low, so load must be limited", lowScore:"recovery score is below the safe threshold",
+      rest:"Rest or very light movement", medium:"Moderate intensity", high:"Intense training",
+      lowWarn:"Recovery is low. Avoid heavy training today.", lowAdjust:"Today I recommend rest, easy walking or 15-25 min mobility. Do not do the heavy sets from your plan.", lowPlan:"If strength training was planned, skip heavy compound lifts and do only light warm-up, mobility and stretching.", lowReason:"Sleep score and recovery show that your energy reserves have not recovered enough.",
+      mediumWarn:"Moderate intensity fits today.", mediumAdjust:"Do today's plan, but reduce volume: one set less per exercise or 10-20% lighter load.", mediumPlan:"The app keeps your current exercises but reduces reps, sets or load.", mediumReason:"Recovery is enough for moderate work, but not max effort.",
+      hrvWarn:"HRV is low. The app does not recommend max intensity today.", goodWarn:"Recovery is good.", hrvAdjust:"Do today's plan at a moderate pace and keep weights controlled.", highAdjust:"You can train harder today: add a little load or one extra set to main exercises.", hrvPlan:"Exercises stay the same, but the app limits load and sets.", highPlan:"The app uses your current plan and allows progressive overload without unnecessary stress.", hrvReason:"Low HRV can indicate nervous-system fatigue.", highReason:"Sleep score, recovery score and soreness allow a stronger session today."
+    },
+    ru: {
+      overtraining:"Риск перегруза", watchLoad:"Следи за нагрузкой", lowSleepLoad:"сон был короткий, а предыдущая нагрузка высокая", lowHrv:"HRV низкий, поэтому нагрузку нужно ограничить", lowScore:"оценка восстановления ниже безопасного порога",
+      rest:"Отдых или очень легкое движение", medium:"Средняя нагрузка", high:"Интенсивная тренировка",
+      lowWarn:"Восстановление низкое. Сегодня избегай тяжелой тренировки.", lowAdjust:"Сегодня рекомендую отдых, спокойную ходьбу или 15-25 минут мобильности. Не делай тяжелые подходы из плана.", lowPlan:"Если была силовая тренировка, пропусти тяжелые базовые упражнения и сделай легкую разминку, мобильность и растяжку.", lowReason:"Сон и восстановление показывают, что запас энергии еще не восстановился.",
+      mediumWarn:"Средняя нагрузка сегодня подходит.", mediumAdjust:"Сделай сегодняшний план, но уменьши объем: на 1 подход меньше в каждом упражнении или на 10-20% легче вес.", mediumPlan:"Приложение оставляет упражнения из текущего плана, но уменьшает повторы, подходы или вес.", mediumReason:"Восстановления достаточно для умеренной работы, но не для максимального усилия.",
+      hrvWarn:"HRV низкий. Приложение не рекомендует максимальную интенсивность сегодня.", goodWarn:"Восстановление хорошее.", hrvAdjust:"Сделай сегодняшний план в умеренном темпе и держи веса под контролем.", highAdjust:"Сегодня можно тренироваться интенсивнее: добавь немного веса или один подход к основным упражнениям.", hrvPlan:"Упражнения остаются теми же, но приложение ограничивает вес и количество подходов.", highPlan:"Приложение использует твой текущий план и разрешает прогрессивную нагрузку без лишнего стресса.", hrvReason:"Низкий HRV может означать усталость нервной системы.", highReason:"Сон, восстановление и болезненность позволяют сегодня более сильную тренировку."
+    }
+  }[currentLang];
+}
+
 function generateAdaptiveWorkoutRecommendation(recovery) {
+  const copy = adaptiveCopy();
   const warnings = [];
-  if (recovery.sleepDuration < 6 && recovery.previousWorkoutLoad >= 70) warnings.push("uni oli lühike ja eelmine koormus oli kõrge");
-  if (recovery.hrv < 35 && recovery.readinessLevel !== "low") warnings.push("HRV on madal, seega koormus tuleb piirata");
-  if (recovery.recoveryScore < 45) warnings.push("taastumisskoor on allpool turvalist piiri");
+  if (recovery.sleepDuration < 6 && recovery.previousWorkoutLoad >= 70) warnings.push(copy.lowSleepLoad);
+  if (recovery.hrv < 35 && recovery.readinessLevel !== "low") warnings.push(copy.lowHrv);
+  if (recovery.recoveryScore < 45) warnings.push(copy.lowScore);
 
   if (recovery.readinessLevel === "low") {
     return {
       recommendedIntensity: "puhkus",
-      intensityLabel: "Puhkus või väga kerge liikumine",
-      warningMessage: warnings.length ? `Ülekoormuse risk: ${warnings.join(", ")}.` : "Taastumine on madal. Väldi täna rasket treeningut.",
-      suggestedWorkoutAdjustment: "Täna soovitan puhata, teha rahulikku kõndi või 15-25 min liikuvust. Ära tee tänase kava raskeid seeriaid.",
-      planAdjustment: "Kui plaanis oli jõutrenn, jäta rasked põhiharjutused vahele ja tee ainult kerge soojendus, liikuvus ning venitused.",
-      reason: "Uneskoor ja taastumine näitavad, et keha energiavarud pole piisavalt taastunud."
+      intensityLabel: copy.rest,
+      warningMessage: warnings.length ? `${copy.overtraining}: ${warnings.join(", ")}.` : copy.lowWarn,
+      suggestedWorkoutAdjustment: copy.lowAdjust,
+      planAdjustment: copy.lowPlan,
+      reason: copy.lowReason
     };
   }
 
   if (recovery.readinessLevel === "medium") {
     return {
       recommendedIntensity: "keskmine",
-      intensityLabel: "Keskmine koormus",
-      warningMessage: warnings.length ? `Jälgi koormust: ${warnings.join(", ")}.` : "Keskmine koormus sobib täna.",
-      suggestedWorkoutAdjustment: "Tee tänane kava, kuid vähenda mahtu: 1 seeria vähem igal harjutusel või 10-20% kergem raskus.",
-      planAdjustment: "Äpp kohandab sinu praegust kava nii, et harjutused jäävad samaks, aga korduste, seeriate või raskuse maht väheneb.",
-      reason: "Taastumine on piisav mõõdukaks tööks, kuid mitte maksimaalseks pingutuseks."
+      intensityLabel: copy.medium,
+      warningMessage: warnings.length ? `${copy.watchLoad}: ${warnings.join(", ")}.` : copy.mediumWarn,
+      suggestedWorkoutAdjustment: copy.mediumAdjust,
+      planAdjustment: copy.mediumPlan,
+      reason: copy.mediumReason
     };
   }
 
   const cappedByHrv = recovery.hrv < 35;
   return {
     recommendedIntensity: cappedByHrv ? "keskmine" : "kõrge",
-    intensityLabel: cappedByHrv ? "Keskmine koormus" : "Intensiivne treening",
-    warningMessage: cappedByHrv ? "HRV on madal. Äpp ei soovita täna maksimaalset intensiivsust." : "Taastumine on hea.",
-    suggestedWorkoutAdjustment: cappedByHrv ? "Tee tänane kava mõõduka tempoga ja hoia raskused kontrolli all." : "Võid teha tänase kava intensiivsemalt: lisa veidi raskust või üks lisaseeria põhiharjutustele.",
-    planAdjustment: cappedByHrv ? "Harjutused jäävad samaks, kuid äpp piirab raskust ja seeriate arvu." : "Äpp kasutab sinu praegust kava ja lubab progressiivset ülekoormust ilma liigse stressita.",
-    reason: cappedByHrv ? "Madal HRV võib tähendada närvisüsteemi väsimust." : "Uneskoor, taastumisskoor ja valulikkus lubavad täna tugevamat treeningut."
+    intensityLabel: cappedByHrv ? copy.medium : copy.high,
+    warningMessage: cappedByHrv ? copy.hrvWarn : copy.goodWarn,
+    suggestedWorkoutAdjustment: cappedByHrv ? copy.hrvAdjust : copy.highAdjust,
+    planAdjustment: cappedByHrv ? copy.hrvPlan : copy.highPlan,
+    reason: cappedByHrv ? copy.hrvReason : copy.highReason
   };
 }
 
@@ -6818,6 +6843,65 @@ function workoutMuscleGroups(workoutName = "") {
   return map[workoutName] || ["Kogu keha"];
 }
 
+function muscleLabel(name) {
+  const labels = {
+    et: { "Rind":"Rind", "Selg":"Selg", "Jalad":"Jalad", "Õlad":"Õlad", "Core":"Kere", "Süda":"Vastupidavus", "Liikuvus":"Liikuvus", "Kogu keha":"Kogu keha" },
+    en: { "Rind":"Chest", "Selg":"Back", "Jalad":"Legs", "Õlad":"Shoulders", "Core":"Core", "Süda":"Cardio", "Liikuvus":"Mobility", "Kogu keha":"Full body" },
+    ru: { "Rind":"Грудь", "Selg":"Спина", "Jalad":"Ноги", "Õlad":"Плечи", "Core":"Корпус", "Süda":"Выносливость", "Liikuvus":"Мобильность", "Kogu keha":"Все тело" }
+  };
+  return labels[currentLang]?.[name] || name;
+}
+
+function coachCopy() {
+  return {
+    et: {
+      todayCoach:"Tänane coach", adjustment:"Treeningu kohandus", load:"7p vs 28p koormus", next:"Järgmine samm",
+      choosePlan:"Vali treeningkava ja salvesta esimene treening.", stable:"Stabiilne", low:"Madal", high:"Kõrge", tooHigh:"Liiga kõrge",
+      loadTitle:"Treeningkoormus", last7:"Viimased 7 päeva", base:"28 päeva baas nädalale", baseShort:"baas", recommendation:"Soovitus",
+      points:"koormuspunkti", totalPoints:"koormuspunkti kokku", muscleTitle:"Lihaste taastumine",
+      muscleText:"Äpp arvestab salvestatud treeninguid ja väldib liiga väsinud lihasgruppe järgmise kava kohandamisel.",
+      tired:"väsinud", medium:"keskmine", fresh:"värske", notices:"Nutikad soovitused", insight:"Märkus",
+      morning:"Hommikune soovitus", morningText:"Taastumine on madal. Täna sobib puhkus, kõnd või liikuvus.",
+      loadWarning:"Koormuse hoiatus", loadWarningText:"7 päeva koormus on 28 päeva baasist liiga kõrgel. Vähenda mahtu.",
+      water:"Vesi", waterText:"Vee eesmärk on täna veel madal. Lisa enne trenni 250-500 ml.",
+      first:"Esimene treening", firstText:"Alusta lühikese treeninguga, et äpp saaks sinu koormust õppida.",
+      progressTitle:"Progressi ülevaade", weightDown:"Kaal liigub alla, rasvapõletuse suund töötab.", weightUp:"Kaal liigub üles, kontrolli kas eesmärk on lihasmass või rasv.", weightStable:"Kaal on stabiilne, fookus võiks olla jõul ja ümbermõõtudel.",
+      loadTooHigh:"Koormus on liiga kõrge, taastumine võib hakata kannatama.", loadLow:"Koormust võiks järk-järgult juurde lisada.", loadStable:"Treeningkoormus on stabiilses tsoonis.",
+      sleepLimits:"Uni ja taastumine piiravad praegu tugevat treeningut.", recoveryOk:"Taastumine toetab plaani jätkamist."
+    },
+    en: {
+      todayCoach:"Today's coach", adjustment:"Workout adjustment", load:"7d vs 28d load", next:"Next step",
+      choosePlan:"Choose a training plan and save your first workout.", stable:"Steady", low:"Low", high:"High", tooHigh:"Too high",
+      loadTitle:"Training Load", last7:"Last 7 days", base:"28-day weekly baseline", baseShort:"baseline", recommendation:"Recommendation",
+      points:"load points", totalPoints:"load points total", muscleTitle:"Muscle recovery",
+      muscleText:"The app uses saved workouts to avoid muscle groups that are still too fatigued.",
+      tired:"fatigued", medium:"moderate", fresh:"fresh", notices:"Smart suggestions", insight:"Insight",
+      morning:"Morning recommendation", morningText:"Recovery is low. Rest, walking or mobility fits today.",
+      loadWarning:"Load warning", loadWarningText:"7-day load is too high compared with the 28-day baseline. Reduce volume.",
+      water:"Water", waterText:"Your water goal is still low today. Add 250-500 ml before training.",
+      first:"First workout", firstText:"Start with a short workout so the app can learn your load.",
+      progressTitle:"Progress overview", weightDown:"Weight is trending down; fat-loss direction is working.", weightUp:"Weight is trending up; check whether the goal is muscle or fat.", weightStable:"Weight is stable; focus on strength and measurements.",
+      loadTooHigh:"Load is too high and recovery may suffer.", loadLow:"You can gradually add more load.", loadStable:"Training load is in a steady zone.",
+      sleepLimits:"Sleep and recovery are limiting hard training right now.", recoveryOk:"Recovery supports continuing the plan."
+    },
+    ru: {
+      todayCoach:"Тренер на сегодня", adjustment:"Коррекция тренировки", load:"7д vs 28д нагрузка", next:"Следующий шаг",
+      choosePlan:"Выбери план тренировки и сохрани первую тренировку.", stable:"Стабильно", low:"Низко", high:"Высоко", tooHigh:"Слишком высоко",
+      loadTitle:"Тренировочная нагрузка", last7:"Последние 7 дней", base:"28-дневная недельная база", baseShort:"база", recommendation:"Рекомендация",
+      points:"пунктов нагрузки", totalPoints:"пунктов нагрузки всего", muscleTitle:"Восстановление мышц",
+      muscleText:"Приложение учитывает сохраненные тренировки и избегает слишком уставших мышечных групп.",
+      tired:"устали", medium:"средне", fresh:"свежие", notices:"Умные рекомендации", insight:"Вывод",
+      morning:"Утренняя рекомендация", morningText:"Восстановление низкое. Сегодня подходит отдых, ходьба или мобильность.",
+      loadWarning:"Предупреждение нагрузки", loadWarningText:"7-дневная нагрузка слишком высокая относительно 28-дневной базы. Уменьши объем.",
+      water:"Вода", waterText:"Цель по воде сегодня еще низкая. Добавь 250-500 мл перед тренировкой.",
+      first:"Первая тренировка", firstText:"Начни с короткой тренировки, чтобы приложение изучило твою нагрузку.",
+      progressTitle:"Обзор прогресса", weightDown:"Вес снижается; направление жиросжигания работает.", weightUp:"Вес растет; проверь, цель это мышцы или жир.", weightStable:"Вес стабилен; фокус на силе и замерах.",
+      loadTooHigh:"Нагрузка слишком высокая, восстановление может страдать.", loadLow:"Можно постепенно добавить нагрузку.", loadStable:"Тренировочная нагрузка в стабильной зоне.",
+      sleepLimits:"Сон и восстановление сейчас ограничивают тяжелую тренировку.", recoveryOk:"Восстановление поддерживает продолжение плана."
+    }
+  }[currentLang];
+}
+
 function itemsWithinDays(items, days) {
   const since = Date.now() - days * 86400000;
   return (items || []).filter(item => new Date(item.date).getTime() >= since);
@@ -6838,10 +6922,11 @@ function calculateTrainingLoad() {
   const baseline = Math.max(1, Math.round(twentyEightDayLoad / 4));
   const ratio = sevenDayLoad / baseline;
   let status = "steady";
-  let label = "Stabiilne";
-  if (ratio < 0.65) { status = "low"; label = "Madal"; }
-  if (ratio >= 1.25) { status = "high"; label = "Kõrge"; }
-  if (ratio >= 1.6) { status = "too-high"; label = "Liiga kõrge"; }
+  const copy = coachCopy();
+  let label = copy.stable;
+  if (ratio < 0.65) { status = "low"; label = copy.low; }
+  if (ratio >= 1.25) { status = "high"; label = copy.high; }
+  if (ratio >= 1.6) { status = "too-high"; label = copy.tooHigh; }
   return {
     sevenDayLoad,
     twentyEightDayLoad,
@@ -6867,8 +6952,19 @@ function calculateMuscleRecovery() {
     });
   });
   return Object.entries(recovery)
-    .map(([name, score]) => ({ name, score: Math.round(score), status: score < 45 ? "väsinud" : score < 70 ? "keskmine" : "värske" }))
+    .map(([name, score]) => {
+      const copy = coachCopy();
+      return { name, label: muscleLabel(name), score: Math.round(score), status: score < 45 ? copy.tired : score < 70 ? copy.medium : copy.fresh };
+    })
     .sort((a, b) => a.score - b.score);
+}
+
+function normalizeProgramExercise(exercise) {
+  const name = Array.isArray(exercise) ? exercise[0] : exercise?.name || exercise?.title || String(exercise || "");
+  const prescription = Array.isArray(exercise) ? String(exercise[1] || "") : String(exercise?.sets || "");
+  const sets = Number((prescription.match(/\d+/) || [exercise?.sets || 3])[0]);
+  const reps = prescription.includes("x") ? prescription.split("x").slice(1).join("x") : exercise?.reps || "";
+  return { name, displayName: localizedExerciseName(name), sets: Number.isFinite(sets) ? sets : 3, reps };
 }
 
 function adaptiveWorkoutAdjustment(recovery, programId = appData.selectedProgram || "generalMuscle") {
@@ -6877,11 +6973,14 @@ function adaptiveWorkoutAdjustment(recovery, programId = appData.selectedProgram
   const baseExercises = program?.days?.[0]?.exercises || program?.exercises || [];
   const scale = recommendation.recommendedIntensity === "puhkus" ? 0.35 : recommendation.recommendedIntensity === "keskmine" ? 0.75 : 1.08;
   const exerciseLimit = recommendation.recommendedIntensity === "puhkus" ? 3 : recommendation.recommendedIntensity === "keskmine" ? 5 : 7;
-  const adjusted = baseExercises.slice(0, exerciseLimit).map(exercise => ({
-    name: exercise.name || exercise.title || exercise,
-    sets: Math.max(1, Math.round(Number(exercise.sets || 3) * scale)),
-    reps: exercise.reps || (recommendation.recommendedIntensity === "puhkus" ? "8-10 rahulikult" : recommendation.recommendedIntensity === "keskmine" ? "8-12" : "6-12")
-  }));
+  const adjusted = baseExercises.slice(0, exerciseLimit).map(exercise => {
+    const normalized = normalizeProgramExercise(exercise);
+    return {
+    name: normalized.displayName,
+    sets: Math.max(1, Math.round(Number(normalized.sets || 3) * scale)),
+    reps: normalized.reps || (recommendation.recommendedIntensity === "puhkus" ? (currentLang === "en" ? "8-10 easy" : currentLang === "ru" ? "8-10 легко" : "8-10 rahulikult") : recommendation.recommendedIntensity === "keskmine" ? "8-12" : "6-12")
+  };
+  });
   return { recommendation, adjusted };
 }
 
@@ -6889,23 +6988,29 @@ function weeklyCoachPlan(recovery) {
   const rec = generateAdaptiveWorkoutRecommendation(recovery);
   const hard = rec.recommendedIntensity === "kõrge";
   const medium = rec.recommendedIntensity === "keskmine";
-  const days = ["E", "T", "K", "N", "R", "L", "P"];
+  const weekly = {
+    et: { days:["E","T","K","N","R","L","P"], rest:"Puhkus", mobility:"Liikuvus", light:"Kerge", moderate:"Keskmine", walk:"Kõnd", strong:"Tugev" },
+    en: { days:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"], rest:"Rest", mobility:"Mobility", light:"Light", moderate:"Moderate", walk:"Walk", strong:"Hard" },
+    ru: { days:["Пн","Вт","Ср","Чт","Пт","Сб","Вс"], rest:"Отдых", mobility:"Мобильность", light:"Легко", moderate:"Средне", walk:"Ходьба", strong:"Сильно" }
+  }[currentLang];
+  const days = weekly.days;
   const pattern = rec.recommendedIntensity === "puhkus"
-    ? ["Puhkus", "Liikuvus", "Kerge", "Puhkus", "Keskmine", "Kõnd", "Puhkus"]
+    ? [weekly.rest, weekly.mobility, weekly.light, weekly.rest, weekly.moderate, weekly.walk, weekly.rest]
     : medium
-      ? ["Keskmine", "Liikuvus", "Keskmine", "Puhkus", "Keskmine", "Kõnd", "Puhkus"]
-      : ["Tugev", "Kerge", "Tugev", "Puhkus", "Tugev", "Liikuvus", "Puhkus"];
+      ? [weekly.moderate, weekly.mobility, weekly.moderate, weekly.rest, weekly.moderate, weekly.walk, weekly.rest]
+      : [weekly.strong, weekly.light, weekly.strong, weekly.rest, weekly.strong, weekly.mobility, weekly.rest];
   return days.map((day, index) => `${day}: ${pattern[index]}`);
 }
 
 function smartNotifications(recovery, load) {
   const rec = generateAdaptiveWorkoutRecommendation(recovery);
+  const copy = coachCopy();
   const notices = [];
-  if (recovery.readinessLevel === "low") notices.push({ type: "warning", title: "Hommikune soovitus", text: "Taastumine on madal. Täna sobib puhkus, kõnd või liikuvus." });
-  if (load.status === "too-high") notices.push({ type: "warning", title: "Koormuse hoiatus", text: "7 päeva koormus on 28 päeva baasist liiga kõrgel. Vähenda mahtu." });
-  if ((appData.water[todayKey()] || 0) < Number(appData.goals.dailyWater || 2500) * 0.45) notices.push({ type: "info", title: "Vesi", text: "Vee eesmärk on täna veel madal. Lisa enne trenni 250-500 ml." });
-  if (!appData.history.length) notices.push({ type: "info", title: "Esimene treening", text: "Alusta lühikese treeninguga, et äpp saaks sinu koormust õppida." });
-  if (!notices.length) notices.push({ type: "info", title: "Valmis treenima", text: rec.suggestedWorkoutAdjustment });
+  if (recovery.readinessLevel === "low") notices.push({ type: "warning", title: copy.morning, text: copy.morningText });
+  if (load.status === "too-high") notices.push({ type: "warning", title: copy.loadWarning, text: copy.loadWarningText });
+  if ((appData.water[todayKey()] || 0) < Number(appData.goals.dailyWater || 2500) * 0.45) notices.push({ type: "info", title: copy.water, text: copy.waterText });
+  if (!appData.history.length) notices.push({ type: "info", title: copy.first, text: copy.firstText });
+  if (!notices.length) notices.push({ type: "info", title: copy.recommendation, text: rec.suggestedWorkoutAdjustment });
   return notices;
 }
 
@@ -6915,13 +7020,14 @@ function progressInsights() {
   const older = entries[entries.length - 1];
   const load = calculateTrainingLoad();
   const recovery = getTodayRecoverySnapshot();
+  const copy = coachCopy();
   const insights = [];
   if (latest && older && latest.weight && older.weight) {
     const diff = Number(latest.weight) - Number(older.weight);
-    insights.push(diff < -0.5 ? "Kaal liigub alla, rasvapõletuse suund töötab." : diff > 0.5 ? "Kaal liigub üles, kontrolli kas eesmärk on lihasmass või rasv." : "Kaal on stabiilne, fookus võiks olla jõul ja ümbermõõtudel.");
+    insights.push(diff < -0.5 ? copy.weightDown : diff > 0.5 ? copy.weightUp : copy.weightStable);
   }
-  insights.push(load.status === "too-high" ? "Koormus on liiga kõrge, taastumine võib hakata kannatama." : load.status === "low" ? "Koormust võiks järk-järgult juurde lisada." : "Treeningkoormus on stabiilses tsoonis.");
-  insights.push(recovery.recoveryScore < 55 ? "Uni ja taastumine piiravad praegu tugevat treeningut." : "Taastumine toetab plaani jätkamist.");
+  insights.push(load.status === "too-high" ? copy.loadTooHigh : load.status === "low" ? copy.loadLow : copy.loadStable);
+  insights.push(recovery.recoveryScore < 55 ? copy.sleepLimits : copy.recoveryOk);
   return insights;
 }
 
@@ -6929,23 +7035,24 @@ function renderCoachSummary(recovery) {
   const load = calculateTrainingLoad();
   const plan = weeklyCoachPlan(recovery);
   const adjusted = adaptiveWorkoutAdjustment(recovery);
+  const copy = coachCopy();
   return `
     <div class="coach-grid">
       <div class="coach-card">
-        <strong>Tänane coach</strong>
+        <strong>${copy.todayCoach}</strong>
         <small>${adjusted.recommendation.intensityLabel}. ${adjusted.recommendation.reason}</small>
       </div>
       <div class="coach-card">
-        <strong>Treeningu kohandus</strong>
+        <strong>${copy.adjustment}</strong>
         <small>${adjusted.recommendation.planAdjustment}</small>
       </div>
       <div class="coach-card">
-        <strong>7p vs 28p koormus</strong>
-        <small>${load.label}: ${load.sevenDayLoad} vs baas ${load.baseline}</small>
+        <strong>${copy.load}</strong>
+        <small>${load.label}: ${load.sevenDayLoad} vs ${copy.baseShort} ${load.baseline}</small>
       </div>
       <div class="coach-card">
-        <strong>Järgmine samm</strong>
-        <small>${adjusted.adjusted.length ? adjusted.adjusted.map(item => `${item.name}: ${item.sets}x ${item.reps}`).slice(0, 2).join(" · ") : "Vali treeningkava ja salvesta esimene treening."}</small>
+        <strong>${copy.next}</strong>
+        <small>${adjusted.adjusted.length ? adjusted.adjusted.map(item => `${item.name}: ${item.sets}x ${item.reps}`).slice(0, 2).join(" · ") : copy.choosePlan}</small>
       </div>
     </div>
     <div class="weekly-plan">${plan.map(item => `<span>${item}</span>`).join("")}</div>
@@ -6958,17 +7065,18 @@ function renderTrainingLoadPanel() {
   const load = calculateTrainingLoad();
   const recovery = getTodayRecoverySnapshot();
   const rec = generateAdaptiveWorkoutRecommendation(recovery);
+  const copy = coachCopy();
   panel.innerHTML = `
     <div class="feature-card load-status-${load.status}">
-      <h2>Training Load</h2>
+      <h2>${copy.loadTitle}</h2>
       <div class="load-card">
         <strong>${load.label}</strong>
-        <small>Viimased 7 päeva: ${load.sevenDayLoad}. 28 päeva baas nädalale: ${load.baseline}. Soovitus: ${rec.intensityLabel}.</small>
+        <small>${copy.last7}: ${load.sevenDayLoad}. ${copy.base}: ${load.baseline}. ${copy.recommendation}: ${rec.intensityLabel}.</small>
         <div class="load-meter" style="--pct:${load.percent}%"><span></span></div>
       </div>
       <div class="insight-grid">
-        <div class="load-card"><strong>7 päeva</strong><small>${load.sevenDayLoad} koormuspunkti</small></div>
-        <div class="load-card"><strong>28 päeva</strong><small>${load.twentyEightDayLoad} koormuspunkti kokku</small></div>
+        <div class="load-card"><strong>${copy.last7}</strong><small>${load.sevenDayLoad} ${copy.points}</small></div>
+        <div class="load-card"><strong>28</strong><small>${load.twentyEightDayLoad} ${copy.totalPoints}</small></div>
       </div>
     </div>
   `;
@@ -6978,14 +7086,15 @@ function renderMuscleRecoveryPanel() {
   const panel = document.getElementById("muscleRecoveryPanel");
   if (!panel) return;
   const muscles = calculateMuscleRecovery().slice(0, 8);
+  const copy = coachCopy();
   panel.innerHTML = `
     <div class="feature-card">
-      <h2>Lihaste taastumine</h2>
-      <p class="small">Äpp arvestab salvestatud treeninguid ja väldib liiga väsinud lihasgruppe järgmise kava kohandamisel.</p>
+      <h2>${copy.muscleTitle}</h2>
+      <p class="small">${copy.muscleText}</p>
       <div class="muscle-grid">
         ${muscles.map(item => `
           <div class="muscle-card">
-            <strong>${item.name}</strong>
+            <strong>${item.label}</strong>
             <small>${item.score}% · ${item.status}</small>
             <div class="muscle-meter" style="--pct:${item.score}%"><span></span></div>
           </div>
@@ -7000,9 +7109,10 @@ function renderSmartNotificationPanel() {
   if (!panel) return;
   const recovery = getTodayRecoverySnapshot();
   const notices = smartNotifications(recovery, calculateTrainingLoad());
+  const copy = coachCopy();
   panel.innerHTML = `
     <div class="feature-card">
-      <h2>Nutikad soovitused</h2>
+      <h2>${copy.notices}</h2>
       <div class="insight-grid">
         ${notices.map(item => `
           <div class="notice-card ${item.type === "warning" ? "warning" : ""}">
@@ -7018,11 +7128,12 @@ function renderSmartNotificationPanel() {
 function renderProgressInsightPanel() {
   const panel = document.getElementById("progressInsightPanel");
   if (!panel) return;
+  const copy = coachCopy();
   panel.innerHTML = `
     <div class="feature-card">
-      <h2>Progressi ülevaade</h2>
+      <h2>${copy.progressTitle}</h2>
       <div class="insight-grid">
-        ${progressInsights().map(text => `<div class="notice-card"><strong>Insight</strong><small>${text}</small></div>`).join("")}
+        ${progressInsights().map(text => `<div class="notice-card"><strong>${copy.insight}</strong><small>${text}</small></div>`).join("")}
       </div>
     </div>
   `;
@@ -7144,8 +7255,8 @@ function resetWater() {
 }
 
 function saveProfile() {
-  appData.profile.name = document.getElementById("userName").value || "Kasutaja";
-  appData.profile.email = document.getElementById("userEmail").value || "user@email.com";
+  appData.profile.name = document.getElementById("userName").value || "";
+  appData.profile.email = document.getElementById("userEmail").value || "";
   appData.profile.height = Number(document.getElementById("height").value || appData.profile.height || 0);
   appData.profile.weight = Number(document.getElementById("weight").value || appData.profile.weight || 0);
   appData.profile.age = Number(document.getElementById("age").value || appData.profile.age || 0);
@@ -7764,8 +7875,8 @@ function renderDashboard() {
   document.getElementById("previousWorkoutLoad").value = recoverySnapshot.previousWorkoutLoad || latestWorkoutLoadScore();
   document.getElementById("soreness").value = recoverySnapshot.sorenessLevel || 4;
 
-  document.getElementById("userName").value = appData.profile.name;
-  document.getElementById("userEmail").value = appData.profile.email;
+  document.getElementById("userName").value = appData.profile.name === "Kasutaja" ? "" : (appData.profile.name || "");
+  document.getElementById("userEmail").value = appData.profile.email === "user@email.com" ? "" : (appData.profile.email || "");
   document.getElementById("height").value = appData.profile.height || "";
   document.getElementById("weight").value = appData.profile.weight || "";
   document.getElementById("age").value = appData.profile.age || "";
@@ -7798,7 +7909,7 @@ function exportData() {
   const json = JSON.stringify(appData, null, 2);
   document.getElementById("importBox").value = json;
   showPage("settings");
-  toast("Andmed eksporditud seadete vaatesse");
+  toast(currentLang === "en" ? "Backup text created" : currentLang === "ru" ? "Текст резервной копии создан" : "Varukoopia tekst loodud");
 }
 
 function importData() {
@@ -7806,9 +7917,9 @@ function importData() {
     const imported = JSON.parse(document.getElementById("importBox").value);
     appData = { ...defaultData, ...imported };
     saveData();
-    toast("Andmed imporditud");
+    toast(currentLang === "en" ? "Backup restored" : currentLang === "ru" ? "Резервная копия восстановлена" : "Varukoopia taastatud");
   } catch {
-    alert("JSON ei ole korrektne.");
+    alert(currentLang === "en" ? "Backup text is not valid." : currentLang === "ru" ? "Текст резервной копии некорректный." : "Varukoopia tekst ei ole korrektne.");
   }
 }
 
