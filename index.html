@@ -748,6 +748,103 @@ li {
   background: #111;
 }
 
+.outdoor-category-grid,
+.outdoor-gym-grid {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.outdoor-category-card,
+.outdoor-place-card {
+  position: relative;
+  min-height: 148px;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(212,175,55,0.42);
+  border-radius: 18px;
+  background: #080808;
+  color: #fff;
+  text-align: left;
+  padding: 0;
+  margin-top: 0;
+  box-shadow: 0 18px 34px rgba(0,0,0,0.28);
+}
+
+.outdoor-category-card img,
+.outdoor-place-card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.58) saturate(1.05);
+}
+
+.outdoor-category-card .outdoor-card-copy,
+.outdoor-place-card .outdoor-card-copy {
+  position: relative;
+  z-index: 1;
+  min-height: 148px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.78));
+}
+
+.outdoor-category-card h2,
+.outdoor-place-card h2 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.08;
+}
+
+.outdoor-category-card p,
+.outdoor-place-card p {
+  margin: 0;
+  color: #ffe9a3;
+  line-height: 1.32;
+}
+
+.outdoor-category-meta {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  max-width: 100%;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.68);
+  color: #ffd86b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.outdoor-category-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.outdoor-category-header h2 {
+  margin: 0;
+}
+
+.outdoor-back-button {
+  width: auto;
+  min-height: 40px;
+  margin: 0;
+  padding: 9px 12px;
+}
+@media (min-width: 760px) {
+  .outdoor-category-grid,
+  .outdoor-gym-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 .outdoor-summary {
   line-height: 1.45;
   color: #fff0b8;
@@ -2891,8 +2988,8 @@ li {
   </div>
 
   <div id="outdoorGyms" class="page">
-    <h1 data-i18n="outdoorGyms">Välijõusaalid Tallinnas</h1>
-    <p class="subtitle" data-i18n="outdoorGymsIntro">Avalikud välijõusaalid, seadmed, kohapealsed kavad ja Google Maps eelvaade.</p>
+    <h1 data-i18n="outdoorGyms">Välijõusaalid Eestis</h1>
+    <p class="subtitle" data-i18n="outdoorGymsIntro">Vali piirkond, ava välijõusaal ja koosta selle koha varustuse järgi kava.</p>
     <div id="outdoorGymList"></div>
   </div>
 
@@ -3384,7 +3481,7 @@ const t = {
     heroText2:"Ühenda käekell, vali treening ning äpp aitab sul jälgida koormust, eesmärke, taastumist, toitumist ja arengut.",
     startTraining:"Alusta treeningut", chooseWorkout:"Vali treening ja vali käekella pealt jälgimine",
     planIntro:"Vali pildiga alamkava. Iga kaart avab konkreetse treeningprogrammi.", createPlan:"Loo personaalne treeningkava",
-    outdoorGymsIntro:"Avalikud välijõusaalid, seadmed, kohapealsed kavad ja Google Maps eelvaade.",
+    outdoorGymsIntro:"Vali piirkond, ava välijõusaal ja koosta selle koha varustuse järgi kava.",
     statsText:"Sinu treeningute kokkuvõtted, järjepidevus ja ajalugu.", nutritionIntro:"Lisa söögid, jälgi kaloreid, makrosid ja eesmärgipõhist toitumiskava.",
     goalsIntro:"Sea nädala treeningute, kalorite, sammude ja vee eesmärgid.",
     progressIntro:"Jälgi kehakaalu, mõõte ja saavutusi.", timerIntro:"Intervalltaimer töö- ja puhkusefaasidega.",
@@ -3429,7 +3526,7 @@ const t = {
     heroText2:"Connect your watch, choose a workout and let the app track load, goals, recovery, nutrition and progress.",
     startTraining:"Start training", chooseWorkout:"Choose a workout and select tracking on your watch",
     planIntro:"Choose an image-based sub-plan. Each card opens its own training program.", createPlan:"Create personal training plan",
-    outdoorGymsIntro:"Public outdoor gyms, equipment-based plans and Google Maps preview.",
+    outdoorGymsIntro:"Choose an area, open an outdoor gym and build a workout from its equipment.",
     statsText:"Your workout summaries, streak and history.", nutritionIntro:"Add meals, track calories and macros.",
     goalsIntro:"Set weekly workout, calorie, step and water goals.",
     progressIntro:"Track body weight, measurements and achievements.", timerIntro:"Interval timer with work and rest phases.",
@@ -3474,7 +3571,7 @@ const t = {
     heroText2:"Подключи часы, выбери тренировку, а приложение поможет отслеживать нагрузку, цели, восстановление, питание и прогресс.",
     startTraining:"Начать тренировку", chooseWorkout:"Выбери тренировку и включи отслеживание на часах",
     planIntro:"Выбери подпрограмму с картинкой. Каждая карточка открывает отдельный план.", createPlan:"Создать персональный план",
-    outdoorGymsIntro:"Общественные площадки, адреса и карта Google Maps.",
+    outdoorGymsIntro:"Выбери район, открой площадку и собери план по её оборудованию.",
     statsText:"Сводка тренировок, streak и история.", nutritionIntro:"Добавляй еду, калории и макросы.",
     goalsIntro:"Задай цели тренировок, калорий, шагов и воды.",
     progressIntro:"Отслеживай вес, замеры и достижения.", timerIntro:"Интервальный таймер работы и отдыха.",
@@ -3863,6 +3960,44 @@ const articleGuides = {
   }
 };
 
+const outdoorGymCategories = [
+  {
+    id: "harjumaa",
+    title: { et: "Harjumaa välijõusaalid", en: "Harju County outdoor gyms", ru: "Уличные залы Харьюмаа" },
+    text: { et: "Tallinna ja lähivaldade avalikud jõulinnakud.", en: "Public outdoor gyms in Tallinn and nearby municipalities.", ru: "Площадки Таллинна и ближайших волостей." },
+    image: "https://images.unsplash.com/photo-1571019613914-85f342c6a11e?auto=format&fit=crop&w=1000&q=80"
+  },
+  {
+    id: "laaneEesti",
+    title: { et: "Lääne-Eesti välijõusaalid", en: "Western Estonia outdoor gyms", ru: "Уличные залы Западной Эстонии" },
+    text: { et: "Pärnumaa ja rannaäärsed treeningukohad.", en: "Pärnu County and coastal training spots.", ru: "Пярнумаа и прибрежные места для тренировок." },
+    image: "https://images.unsplash.com/photo-1598971639058-a25f9bb8f70c?auto=format&fit=crop&w=1000&q=80"
+  },
+  {
+    id: "lounaEesti",
+    title: { et: "Lõuna-Eesti välijõusaalid", en: "Southern Estonia outdoor gyms", ru: "Уличные залы Южной Эстонии" },
+    text: { et: "Elva, Tartu ja Viljandi kandis olevad välitreeningu kohad.", en: "Outdoor training spots around Elva, Tartu and Viljandi.", ru: "Площадки вокруг Элвы, Тарту и Вильянди." },
+    image: "https://images.unsplash.com/photo-1605296867304-46d5465a13f1?auto=format&fit=crop&w=1000&q=80"
+  },
+  {
+    id: "idaEesti",
+    title: { et: "Ida-Eesti välijõusaalid", en: "Eastern Estonia outdoor gyms", ru: "Уличные залы Восточной Эстонии" },
+    text: { et: "Virumaa välijõusaalid ja terviseradade jõualad.", en: "Outdoor gyms and strength areas in Virumaa.", ru: "Площадки и силовые зоны Вирумаа." },
+    image: "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&w=1000&q=80"
+  },
+  {
+    id: "keskEesti",
+    title: { et: "Kesk-Eesti välijõusaalid", en: "Central Estonia outdoor gyms", ru: "Уличные залы Центральной Эстонии" },
+    text: { et: "Järvamaa ja Raplamaa avalikud treeningukohad.", en: "Public training spots in Järva and Rapla counties.", ru: "Площадки Ярвамаа и Рапламаа." },
+    image: "https://images.unsplash.com/photo-1594381898411-846e7d193883?auto=format&fit=crop&w=1000&q=80"
+  }
+];
+
+let selectedOutdoorGymCategory = "";
+
+function outdoorGymCategoryFor(gym) {
+  return gym.category || "harjumaa";
+}
 const outdoorGyms = [
   {
     name: "Astangu tn 74 jõulinnak",
@@ -3993,6 +4128,201 @@ const outdoorGyms = [
       "Jalad: 3x12 väljaasted mõlemale jalale.",
       "Pink olemasolul: 3x10 step-up või kätekõverdus pingilt.",
       "Lõpp: 5 min taastav kõnd."
+    ]
+  },
+  {
+    name: "Tuule Spordihoone jõulinnak",
+    address: "Jüri, Rae vald, Harjumaa",
+    category: "harjumaa",
+    image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=900&q=80",
+    source: "https://www.google.com/maps/search/?api=1&query=Tuule%20Spordihoone%20j%C3%B5ulinnak%20J%C3%BCri%20Rae%20vald",
+    sourceLabel: "Kaardiotsing",
+    verified: false,
+    note: "Harjumaa lisavalik Rae vallas. Täpne varustus vajab kohapealset kontrolli, seega kava kasutab turvalisi keharaskuse ja nähtava inventari valikuid.",
+    equipment: [
+      { name: "Keharaskuse ala", work: "3-4 ringi nähtaval inventaril, hoia tehnika kontrollitud." },
+      { name: "Treeningpink", work: "3x10 step-up või pingilt kätekõverdus." },
+      { name: "Avatud ala", work: "10 min kõnd, kerge jooks või liikuvus." }
+    ],
+    plan: [
+      "Soojendus: 6 min kõnd või kerge jooks.",
+      "Kang/pink olemasolul: 4 seeriat tõmbeid, surumisi või toetatud kätekõverdusi.",
+      "Jalad: 3x12 väljaasted kummalegi jalale.",
+      "Kere: 3x30 sek plank.",
+      "Lõpp: rahulik kõnd ja venitused."
+    ]
+  },
+  {
+    name: "Pärnu Jaansoni raja välijõusaal",
+    address: "Jaansoni rada, Pärnu",
+    category: "laaneEesti",
+    image: "https://images.unsplash.com/photo-1534368420009-621bfab424a8?auto=format&fit=crop&w=900&q=80",
+    source: "https://www.google.com/maps/search/?api=1&query=P%C3%A4rnu%20Jaansoni%20rada%20v%C3%A4lij%C3%B5usaal",
+    sourceLabel: "Kaardiotsing",
+    verified: false,
+    note: "Pärnu jõeäärse liikumisraja treeningukoht. Kui varustus erineb, vali kavas ainult kohapeal nähtavad seadmed.",
+    equipment: [
+      { name: "Lõuatõmbekangid", work: "4x3-8 või 4x20 sek rippumist." },
+      { name: "Rööbaspuud", work: "3x6-10 dippe või toetatud põlvetõsteid." },
+      { name: "Pargirada", work: "10-20 min kõndi või kerget jooksu." }
+    ],
+    plan: [
+      "Soojendus: 8 min rada mööda kõnd.",
+      "Tõmme: lõuatõmme või rippumine 4 seeriat.",
+      "Surumine: rööbaspuud või pingilt kätekõverdus 3 seeriat.",
+      "Jalad: 3x12 väljaasted.",
+      "Lõpp: 5 min kõnd."
+    ]
+  },
+  {
+    name: "Jõulumäe Tervisespordikeskuse välijõusaal",
+    address: "Jõulumäe, Häädemeeste vald, Pärnumaa",
+    category: "laaneEesti",
+    image: "https://images.unsplash.com/photo-1517963879433-6ad2b056d712?auto=format&fit=crop&w=900&q=80",
+    source: "https://joulumae.ee/",
+    sourceLabel: "Jõulumäe keskus",
+    verified: false,
+    note: "Tervisespordikeskuse välitreening sobib hästi jooksu, suusa- ja jõuringi ühendamiseks. Kontrolli kohapeal avatud raja ja seadmete seisu.",
+    equipment: [
+      { name: "Jõulinnaku ala", work: "3 ringi nähtava varustuse järgi." },
+      { name: "Terviserada", work: "10-25 min rahulikku aeroobset tööd." },
+      { name: "Kerepink", work: "3x12-15 kontrollitud kereharjutust." }
+    ],
+    plan: [
+      "Soojendus: 10 min terviserada.",
+      "Jõuring: 3 ringi nähtavatel seadmetel.",
+      "Kere: 3x12 kerepingil või plank.",
+      "Konditsioon: 4x60 sek tempokam lõik rajal.",
+      "Lõpp: 5 min rahulik kõnd."
+    ]
+  },
+  {
+    name: "Elva välijõusaal",
+    address: "Elva linn, Tartumaa",
+    category: "lounaEesti",
+    image: "https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=900&q=80",
+    source: "https://www.google.com/maps/search/?api=1&query=Elva%20v%C3%A4lij%C3%B5usaal",
+    sourceLabel: "Kaardiotsing",
+    verified: false,
+    note: "Elva piirkonna avalik välitreeningu koht. Ava kaart enne minekut ja vali harjutused nähtava varustuse järgi.",
+    equipment: [
+      { name: "Keharaskuse ala", work: "4 ringi rahuliku tehnikaga." },
+      { name: "Treeningpink", work: "3x10 step-up või keretöö." },
+      { name: "Pargirada", work: "10-15 min kõnd või jooks." }
+    ],
+    plan: [
+      "Soojendus: 6-8 min kõnd.",
+      "Ring 3 korda: kükk 12x, pingilt surumine 10x, tõmme/rippumine 20 sek.",
+      "Kere: plank 3x30 sek.",
+      "Lõpp: rahulik kõnd."
+    ]
+  },
+  {
+    name: "Viljandi järveäärne välijõusaal",
+    address: "Viljandi järve rand, Viljandi",
+    category: "lounaEesti",
+    image: "https://images.unsplash.com/photo-1434608519344-49d77a699e1d?auto=format&fit=crop&w=900&q=80",
+    source: "https://www.google.com/maps/search/?api=1&query=Viljandi%20j%C3%A4rve%20v%C3%A4lij%C3%B5usaal",
+    sourceLabel: "Kaardiotsing",
+    verified: false,
+    note: "Järveäärne välitreening sobib jõu ja kerge aeroobse töö ühendamiseks. Varustuse loetelu tuleb kohapeal üle vaadata.",
+    equipment: [
+      { name: "Lõuatõmbekangid", work: "4 seeriat sobivas raskuses." },
+      { name: "Treeningpink", work: "3x10-12 jalga või keretööd." },
+      { name: "Avatud ala", work: "Liikuvus, kõnd ja väljaasted." }
+    ],
+    plan: [
+      "Soojendus: 8 min järve ääres kõnd.",
+      "Tõmbed/rippumine: 4 seeriat.",
+      "Jalad: 3x12 väljaasted.",
+      "Kere: 3x30 sek plank.",
+      "Lõpp: 5 min kõnd."
+    ]
+  },
+  {
+    name: "Narva Joaoru välijõusaal",
+    address: "Joaoru puhkeala, Narva",
+    category: "idaEesti",
+    image: "https://images.unsplash.com/photo-1581009137042-c552e485697a?auto=format&fit=crop&w=900&q=80",
+    source: "https://www.google.com/maps/search/?api=1&query=Narva%20Joaoru%20v%C3%A4lij%C3%B5usaal",
+    sourceLabel: "Kaardiotsing",
+    verified: false,
+    note: "Joaoru puhkeala treeningukoht. Kasuta kava nähtava inventari järgi ja jäta puuduvad seadmed vahele.",
+    equipment: [
+      { name: "Keharaskuse ala", work: "3-4 ringi vastavalt nähtavale varustusele." },
+      { name: "Rööbaspuud", work: "3x6-10 või toetatud variatsioon." },
+      { name: "Avatud ala", work: "Liikuvus ja kerge aeroobne töö." }
+    ],
+    plan: [
+      "Soojendus: 7 min kõnd.",
+      "Surumine: rööbaspuudel või pingilt 3 seeriat.",
+      "Jalad: 3x15 kükki või väljaasteid.",
+      "Kere: 3x30 sek plank.",
+      "Lõpp: rahulik kõnd."
+    ]
+  },
+  {
+    name: "Rakvere Palermo terviseraja jõulinnak",
+    address: "Palermo terviserada, Rakvere",
+    category: "idaEesti",
+    image: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=900&q=80",
+    source: "https://www.google.com/maps/search/?api=1&query=Rakvere%20Palermo%20terviserada%20j%C3%B5ulinnak",
+    sourceLabel: "Kaardiotsing",
+    verified: false,
+    note: "Terviseraja jõuala sobib jõuringiks koos kõnni või jooksuga. Täpne inventar vajab kohapealset kontrolli.",
+    equipment: [
+      { name: "Terviserada", work: "10-20 min kõnd või jooks." },
+      { name: "Jõulinnaku ala", work: "3 ringi nähtavatel seadmetel." },
+      { name: "Kerepink", work: "3x12 või plank 3x30 sek." }
+    ],
+    plan: [
+      "Soojendus: 10 min terviserada.",
+      "Jõuring: 3 ringi nähtavatel seadmetel.",
+      "Kere: 3 seeriat.",
+      "Lõpp: 5 min rahulik kõnd."
+    ]
+  },
+  {
+    name: "Paide tehisjärve välijõusaal",
+    address: "Paide tehisjärv, Paide",
+    category: "keskEesti",
+    image: "https://images.unsplash.com/photo-1566241142559-40e1dab266c6?auto=format&fit=crop&w=900&q=80",
+    source: "https://www.google.com/maps/search/?api=1&query=Paide%20tehisj%C3%A4rve%20v%C3%A4lij%C3%B5usaal",
+    sourceLabel: "Kaardiotsing",
+    verified: false,
+    note: "Kesk-Eesti järveäärne treeningukoht. Sobib lihtsaks kogu keha välitreeninguks ja rahulikuks aeroobseks osaks.",
+    equipment: [
+      { name: "Keharaskuse ala", work: "3-4 ringi nähtava inventari põhjal." },
+      { name: "Treeningpink", work: "3x10 step-up või keretöö." },
+      { name: "Avatud ala", work: "Kõnd, liikuvus ja väljaasted." }
+    ],
+    plan: [
+      "Soojendus: 6 min kõnd.",
+      "Ring: 3 korda kükk 12x, kätekõverdus 10x, keretöö 12x.",
+      "Aeroobne lõik: 10 min kõnd.",
+      "Lõpp: venitus."
+    ]
+  },
+  {
+    name: "Rapla Vesiroosi välitreeninguala",
+    address: "Vesiroosi terviserada, Rapla",
+    category: "keskEesti",
+    image: "https://images.unsplash.com/photo-1583454155184-870a1f63aebc?auto=format&fit=crop&w=900&q=80",
+    source: "https://www.google.com/maps/search/?api=1&query=Rapla%20Vesiroosi%20v%C3%A4litreeninguala",
+    sourceLabel: "Kaardiotsing",
+    verified: false,
+    note: "Rapla terviseraja välitreeningu valik. Kasuta seda lihtsa kogu keha kava jaoks ja kontrolli seadmed kohapeal üle.",
+    equipment: [
+      { name: "Terviserada", work: "10-15 min kõndi või kerget jooksu." },
+      { name: "Jõulinnaku ala", work: "3 ringi nähtava varustuse järgi." },
+      { name: "Avatud ala", work: "Liikuvus ja keharaskuse harjutused." }
+    ],
+    plan: [
+      "Soojendus: 8 min terviserada.",
+      "Jõuring: 3 ringi nähtavatel seadmetel.",
+      "Jalad: 3x12 väljaasted.",
+      "Kere: plank 3x30 sek.",
+      "Lõpp: kõnd ja venitus."
     ]
   }
 ];
@@ -5307,6 +5637,10 @@ function outdoorGymLabels() {
   return {
     et: {
       open: "Vaata varustust",
+      openCategory: "Ava piirkond",
+      backCategories: "Tagasi piirkondadesse",
+      places: "kohta",
+      categoryIntro: "Vali piirkond ja seejärel konkreetne välijõusaal.",
       close: "Sulge",
       equipment: "Mis seal olemas on",
       generate: "Koosta kava",
@@ -5321,6 +5655,10 @@ function outdoorGymLabels() {
     },
     en: {
       open: "View equipment",
+      openCategory: "Open area",
+      backCategories: "Back to areas",
+      places: "places",
+      categoryIntro: "Choose an area, then open a specific outdoor gym.",
       close: "Close",
       equipment: "What is available",
       generate: "Build plan",
@@ -5548,24 +5886,95 @@ function openOutdoorPlan(index) {
   document.getElementById("outdoorPlanModal").classList.add("active");
 }
 
-function renderOutdoorGyms() {
+function renderOutdoorGyms(categoryId = selectedOutdoorGymCategory) {
   const container = document.getElementById("outdoorGymList");
-  const labels = outdoorGymLabels();
-  container.innerHTML = outdoorGyms.map((gym, index) => {
-    const query = encodeURIComponent(`${gym.name}, ${gym.address}`);
-    return `
-      <div class="outdoor-card">
-        <img class="outdoor-photo" src="${gym.image}" alt="${gym.name}" loading="lazy">
-        <h2>${gym.name}</h2>
-        <p><strong>${t[currentLang].address}:</strong> ${gym.address}</p>
-        <p class="outdoor-summary">${gym.equipment.length} seadet/pinki. Ava enne kohalesõitu, et näha varustust ja luua selle koha kava.</p>
-        <button onclick="openOutdoorGym(${index})">${labels.open}</button>
-        <a class="map-link" href="https://www.google.com/maps/search/?api=1&query=${query}" target="_blank">${t[currentLang].openMaps}</a>
+  if (!container) return;
+  const labels = {
+    ...outdoorGymLabels(),
+    ...({
+      et: {
+        categoryIntro: "Vali piirkond ja seejärel konkreetne välijõusaal.",
+        backCategories: "Tagasi piirkondadesse",
+        places: "kohta",
+        verified: "Kontrollitud allikas",
+        mapCheck: "Kaart + kontrolli kohapeal",
+        gymSummary: count => `${count} seadet või treeninguala. Ava enne kohalesõitu, et näha varustust ja luua selle koha kava.`
+      },
+      en: {
+        categoryIntro: "Choose an area, then open a specific outdoor gym.",
+        backCategories: "Back to areas",
+        places: "places",
+        verified: "Verified source",
+        mapCheck: "Map + check on site",
+        gymSummary: count => `${count} equipment items or training areas. Open it before going to see the equipment and build a workout for that spot.`
+      },
+      ru: {
+        categoryIntro: "Выбери район, затем конкретную площадку.",
+        backCategories: "Назад к районам",
+        places: "мест",
+        verified: "Проверенный источник",
+        mapCheck: "Карта + проверь на месте",
+        gymSummary: count => `${count} элементов или зон для тренировки. Открой место перед поездкой, чтобы посмотреть оборудование и собрать план.`
+      }
+    }[currentLang] || {})
+  };
+  selectedOutdoorGymCategory = categoryId || "";
+
+  if (!selectedOutdoorGymCategory) {
+    container.innerHTML = `
+      <p class="outdoor-summary">${labels.categoryIntro}</p>
+      <div class="outdoor-category-grid">
+        ${outdoorGymCategories.map(category => {
+          const gymsInCategory = outdoorGyms.filter(gym => outdoorGymCategoryFor(gym) === category.id).length;
+          return `
+            <button class="outdoor-category-card" onclick="renderOutdoorGyms('${category.id}')" aria-label="${langText(category.title)}">
+              <img src="${category.image}" alt="${langText(category.title)}" loading="lazy">
+              <span class="outdoor-card-copy">
+                <span class="outdoor-category-meta">${gymsInCategory} ${labels.places}</span>
+                <h2>${langText(category.title)}</h2>
+                <p>${langText(category.text)}</p>
+              </span>
+            </button>
+          `;
+        }).join("")}
       </div>
     `;
-  }).join("");
-}
+    return;
+  }
 
+  const category = outdoorGymCategories.find(item => item.id === selectedOutdoorGymCategory) || outdoorGymCategories[0];
+  const gyms = outdoorGyms
+    .map((gym, index) => ({ gym, index }))
+    .filter(item => outdoorGymCategoryFor(item.gym) === selectedOutdoorGymCategory);
+
+  container.innerHTML = `
+    <div class="outdoor-category-header">
+      <h2>${langText(category.title)}</h2>
+      <button class="dark-btn outdoor-back-button" onclick="renderOutdoorGyms('')">${labels.backCategories}</button>
+    </div>
+    <p class="outdoor-summary">${langText(category.text)}</p>
+    <div class="outdoor-gym-grid">
+      ${gyms.map(({ gym, index }) => {
+        const query = encodeURIComponent(`${gym.name}, ${gym.address}`);
+        return `
+          <div class="outdoor-card">
+            <button class="outdoor-place-card" onclick="openOutdoorGym(${index})" aria-label="${gym.name}">
+              <img src="${gym.image}" alt="${gym.name}" loading="lazy">
+              <span class="outdoor-card-copy">
+                <span class="outdoor-category-meta">${gym.verified ? labels.verified : labels.mapCheck}</span>
+                <h2>${gym.name}</h2>
+                <p>${gym.address}</p>
+              </span>
+            </button>
+            <p class="outdoor-summary">${labels.gymSummary(gym.equipment.length)}</p>
+            <button onclick="openOutdoorGym(${index})">${labels.open}</button>
+            <a class="map-link" href="https://www.google.com/maps/search/?api=1&query=${query}" target="_blank">${t[currentLang].openMaps}</a>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
 function langText(value) {
   if (!value || typeof value === "string") return value || "";
   return value[currentLang] || value.en || value.et || "";
