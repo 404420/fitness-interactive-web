@@ -128,10 +128,10 @@ body.modal-open {
   display: none;
   position: fixed;
   top: 0;
-  bottom: auto;
+  bottom: 68px;
   left: 50%;
   width: min(430px, 100vw);
-  max-height: calc(100svh - 68px);
+  max-height: none;
   overflow: hidden;
   transform: translateX(-50%);
   background: rgba(8,8,8,0.96);
@@ -179,9 +179,9 @@ body.modal-open {
 .menu-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(5, clamp(54px, 10.5svh, 70px));
+  grid-template-rows: repeat(5, minmax(0, 1fr));
   gap: 8px;
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   min-height: 0;
   margin-top: 0;
 }
@@ -204,13 +204,13 @@ li:hover { border-color: #ffd86b; }
 .menu-card {
   position: relative;
   overflow: hidden;
-  min-height: 54px;
-  height: auto;
+  min-height: 0;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   text-align: left;
-  padding: 10px;
+  padding: 12px;
   color: white;
   border-color: rgba(212,175,55,0.28);
   background:
@@ -225,7 +225,7 @@ li:hover { border-color: #ffd86b; }
   position: relative;
   z-index: 1;
   color: white;
-  font-size: clamp(11px, 3vw, 14px);
+  font-size: clamp(12px, 3.2vw, 15px);
   line-height: 1.1;
   font-weight: 900;
   text-shadow: 0 2px 16px rgba(0,0,0,0.72);
