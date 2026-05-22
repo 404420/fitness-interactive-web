@@ -1339,6 +1339,106 @@ li {
   font-weight: 900;
 }
 
+.coach-grid,
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.coach-card,
+.load-card,
+.muscle-card,
+.notice-card {
+  border: 1px solid rgba(255,255,255,0.1);
+  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.coach-card strong,
+.load-card strong,
+.muscle-card strong,
+.notice-card strong {
+  display: block;
+  color: #fff;
+  font-size: 15px;
+}
+
+.coach-card small,
+.load-card small,
+.muscle-card small,
+.notice-card small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+  margin-top: 5px;
+}
+
+.load-meter,
+.muscle-meter {
+  height: 8px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.load-meter span,
+.muscle-meter span {
+  display: block;
+  height: 100%;
+  width: var(--pct, 0%);
+  background: linear-gradient(90deg, #4ade80, #ffd86b, #ff5d66);
+}
+
+.load-status-low .load-meter span,
+.load-status-steady .load-meter span { background: linear-gradient(90deg, #4ade80, #8fb4ff); }
+.load-status-high .load-meter span { background: linear-gradient(90deg, #ffd86b, #ff9f43); }
+.load-status-too-high .load-meter span { background: linear-gradient(90deg, #ff7a7f, #ff2d55); }
+
+.muscle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.notice-card.warning {
+  border-color: rgba(255,77,87,0.45);
+  background: rgba(255,77,87,0.1);
+}
+
+.weekly-plan {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.weekly-plan span {
+  min-width: 0;
+  padding: 8px 4px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.07);
+  color: #fff;
+  font-size: 10px;
+  text-align: center;
+}
+
+@media (max-width: 430px) {
+  .coach-grid,
+  .insight-grid,
+  .muscle-grid {
+    grid-template-columns: 1fr;
+  }
+  .weekly-plan {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 .modal {
   display: none;
   position: fixed;
@@ -2801,6 +2901,7 @@ li {
     <p class="subtitle" data-i18n="statsText">Sinu treeningute kokkuvõtted, streak ja ajalugu.</p>
 
     <div class="stats" id="statsCards"></div>
+    <div id="trainingLoadPanel"></div>
     <div class="feature-card">
       <h2>Analüüs isikuandmete põhjal</h2>
       <div id="analysisList"></div>
@@ -2914,6 +3015,8 @@ li {
       <div id="progressList"></div>
     </div>
 
+    <div id="progressInsightPanel"></div>
+
     <div class="feature-card">
       <h2 data-i18n="achievements">Saavutused</h2>
       <div id="achievementsList"></div>
@@ -2992,6 +3095,10 @@ li {
         <input id="soreness" type="range" min="1" max="10" value="4" />
       </details>
     </div>
+
+
+    <div id="muscleRecoveryPanel"></div>
+    <div id="smartNotificationPanel"></div>
 
     <div class="feature-card">
       <h2 data-i18n="waterTracker">Veetarbimine</h2>
@@ -3239,13 +3346,13 @@ let programWorkoutState = { active: false, title: "", duration: 0, calories: 0, 
 let statsCalendarMonth = "";
 let selectedStatsDate = "";
 
-const onboardingSteps = ["welcome", "account", "gender", "goal", "metrics", "days", "equipment", "watch"];
+const onboardingSteps = ["welcome", "account", "gender", "goal", "metrics", "health", "days", "equipment", "watch"];
 const goalProgramMap = { fat: "fatLossCircuit", strength: "powerlifting", muscle: "generalMuscle", endurance: "crossfit" };
 
 const todayKey = () => new Date().toISOString().slice(0, 10);
 
 const defaultData = {
-  profile: { name: "Kasutaja", email: "user@email.com", height: 175, weight: 75, age: 30, gender: "male", currentType: "C", targetType: "B", courseStart: "", courseWeeks: 12, intensity: "Keskmine" },
+  profile: { name: "Kasutaja", email: "user@email.com", height: 175, weight: 75, age: 30, gender: "male", currentType: "C", targetType: "B", courseStart: "", courseWeeks: 12, intensity: "Keskmine", experience: "beginner", sleepQuality: 72, limitation: "" },
   goals: { weeklyWorkouts: 4, weeklyCalories: 1800, dailySteps: 8000, dailyWater: 2500 },
   selectedGoal: "fat",
   selectedProgram: "generalMuscle",
@@ -3259,6 +3366,9 @@ const defaultData = {
   progress: [],
   recovery: {},
   wearableMovement: {},
+  trainingLoad: {},
+  muscleRecovery: {},
+  notifications: {},
   water: {},
   subscription: false,
   aiCoach: { lastRefresh: "", monthlyFocus: "", recommendedProgram: "", notes: [] }
@@ -4930,6 +5040,9 @@ function initOnboardingState() {
     weight: Number(appData.profile.weight || 75),
     height: Number(appData.profile.height || 175),
     age: Number(appData.profile.age || 30),
+    experience: appData.profile.experience || "beginner",
+    sleepQuality: Number(appData.profile.sleepQuality || 72),
+    limitation: appData.profile.limitation || "",
     days: Number(appData.goals.weeklyWorkouts || 4),
     equipment: [...(appData.equipment || ["fullGym"])],
     watch: Boolean(connectedWatch)
@@ -4955,10 +5068,10 @@ function skipOnboarding() {
 }
 
 function captureOnboardingFields() {
-  ["name", "email", "weight", "height", "age"].forEach(key => {
+  ["name", "email", "weight", "height", "age", "sleepQuality", "limitation"].forEach(key => {
     const el = document.getElementById(`ob_${key}`);
     if (!el) return;
-    onboardingState[key] = key === "name" || key === "email" ? el.value : Number(el.value || onboardingState[key]);
+    onboardingState[key] = key === "name" || key === "email" || key === "limitation" ? el.value : Number(el.value || onboardingState[key]);
   });
 }
 
@@ -5010,6 +5123,9 @@ function completeOnboarding() {
     weight,
     height: Number(onboardingState.height || 175),
     age: Number(onboardingState.age || 30),
+    experience: onboardingState.experience || "beginner",
+    sleepQuality: Number(onboardingState.sleepQuality || 72),
+    limitation: onboardingState.limitation || "",
     courseStart: appData.profile.courseStart || new Date().toISOString()
   };
   appData.selectedGoal = onboardingState.goal || "fat";
@@ -5095,6 +5211,26 @@ function renderOnboarding() {
         <div class="onboarding-input-card"><label>${copy.weight}</label><div class="onboarding-unit-row"><input id="ob_weight" type="number" value="${onboardingState.weight || 75}"><span>kg</span></div></div>
         <div class="onboarding-input-card"><label>${copy.height}</label><div class="onboarding-unit-row"><input id="ob_height" type="number" value="${onboardingState.height || 175}"><span>cm</span></div></div>
         <div class="onboarding-input-card"><label>${copy.age}</label><div class="onboarding-unit-row"><input id="ob_age" type="number" value="${onboardingState.age || 30}"><span>${t[currentLang].yearsUnit || "y"}</span></div></div>
+      </div>
+    `;
+  }
+  if (step === "health") {
+    const labels = currentLang === "en"
+      ? { title: "Recovery profile", text: "This helps the app scale load before you overtrain.", exp: "Training experience", beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced", sleep: "Usual sleep score", limit: "Injury or limitation" }
+      : currentLang === "ru"
+        ? { title: "Профиль восстановления", text: "Это помогает приложению снижать нагрузку до перегруза.", exp: "Опыт тренировок", beginner: "Новичок", intermediate: "Средний", advanced: "Опытный", sleep: "Обычный сон", limit: "Травма или ограничение" }
+        : { title: "Taastumise profiil", text: "See aitab äpil koormust vähendada enne, kui tekib ülekoormus.", exp: "Treeningkogemus", beginner: "Algaja", intermediate: "Keskmine", advanced: "Kogenud", sleep: "Tavaline uneskoor", limit: "Vigastus või piirang" };
+    html = `
+      <h1>${labels.title}</h1>
+      <p>${labels.text}</p>
+      <div class="onboarding-list">
+        ${onboardingOption(labels.beginner, labels.exp, "1", onboardingState.experience === "beginner", "onboardingPick('experience','beginner')")}
+        ${onboardingOption(labels.intermediate, labels.exp, "2", onboardingState.experience === "intermediate", "onboardingPick('experience','intermediate')")}
+        ${onboardingOption(labels.advanced, labels.exp, "3", onboardingState.experience === "advanced", "onboardingPick('experience','advanced')")}
+      </div>
+      <div class="onboarding-form">
+        <div class="onboarding-input-card"><label>${labels.sleep}</label><div class="onboarding-unit-row"><input id="ob_sleepQuality" type="number" min="0" max="100" value="${onboardingState.sleepQuality || 72}"><span>/100</span></div></div>
+        <div class="onboarding-input-card"><label>${labels.limit}</label><input id="ob_limitation" type="text" value="${escapeAttr(onboardingState.limitation || "")}"></div>
       </div>
     `;
   }
@@ -6662,12 +6798,242 @@ function generateAdaptiveWorkoutRecommendation(recovery) {
   };
 }
 
+function workoutMuscleGroups(workoutName = "") {
+  const map = {
+    "Traditional Strength Training": ["Rind", "Selg", "Jalad", "Õlad"],
+    "HIIT": ["Jalad", "Core", "Kogu keha"],
+    "Core Training": ["Core"],
+    "Outdoor Run": ["Jalad", "Süda"],
+    "Indoor Walk": ["Jalad", "Süda"],
+    "Cycling": ["Jalad", "Süda"],
+    "Pool Swim": ["Selg", "Õlad", "Süda"],
+    "Open Water Swim": ["Selg", "Õlad", "Süda"],
+    "Yoga": ["Liikuvus", "Core"],
+    "Pilates": ["Core", "Liikuvus"],
+    "Mobility": ["Liikuvus"],
+    "Indoor Rowing": ["Selg", "Jalad", "Süda"],
+    "Elliptical": ["Jalad", "Süda"],
+    "Multisport": ["Kogu keha", "Süda"]
+  };
+  return map[workoutName] || ["Kogu keha"];
+}
+
+function itemsWithinDays(items, days) {
+  const since = Date.now() - days * 86400000;
+  return (items || []).filter(item => new Date(item.date).getTime() >= since);
+}
+
+function workoutEffortScore(item) {
+  const durationScore = Number(item.duration || 0) * 0.45;
+  const calorieScore = Number(item.calories || 0) * 0.06;
+  const heartScore = Math.max(0, Number(item.avgHeart || 0) - 90) * 0.35;
+  return Math.round(durationScore + calorieScore + heartScore);
+}
+
+function calculateTrainingLoad() {
+  const last7 = itemsWithinDays(appData.history, 7);
+  const last28 = itemsWithinDays(appData.history, 28);
+  const sevenDayLoad = last7.reduce((sum, item) => sum + workoutEffortScore(item), 0);
+  const twentyEightDayLoad = last28.reduce((sum, item) => sum + workoutEffortScore(item), 0);
+  const baseline = Math.max(1, Math.round(twentyEightDayLoad / 4));
+  const ratio = sevenDayLoad / baseline;
+  let status = "steady";
+  let label = "Stabiilne";
+  if (ratio < 0.65) { status = "low"; label = "Madal"; }
+  if (ratio >= 1.25) { status = "high"; label = "Kõrge"; }
+  if (ratio >= 1.6) { status = "too-high"; label = "Liiga kõrge"; }
+  return {
+    sevenDayLoad,
+    twentyEightDayLoad,
+    baseline,
+    ratio,
+    status,
+    label,
+    percent: clampNumber(Math.round(ratio * 65), 8, 100)
+  };
+}
+
+function calculateMuscleRecovery() {
+  const groups = ["Rind", "Selg", "Jalad", "Õlad", "Core", "Süda", "Liikuvus", "Kogu keha"];
+  const now = Date.now();
+  const recovery = {};
+  groups.forEach(group => recovery[group] = 100);
+  itemsWithinDays(appData.history, 7).forEach(item => {
+    const hoursAgo = Math.max(0, (now - new Date(item.date).getTime()) / 3600000);
+    const fatigue = clampNumber(workoutEffortScore(item) / 1.7, 8, 65);
+    const restored = clampNumber(hoursAgo * 1.4, 0, 100);
+    workoutMuscleGroups(item.workout).forEach(group => {
+      recovery[group] = Math.min(recovery[group] ?? 100, clampNumber(100 - fatigue + restored, 0, 100));
+    });
+  });
+  return Object.entries(recovery)
+    .map(([name, score]) => ({ name, score: Math.round(score), status: score < 45 ? "väsinud" : score < 70 ? "keskmine" : "värske" }))
+    .sort((a, b) => a.score - b.score);
+}
+
+function adaptiveWorkoutAdjustment(recovery, programId = appData.selectedProgram || "generalMuscle") {
+  const recommendation = generateAdaptiveWorkoutRecommendation(recovery);
+  const program = trainingPrograms[programId] || trainingPrograms.generalMuscle;
+  const baseExercises = program?.days?.[0]?.exercises || program?.exercises || [];
+  const scale = recommendation.recommendedIntensity === "puhkus" ? 0.35 : recommendation.recommendedIntensity === "keskmine" ? 0.75 : 1.08;
+  const exerciseLimit = recommendation.recommendedIntensity === "puhkus" ? 3 : recommendation.recommendedIntensity === "keskmine" ? 5 : 7;
+  const adjusted = baseExercises.slice(0, exerciseLimit).map(exercise => ({
+    name: exercise.name || exercise.title || exercise,
+    sets: Math.max(1, Math.round(Number(exercise.sets || 3) * scale)),
+    reps: exercise.reps || (recommendation.recommendedIntensity === "puhkus" ? "8-10 rahulikult" : recommendation.recommendedIntensity === "keskmine" ? "8-12" : "6-12")
+  }));
+  return { recommendation, adjusted };
+}
+
+function weeklyCoachPlan(recovery) {
+  const rec = generateAdaptiveWorkoutRecommendation(recovery);
+  const hard = rec.recommendedIntensity === "kõrge";
+  const medium = rec.recommendedIntensity === "keskmine";
+  const days = ["E", "T", "K", "N", "R", "L", "P"];
+  const pattern = rec.recommendedIntensity === "puhkus"
+    ? ["Puhkus", "Liikuvus", "Kerge", "Puhkus", "Keskmine", "Kõnd", "Puhkus"]
+    : medium
+      ? ["Keskmine", "Liikuvus", "Keskmine", "Puhkus", "Keskmine", "Kõnd", "Puhkus"]
+      : ["Tugev", "Kerge", "Tugev", "Puhkus", "Tugev", "Liikuvus", "Puhkus"];
+  return days.map((day, index) => `${day}: ${pattern[index]}`);
+}
+
+function smartNotifications(recovery, load) {
+  const rec = generateAdaptiveWorkoutRecommendation(recovery);
+  const notices = [];
+  if (recovery.readinessLevel === "low") notices.push({ type: "warning", title: "Hommikune soovitus", text: "Taastumine on madal. Täna sobib puhkus, kõnd või liikuvus." });
+  if (load.status === "too-high") notices.push({ type: "warning", title: "Koormuse hoiatus", text: "7 päeva koormus on 28 päeva baasist liiga kõrgel. Vähenda mahtu." });
+  if ((appData.water[todayKey()] || 0) < Number(appData.goals.dailyWater || 2500) * 0.45) notices.push({ type: "info", title: "Vesi", text: "Vee eesmärk on täna veel madal. Lisa enne trenni 250-500 ml." });
+  if (!appData.history.length) notices.push({ type: "info", title: "Esimene treening", text: "Alusta lühikese treeninguga, et äpp saaks sinu koormust õppida." });
+  if (!notices.length) notices.push({ type: "info", title: "Valmis treenima", text: rec.suggestedWorkoutAdjustment });
+  return notices;
+}
+
+function progressInsights() {
+  const entries = [...(appData.progress || [])].slice(0, 8);
+  const latest = entries[0];
+  const older = entries[entries.length - 1];
+  const load = calculateTrainingLoad();
+  const recovery = getTodayRecoverySnapshot();
+  const insights = [];
+  if (latest && older && latest.weight && older.weight) {
+    const diff = Number(latest.weight) - Number(older.weight);
+    insights.push(diff < -0.5 ? "Kaal liigub alla, rasvapõletuse suund töötab." : diff > 0.5 ? "Kaal liigub üles, kontrolli kas eesmärk on lihasmass või rasv." : "Kaal on stabiilne, fookus võiks olla jõul ja ümbermõõtudel.");
+  }
+  insights.push(load.status === "too-high" ? "Koormus on liiga kõrge, taastumine võib hakata kannatama." : load.status === "low" ? "Koormust võiks järk-järgult juurde lisada." : "Treeningkoormus on stabiilses tsoonis.");
+  insights.push(recovery.recoveryScore < 55 ? "Uni ja taastumine piiravad praegu tugevat treeningut." : "Taastumine toetab plaani jätkamist.");
+  return insights;
+}
+
+function renderCoachSummary(recovery) {
+  const load = calculateTrainingLoad();
+  const plan = weeklyCoachPlan(recovery);
+  const adjusted = adaptiveWorkoutAdjustment(recovery);
+  return `
+    <div class="coach-grid">
+      <div class="coach-card">
+        <strong>Tänane coach</strong>
+        <small>${adjusted.recommendation.intensityLabel}. ${adjusted.recommendation.reason}</small>
+      </div>
+      <div class="coach-card">
+        <strong>Treeningu kohandus</strong>
+        <small>${adjusted.recommendation.planAdjustment}</small>
+      </div>
+      <div class="coach-card">
+        <strong>7p vs 28p koormus</strong>
+        <small>${load.label}: ${load.sevenDayLoad} vs baas ${load.baseline}</small>
+      </div>
+      <div class="coach-card">
+        <strong>Järgmine samm</strong>
+        <small>${adjusted.adjusted.length ? adjusted.adjusted.map(item => `${item.name}: ${item.sets}x ${item.reps}`).slice(0, 2).join(" · ") : "Vali treeningkava ja salvesta esimene treening."}</small>
+      </div>
+    </div>
+    <div class="weekly-plan">${plan.map(item => `<span>${item}</span>`).join("")}</div>
+  `;
+}
+
+function renderTrainingLoadPanel() {
+  const panel = document.getElementById("trainingLoadPanel");
+  if (!panel) return;
+  const load = calculateTrainingLoad();
+  const recovery = getTodayRecoverySnapshot();
+  const rec = generateAdaptiveWorkoutRecommendation(recovery);
+  panel.innerHTML = `
+    <div class="feature-card load-status-${load.status}">
+      <h2>Training Load</h2>
+      <div class="load-card">
+        <strong>${load.label}</strong>
+        <small>Viimased 7 päeva: ${load.sevenDayLoad}. 28 päeva baas nädalale: ${load.baseline}. Soovitus: ${rec.intensityLabel}.</small>
+        <div class="load-meter" style="--pct:${load.percent}%"><span></span></div>
+      </div>
+      <div class="insight-grid">
+        <div class="load-card"><strong>7 päeva</strong><small>${load.sevenDayLoad} koormuspunkti</small></div>
+        <div class="load-card"><strong>28 päeva</strong><small>${load.twentyEightDayLoad} koormuspunkti kokku</small></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderMuscleRecoveryPanel() {
+  const panel = document.getElementById("muscleRecoveryPanel");
+  if (!panel) return;
+  const muscles = calculateMuscleRecovery().slice(0, 8);
+  panel.innerHTML = `
+    <div class="feature-card">
+      <h2>Lihaste taastumine</h2>
+      <p class="small">Äpp arvestab salvestatud treeninguid ja väldib liiga väsinud lihasgruppe järgmise kava kohandamisel.</p>
+      <div class="muscle-grid">
+        ${muscles.map(item => `
+          <div class="muscle-card">
+            <strong>${item.name}</strong>
+            <small>${item.score}% · ${item.status}</small>
+            <div class="muscle-meter" style="--pct:${item.score}%"><span></span></div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderSmartNotificationPanel() {
+  const panel = document.getElementById("smartNotificationPanel");
+  if (!panel) return;
+  const recovery = getTodayRecoverySnapshot();
+  const notices = smartNotifications(recovery, calculateTrainingLoad());
+  panel.innerHTML = `
+    <div class="feature-card">
+      <h2>Nutikad soovitused</h2>
+      <div class="insight-grid">
+        ${notices.map(item => `
+          <div class="notice-card ${item.type === "warning" ? "warning" : ""}">
+            <strong>${item.title}</strong>
+            <small>${item.text}</small>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderProgressInsightPanel() {
+  const panel = document.getElementById("progressInsightPanel");
+  if (!panel) return;
+  panel.innerHTML = `
+    <div class="feature-card">
+      <h2>Progressi ülevaade</h2>
+      <div class="insight-grid">
+        ${progressInsights().map(text => `<div class="notice-card"><strong>Insight</strong><small>${text}</small></div>`).join("")}
+      </div>
+    </div>
+  `;
+}
+
 function getTodayRecoverySnapshot() {
   const saved = appData.recovery?.[todayKey()];
   if (saved?.recoveryScore) return saved;
   return calculateRecoveryScore({
     sleepDuration: Number(saved?.sleepDuration || saved?.sleep || 7),
-    sleepQualityScore: Number(saved?.sleepQualityScore || 72),
+    sleepQualityScore: Number(saved?.sleepQualityScore || appData.profile.sleepQuality || 72),
     restingHeartRate: Number(saved?.restingHeartRate || 58),
     hrv: Number(saved?.hrv || 55),
     previousWorkoutLoad: Number(saved?.previousWorkoutLoad || latestWorkoutLoadScore()),
@@ -7300,6 +7666,7 @@ function renderDashboard() {
       <strong>Uneskoor ${recoverySnapshot.sleepQualityScore}: ${adaptiveRecommendation.intensityLabel}</strong>
       <small>${formatSleepMinutes(sleepSnapshot.total)} und · ${adaptiveRecommendation.suggestedWorkoutAdjustment}</small>
     </div>
+    ${renderCoachSummary(recoverySnapshot)}
     <div class="metric-grid">
       <div class="metric-tile"><span class="metric-mark">TR</span><strong>${weekly.length}</strong><small>${dl.workouts7}</small></div>
       <div class="metric-tile"><span class="metric-mark">KC</span><strong>${weeklyCalories}</strong><small>${dl.kcal7}</small></div>
@@ -7336,6 +7703,7 @@ function renderDashboard() {
   `;
 
   document.getElementById("analysisList").innerHTML = renderTrainingAnalysis(weekly);
+  renderTrainingLoadPanel();
   renderStatsCalendar();
 
   document.getElementById("nutritionSummary").innerHTML = `
@@ -7376,6 +7744,7 @@ function renderDashboard() {
       </div>
     `).join("")
     : `<p class="small">Progressi pole veel lisatud.</p>`;
+  renderProgressInsightPanel();
 
   document.getElementById("achievementsList").innerHTML = achievements.map(a => {
     const done = a.test(appData);
@@ -7386,6 +7755,8 @@ function renderDashboard() {
   document.getElementById("waterPercent").textContent = `${dailyWaterPercent}%`;
 
   document.getElementById("recoveryScore").innerHTML = renderRecoveryDashboardCard(recoverySnapshot);
+  renderMuscleRecoveryPanel();
+  renderSmartNotificationPanel();
   document.getElementById("sleepHours").value = recoverySnapshot.sleepDuration || "";
   document.getElementById("sleepQualityScore").value = recoverySnapshot.sleepQualityScore || 72;
   document.getElementById("restingHeartRate").value = recoverySnapshot.restingHeartRate || 58;
