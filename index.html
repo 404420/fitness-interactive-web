@@ -2862,6 +2862,209 @@ li {
   text-align: left;
   max-width: 72%;
 }
+
+/* Keep the menu identical from every page state. */
+body.menu-open {
+  overflow: hidden;
+}
+
+body.menu-open #menuPanel.menu-panel.active {
+  display: flex;
+  top: 0;
+  bottom: calc(68px + env(safe-area-inset-bottom));
+  height: auto;
+  max-height: none;
+  overflow: hidden;
+}
+
+body.menu-open #menuPanel .menu-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body.menu-open #menuPanel .menu-card {
+  min-height: 0;
+  height: 100%;
+  margin-top: 0;
+  padding: 12px;
+}
+
+body.menu-open #menuPanel .menu-card span {
+  font-size: clamp(12px, 3.2vw, 15px);
+  line-height: 1.1;
+}
+
+.nutrition-hero-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 190px;
+  margin-top: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(212,175,55,0.38);
+  background: #070707;
+  box-shadow: 0 18px 38px rgba(0,0,0,0.35);
+}
+
+.nutrition-hero-card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.64) saturate(1.08);
+}
+
+.nutrition-hero-copy {
+  position: relative;
+  z-index: 1;
+  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 18px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.82));
+}
+
+.nutrition-hero-copy h2,
+.nutrition-hero-copy p {
+  margin: 0;
+  text-align: left;
+}
+
+.nutrition-hero-copy h2 {
+  color: #fff;
+  font-size: 24px;
+  line-height: 1.05;
+}
+
+.nutrition-hero-copy p {
+  color: #ffe9a3;
+  line-height: 1.35;
+}
+
+.nutrition-target-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.nutrition-target-strip .card {
+  margin: 0;
+  min-height: 72px;
+}
+
+.meal-day-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.meal-day-card {
+  overflow: hidden;
+  border: 1px solid rgba(212,175,55,0.32);
+  border-radius: 18px;
+  background: rgba(6,6,6,0.82);
+}
+
+.meal-day-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  background: linear-gradient(90deg, rgba(212,175,55,0.18), rgba(0,0,0,0));
+}
+
+.meal-day-header h3 {
+  margin: 0;
+  text-align: left;
+}
+
+.meal-stack {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.meal-photo-card,
+.logged-meal-card {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  gap: 10px;
+  align-items: stretch;
+  min-height: 78px;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.045);
+}
+
+.meal-photo-card img,
+.logged-meal-card img {
+  width: 78px;
+  height: 100%;
+  min-height: 78px;
+  object-fit: cover;
+}
+
+.meal-card-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 9px 10px 9px 0;
+}
+
+.meal-card-copy strong {
+  color: #fff;
+  line-height: 1.2;
+}
+
+.meal-card-copy small {
+  color: #f4dc95;
+  line-height: 1.35;
+}
+
+.meal-tag {
+  width: max-content;
+  max-width: 100%;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(212,175,55,0.2);
+  color: #ffd86b;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.nutrition-note-card {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(74,222,128,0.08);
+  border: 1px solid rgba(74,222,128,0.22);
+  color: #dcfce7;
+  line-height: 1.35;
+}
+
+@media (max-width: 370px) {
+  .nutrition-target-strip {
+    grid-template-columns: 1fr;
+  }
+  .meal-photo-card,
+  .logged-meal-card {
+    grid-template-columns: 68px 1fr;
+  }
+  .meal-photo-card img,
+  .logged-meal-card img {
+    width: 68px;
+  }
+}
 </style>
 </head>
 
@@ -6214,13 +6417,16 @@ function toggleLang() {
 }
 
 function toggleMenu() {
-  document.getElementById("menuPanel").classList.toggle("active");
+  const menuPanel = document.getElementById("menuPanel");
+  menuPanel.classList.toggle("active");
+  document.body.classList.toggle("menu-open", menuPanel.classList.contains("active"));
   document.getElementById("langPanel").classList.remove("active");
   closeWatchSetup();
 }
 
 function closeMenu() {
   document.getElementById("menuPanel").classList.remove("active");
+  document.body.classList.remove("menu-open");
 }
 
 function showPage(pageId) {
@@ -6228,7 +6434,7 @@ function showPage(pageId) {
   document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
   document.getElementById(pageId).classList.add("active");
   document.querySelector(".app").classList.toggle("screen-fit", ["timer"].includes(pageId));
-  document.getElementById("menuPanel").classList.remove("active");
+  closeMenu();
   if (pageId !== "programDetail") {
     document.getElementById("metricsDrawer")?.classList.remove("active");
   }
@@ -6713,6 +6919,55 @@ const weeklyNutritionPlans = {
   }
 };
 
+function nutritionHeroImage(goal) {
+  const images = {
+    fat: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1000&q=85",
+    strength: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1000&q=85",
+    muscle: "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1000&q=85",
+    endurance: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1000&q=85"
+  };
+  return images[goal] || images.fat;
+}
+
+function mealImage(meal) {
+  const key = String(meal || "").toLowerCase();
+  if (key.includes("jogurt") || key.includes("yogurt") || key.includes("kohupiim") || key.includes("quark")) return "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=500&q=80";
+  if (key.includes("puder") || key.includes("oats") || key.includes("kaer") || key.includes("porridge")) return "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?auto=format&fit=crop&w=500&q=80";
+  if (key.includes("muna") || key.includes("egg") || key.includes("omlett")) return "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=500&q=80";
+  if (key.includes("lõhe") || key.includes("salmon") || key.includes("kala") || key.includes("fish")) return "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=500&q=80";
+  if (key.includes("kana") || key.includes("chicken") || key.includes("kalkun") || key.includes("turkey")) return "https://images.unsplash.com/photo-1546069901-d5bfd2cbfb1f?auto=format&fit=crop&w=500&q=80";
+  if (key.includes("veis") || key.includes("beef")) return "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=500&q=80";
+  if (key.includes("tofu") || key.includes("oad") || key.includes("beans") || key.includes("lääts")) return "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=500&q=80";
+  if (key.includes("smuuti") || key.includes("smoothie") || key.includes("keefir") || key.includes("kefir")) return "https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=500&q=80";
+  if (key.includes("wrap") || key.includes("võileib") || key.includes("sandwich") || key.includes("leib")) return "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=500&q=80";
+  if (key.includes("pasta") || key.includes("nuudel") || key.includes("noodle")) return "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=500&q=80";
+  if (key.includes("riis") || key.includes("rice") || key.includes("bowl")) return "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=500&q=80";
+  if (key.includes("salat") || key.includes("salad") || key.includes("köögivil")) return "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=500&q=80";
+  if (key.includes("banaan") || key.includes("banana") || key.includes("puuvili") || key.includes("fruit")) return "https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=500&q=80";
+  return "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=500&q=80";
+}
+
+function mealParts(meal) {
+  const text = monthlyMealTwist(meal, Number(appData.planVersion || 1));
+  const parts = text.split(":");
+  if (parts.length < 2) {
+    return { tag: currentLang === "en" ? "Meal" : currentLang === "ru" ? "Прием" : "Söök", body: text };
+  }
+  return { tag: parts.shift().trim(), body: parts.join(":").trim() };
+}
+
+function renderMealPhotoCard(meal) {
+  const parts = mealParts(meal);
+  return `
+    <div class="meal-photo-card">
+      <img src="${mealImage(meal)}" alt="${parts.tag}" loading="lazy">
+      <div class="meal-card-copy">
+        <span class="meal-tag">${parts.tag}</span>
+        <strong>${parts.body}</strong>
+      </div>
+    </div>
+  `;
+}
 function weeklyNutritionCopy(goal) {
   return weeklyNutritionPlans[goal]?.[currentLang] || weeklyNutritionPlans.fat[currentLang] || weeklyNutritionPlans.fat.en;
 }
@@ -6721,28 +6976,43 @@ function renderWeeklyNutrition(goal) {
   const plan = macroPlan(goal);
   const copy = weeklyNutritionCopy(goal);
   const labels = {
-    et: { daily:"Päeva siht", protein:"valk", carbs:"süsivesikud", fat:"rasv", note:"Koguseid kohanda oma profiili kalorisihtmärgi järgi. Kui kaal langeb liiga kiiresti või jõud kukub, lisa 150-250 kcal." },
-    en: { daily:"Daily target", protein:"protein", carbs:"carbs", fat:"fat", note:"Adjust portion sizes to your profile calorie target. If weight drops too fast or strength falls, add 150-250 kcal." },
-    ru: { daily:"Цель в день", protein:"белок", carbs:"углеводы", fat:"жиры", note:"Размер порций подстрой под свою цель калорий. Если вес падает слишком быстро или сила снижается, добавь 150-250 ккал." }
+    et: { daily:"Päeva siht", protein:"valk", carbs:"süsivesikud", fat:"rasv", note:"Koguseid kohanda oma profiili kalorisihtmärgi järgi. Kui kaal langeb liiga kiiresti või jõud kukub, lisa 150-250 kcal.", meals:"söögikorda" },
+    en: { daily:"Daily target", protein:"protein", carbs:"carbs", fat:"fat", note:"Adjust portion sizes to your profile calorie target. If weight drops too fast or strength falls, add 150-250 kcal.", meals:"meals" },
+    ru: { daily:"Цель в день", protein:"белок", carbs:"углеводы", fat:"жиры", note:"Размер порций подстрой под свою цель калорий. Если вес падает слишком быстро или сила снижается, добавь 150-250 ккал.", meals:"приема" }
   }[currentLang];
   return `
-    <div class="plan-box">
-      <h2>${copy.title}</h2>
-      <p>${copy.focus}</p>
-      <p><strong>${labels.daily}:</strong> ${plan.calories.target} kcal · ${plan.protein}g ${labels.protein} · ${plan.carbs}g ${labels.carbs} · ${plan.fat}g ${labels.fat}</p>
-      ${copy.days.map(day => `
-        <div class="day">
-          <h3>${day[0]}</h3>
-          <ul>
-            ${day[1].map(meal => `<li>${monthlyMealTwist(meal, Number(appData.planVersion || 1))}</li>`).join("")}
-          </ul>
+    <div class="plan-box nutrition-plan-shell">
+      <div class="nutrition-hero-card">
+        <img src="${nutritionHeroImage(goal)}" alt="${copy.title}" loading="lazy">
+        <div class="nutrition-hero-copy">
+          <span class="badge">${labels.daily}</span>
+          <h2>${copy.title}</h2>
+          <p>${copy.focus}</p>
         </div>
-      `).join("")}
-      <p class="small">${labels.note}</p>
+      </div>
+      <div class="nutrition-target-strip">
+        <div class="card"><strong>${plan.calories.target}</strong><small>kcal</small></div>
+        <div class="card"><strong>${plan.protein}g</strong><small>${labels.protein}</small></div>
+        <div class="card"><strong>${plan.carbs}g</strong><small>${labels.carbs}</small></div>
+        <div class="card"><strong>${plan.fat}g</strong><small>${labels.fat}</small></div>
+      </div>
+      <div class="meal-day-grid">
+        ${copy.days.map(day => `
+          <div class="meal-day-card">
+            <div class="meal-day-header">
+              <h3>${day[0]}</h3>
+              <span class="meal-tag">${day[1].length} ${labels.meals}</span>
+            </div>
+            <div class="meal-stack">
+              ${day[1].map(renderMealPhotoCard).join("")}
+            </div>
+          </div>
+        `).join("")}
+      </div>
+      <div class="nutrition-note-card">${labels.note}</div>
     </div>
   `;
 }
-
 function renderProgramMetrics(goal) {
   const profile = appData.profile;
   const height = Number(profile.height);
@@ -6973,31 +7243,6 @@ function renderNutritionPlan() {
   const goal = document.getElementById("nutritionGoal").value || appData.selectedGoal || "fat";
   appData.selectedGoal = goal;
   localStorage.setItem("eliteFitnessData", JSON.stringify(appData));
-  const plan = macroPlan(goal);
-  const copy = nutritionCopy(goal);
-  const variant = Number(appData.planVersion || 1);
-  const monthText = appData.planMonth || currentMonthKey();
-  document.getElementById("nutritionPlanOutput").innerHTML = `
-    <div class="plan-box">
-      <h2>${copy.title}</h2>
-      <span class="badge">${t[currentLang].planVersion} ${variant} · ${monthText}</span>
-      <p>${copy.focus}</p>
-      <div class="stats">
-        <div class="card"><strong>${plan.calories.target}</strong><small>kcal / päev</small></div>
-        <div class="card"><strong>${plan.protein}</strong><small>valk g</small></div>
-        <div class="card"><strong>${plan.carbs}</strong><small>süsivesikud g</small></div>
-        <div class="card"><strong>${plan.fat}</strong><small>rasv g</small></div>
-      </div>
-      ${copy.meals.map((meal, index) => `<div class="timeline-item"><strong>${index + 1}. ${currentLang === "ru" ? "прием пищи" : currentLang === "en" ? "meal" : "söögikord"}</strong><br>${monthlyMealTwist(meal, variant)}</div>`).join("")}
-      <p class="small">${currentLang === "ru" ? "Источники: рекомендации ISSN по белку; ACSM/AND/DC по спортивному питанию." : currentLang === "en" ? "Sources: ISSN protein guidance; ACSM/AND/DC sports nutrition recommendations." : "Allikad: ISSN valgusoovitused; ACSM/AND/DC sporditoitumise soovitused."}</p>
-    </div>
-  `;
-}
-
-function renderNutritionPlan() {
-  const goal = document.getElementById("nutritionGoal").value || appData.selectedGoal || "fat";
-  appData.selectedGoal = goal;
-  localStorage.setItem("eliteFitnessData", JSON.stringify(appData));
   const variant = Number(appData.planVersion || 1);
   const monthText = appData.planMonth || currentMonthKey();
   const sourceText = currentLang === "ru"
@@ -7005,14 +7250,18 @@ function renderNutritionPlan() {
     : currentLang === "en"
       ? "Sources: ISSN protein guidance; ACSM/AND/DC sports nutrition recommendations."
       : "Allikad: ISSN valgusoovitused; ACSM/AND/DC sporditoitumise soovitused.";
+  const heading = currentLang === "ru" ? "Фокус питания" : currentLang === "en" ? "Nutrition focus" : "Toitumise fookus";
   document.getElementById("nutritionPlanOutput").innerHTML = `
-    <div class="plan-box">
-      <span class="badge">${t[currentLang].planVersion} ${variant} · ${monthText}</span>
-      <h2>Toitumise fookus</h2>
-      <p>${aiNutritionFocus(goal)}</p>
-      <p class="small">${sourceText}</p>
+    <div class="nutrition-hero-card">
+      <img src="${nutritionHeroImage(goal)}" alt="${heading}" loading="lazy">
+      <div class="nutrition-hero-copy">
+        <span class="badge">${t[currentLang].planVersion} ${variant} · ${monthText}</span>
+        <h2>${heading}</h2>
+        <p>${aiNutritionFocus(goal)}</p>
+      </div>
     </div>
     ${renderWeeklyNutrition(goal)}
+    <p class="small">${sourceText}</p>
   `;
 }
 
@@ -8236,7 +8485,7 @@ function renderDashboard() {
   `;
 
   document.getElementById("mealList").innerHTML = todayMeals.length
-    ? todayMeals.map(meal => `<div class="timeline-item"><strong>${meal.name}</strong><br>${meal.calories} kcal · P ${meal.protein}g · S ${meal.carbs}g · R ${meal.fat}g</div>`).join("")
+    ? `<div class="meal-stack">${todayMeals.map(meal => `<div class="logged-meal-card"><img src="${mealImage(meal.name)}" alt="${meal.name}" loading="lazy"><div class="meal-card-copy"><span class="meal-tag">${meal.calories} kcal</span><strong>${meal.name}</strong><small>P ${meal.protein}g · S ${meal.carbs}g · R ${meal.fat}g</small></div></div>`).join("")}</div>`
     : `<p class="small">Tänaseid sööke pole veel lisatud.</p>`;
 
   const weeklyWorkoutPercent = percent(weekly.length, appData.goals.weeklyWorkouts);
@@ -8512,6 +8761,7 @@ showOnboarding();
     font-size: 15px;
   }
 }
+
 </style>
 <script>
 const eliteFitnessFullScreenPages = [
