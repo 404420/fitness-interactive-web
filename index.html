@@ -418,6 +418,61 @@ button:active { transform: translateY(1px); }
   object-position: center top;
 }
 
+.body-visual {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 16%, rgba(255,255,255,0.18), transparent 18%),
+    linear-gradient(180deg, rgba(34,34,38,0.95), rgba(7,7,9,0.98));
+}
+
+.body-visual::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 11px;
+  width: var(--head, 18px);
+  height: var(--head, 18px);
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #f2d2ba, #b77f62);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.22);
+}
+
+.body-visual::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 31px;
+  width: var(--body-w, 42px);
+  height: 50px;
+  transform: translateX(-50%);
+  border-radius: var(--shoulders, 22px) var(--shoulders, 22px) var(--hips, 18px) var(--hips, 18px);
+  background:
+    linear-gradient(90deg, transparent 0 8%, rgba(245,205,178,0.95) 8% 22%, transparent 22% 78%, rgba(245,205,178,0.95) 78% 92%, transparent 92%),
+    linear-gradient(180deg, #f0c8ad, #a96952);
+  box-shadow:
+    calc(var(--body-w, 42px) * -0.42) 30px 0 -14px #b77f62,
+    calc(var(--body-w, 42px) * 0.42) 30px 0 -14px #b77f62,
+    0 0 0 1px rgba(0,0,0,0.22);
+}
+
+.body-visual span {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 6px;
+  z-index: 1;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 950;
+  line-height: 1.05;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.7);
+}
+
 .type-pill strong {
   display: block;
   color: white;
@@ -5231,6 +5286,148 @@ const achievements = [
   { id: "progressSaved", title: "Progress kirjas", text: "Lisa esimene kaal või mõõt.", test: data => data.progress.length >= 1 }
 ];
 
+function cardImageStyle(image) {
+  return `style="--card-img:url('${image}')"`;
+}
+
+function renderHandbookCards() {
+  const panel = document.getElementById("handbookCards");
+  if (!panel) return;
+  panel.innerHTML = `<div class="image-grid">${handbookCards.map(card => `
+    <div class="image-card" onclick="showPage('${card.page}')" ${cardImageStyle(card.img)}>
+      <div>
+        <h2>${langText(card.title)}</h2>
+        <p>${card.page === "encyclopedia" ? t[currentLang].encyclopedia : t[currentLang][card.page] || ""}</p>
+      </div>
+    </div>
+  `).join("")}</div>`;
+}
+
+function renderArticles() {
+  const panel = document.getElementById("articleList");
+  if (!panel) return;
+  const query = (document.getElementById("articleSearch")?.value || "").toLowerCase();
+  const filtered = articles.filter(article => langText(article.title).toLowerCase().includes(query) || langText(article.body).toLowerCase().includes(query));
+  panel.innerHTML = `<div class="image-grid">${filtered.map(article => `
+    <div class="image-card" onclick="openArticle('${article.id}')" ${cardImageStyle(article.img)}>
+      <div>
+        <h2>${langText(article.title)}</h2>
+        <p>${langText(article.body).slice(0, 92)}...</p>
+      </div>
+    </div>
+  `).join("")}</div>`;
+}
+
+function openArticle(articleId) {
+  const article = articles.find(item => item.id === articleId);
+  if (!article) return;
+  currentArticleId = articleId;
+  const guide = articleGuides[articleId]?.sections?.[currentLang] || [];
+  document.getElementById("articleDetailContent").innerHTML = `
+    <div class="program-hero-card" ${cardImageStyle(article.img)}>
+      <div>
+        <span class="badge">${t[currentLang].handbook}</span>
+        <h2>${langText(article.title)}</h2>
+        <p>${langText(article.body)}</p>
+      </div>
+    </div>
+    ${guide.map(section => `
+      <div class="feature-card">
+        <h3>${section.title}</h3>
+        <p>${section.text}</p>
+        ${section.items ? `<ul>${section.items.map(item => `<li>${item}</li>`).join("")}</ul>` : ""}
+      </div>
+    `).join("")}
+  `;
+  showPage("articleDetail");
+}
+
+function renderOutdoorGymList() {
+  const panel = document.getElementById("outdoorGymList");
+  if (!panel) return;
+  const activeCategory = selectedOutdoorGymCategory || outdoorGymCategories[0]?.id || "";
+  const gyms = outdoorGyms.filter(gym => !activeCategory || outdoorGymCategoryFor(gym) === activeCategory);
+  panel.innerHTML = `
+    <div class="image-grid">
+      ${outdoorGymCategories.map(category => `
+        <div class="outdoor-category-card ${activeCategory === category.id ? "active" : ""}" onclick="selectOutdoorGymCategory('${category.id}')">
+          <img src="${category.image}" alt="${langText(category.title)}" loading="lazy">
+          <div class="outdoor-card-copy">
+            <h2>${langText(category.title)}</h2>
+            <p>${langText(category.text)}</p>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+    <div class="image-grid">
+      ${gyms.map((gym, index) => `
+        <div class="outdoor-place-card" onclick="openOutdoorGym(${outdoorGyms.indexOf(gym)})">
+          <img src="${gym.image}" alt="${gym.name}" loading="lazy">
+          <div class="outdoor-card-copy">
+            <h2>${gym.name}</h2>
+            <p>${gym.address}</p>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function selectOutdoorGymCategory(categoryId) {
+  selectedOutdoorGymCategory = categoryId;
+  renderOutdoorGymList();
+}
+
+function openOutdoorGym(index) {
+  const gym = outdoorGyms[index];
+  if (!gym) return;
+  selectedOutdoorGymIndex = index;
+  document.getElementById("outdoorGymModalContent").innerHTML = `
+    <button class="dark-btn" onclick="closeOutdoorGym()">Sulge</button>
+    <div class="program-hero-card" ${cardImageStyle(gym.image)}>
+      <div>
+        <span class="badge">${gym.sourceLabel || "Allikas"}</span>
+        <h2>${gym.name}</h2>
+        <p>${gym.address}</p>
+      </div>
+    </div>
+    <p class="small">${gym.note || ""}</p>
+    <div class="upgraded-exercise-grid">
+      ${(gym.equipment || []).map(item => `
+        <div class="feature-card">
+          <h3>${item.name}</h3>
+          <p>${item.work}</p>
+        </div>
+      `).join("")}
+    </div>
+    <button onclick="openOutdoorPlan(${index})">Ava treeningkava</button>
+  `;
+  document.getElementById("outdoorGymModal").classList.add("active");
+  document.body.classList.add("modal-open");
+}
+
+function closeOutdoorGym() {
+  document.getElementById("outdoorGymModal")?.classList.remove("active");
+  document.body.classList.remove("modal-open");
+}
+
+function openOutdoorPlan(index) {
+  const gym = outdoorGyms[index];
+  if (!gym) return;
+  document.getElementById("outdoorPlanModalContent").innerHTML = `
+    <button class="dark-btn" onclick="closeOutdoorPlan()">Sulge</button>
+    <h2>${gym.name}</h2>
+    <div class="timeline">
+      ${(gym.plan || []).map(step => `<div class="timeline-item">${step}</div>`).join("")}
+    </div>
+  `;
+  document.getElementById("outdoorPlanModal").classList.add("active");
+}
+
+function closeOutdoorPlan() {
+  document.getElementById("outdoorPlanModal")?.classList.remove("active");
+}
+
 const currentBodyTypes = {
   A: { label: "A", title: { et:"Väga sale", en:"Very skinny", ru:"Очень худой" }, text: { et:"Kitsas raam, vähe lihast ja rasva", en:"Narrow frame, low muscle and fat", ru:"Узкая фигура, мало мышц и жира" }, weeks: 16 },
   B: { label: "B", title: { et:"Sale, vähe lihast", en:"Lean, low muscle", ru:"Худой, мало мышц" }, text: { et:"Õhuke ülakeha, jõu ja massi fookus", en:"Thin upper body, strength and size focus", ru:"Тонкий верх тела, фокус на силу и массу" }, weeks: 14 },
@@ -5978,7 +6175,7 @@ function localizedProgramOpen(programId) {
 }
 
 function localizedProgramCardsHtml(cards, compact = false) {
-  return cards.map(card => planCard(card, compact)).join("");
+  return cards.map(card => localizedProgramPlanCard(card, compact)).join("");
 }
 
 function localizedGroupedPlansIntro() {
@@ -7177,10 +7374,29 @@ function bodyTypeCard(key, selected, onclick, mode = "current") {
 }
 
 function bodyTypePreview(key, gender, mode = "current") {
-  const image = bodyTypeImages[gender]?.[mode]?.[key] || bodyTypeImages.male[mode]?.[key] || bodyTypeImages.male.current.C;
   const type = mode === "target" ? targetBodyTypes[key] : currentBodyTypes[key];
-  const alt = `${langText(type.title)} ${gender === "female" ? "naise" : "mehe"} ${mode === "target" ? "eesmärgi" : "kehatüübi"} foto`;
-  return `<img src="${image}" alt="${alt}" loading="lazy">`;
+  const shape = {
+    current: {
+      A: { head: 15, body: 25, shoulders: 16, hips: 14 },
+      B: { head: 16, body: 31, shoulders: 18, hips: 15 },
+      C: { head: 17, body: 42, shoulders: 20, hips: 24 },
+      D: { head: 18, body: 54, shoulders: 24, hips: 30 },
+      E: { head: 19, body: 66, shoulders: 30, hips: 38 }
+    },
+    target: {
+      A: { head: 16, body: 32, shoulders: 18, hips: 15 },
+      B: { head: 17, body: 40, shoulders: 20, hips: 16 },
+      C: { head: 18, body: 49, shoulders: 18, hips: 28 },
+      D: { head: 18, body: 56, shoulders: 26, hips: 25 },
+      E: { head: 18, body: 52, shoulders: 19, hips: 18 }
+    }
+  }[mode]?.[key] || { head: 17, body: 42, shoulders: 20, hips: 22 };
+  const genderTone = gender === "female" ? "#d99a7d" : "#c88462";
+  return `
+    <span class="body-visual" style="--head:${shape.head}px;--body-w:${shape.body}px;--shoulders:${shape.shoulders}px;--hips:${shape.hips}px;--skin:${genderTone}">
+      <span>${langText(type.title)}</span>
+    </span>
+  `;
 }
 
 function selectBodyType(field, value) {
@@ -7382,6 +7598,10 @@ function ensureMonthlyRefresh() {
 
 function renderDashboard() {
   ensureMonthlyRefresh();
+  localizedRenderPlanGalleries();
+  renderHandbookCards();
+  renderArticles();
+  renderOutdoorGymList();
   const dl = {
     et: { workouts7:"treeningut 7p", kcal7:"kcal 7p", today:"ml täna", achievements:"saavutust", current:"praegu", target:"eesmärk", weeks:"nädalat", intensity:"intensiivsus", progress:"Progress eesmärgini", remaining:"on veel jäänud soovitud tulemuseni", totalWorkouts:"treeningut kokku", totalKcal:"kcal kokku", totalMin:"min kokku", totalSteps:"sammu kokku" },
     en: { workouts7:"workouts 7d", kcal7:"kcal 7d", today:"ml today", achievements:"achievements", current:"current", target:"target", weeks:"weeks", intensity:"intensity", progress:"Progress to goal", remaining:"remaining to your target", totalWorkouts:"workouts total", totalKcal:"kcal total", totalMin:"min total", totalSteps:"steps total" },
