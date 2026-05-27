@@ -3433,8 +3433,167 @@ body.menu-open #menuPanel .menu-card span {
   line-height: 1.35;
 }
 
+.nutrition-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.nutrition-profile-grid label,
+.nutrition-risk-row label {
+  display: grid;
+  gap: 6px;
+  color: #ffd86b;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.nutrition-profile-grid input,
+.nutrition-profile-grid select {
+  margin: 0;
+}
+
+.nutrition-profile-grid .wide,
+.nutrition-risk-row {
+  grid-column: 1 / -1;
+}
+
+.nutrition-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.nutrition-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 10px;
+  border: 1px solid rgba(212,175,55,0.22);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.nutrition-check input {
+  width: auto;
+  margin: 0;
+}
+
+.generated-nutrition-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.generated-nutrition-summary .card {
+  margin: 0;
+  min-height: 76px;
+}
+
+.nutrition-day-type {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(74,222,128,0.13);
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.nutrition-disclaimer {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,216,107,0.24);
+  background: rgba(212,175,55,0.09);
+  color: #fff7d7;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.nutrition-source-list {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.nutrition-source-list a {
+  color: #ffd86b;
+  font-size: 12px;
+}
+
+.exercise-motion-preview {
+  position: relative;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(212,175,55,0.35);
+  background: radial-gradient(circle at 50% 10%, rgba(74,222,128,0.1), transparent 38%), #050505;
+}
+
+.exercise-motion-media {
+  width: 100%;
+  height: 190px;
+  object-fit: contain;
+  display: block;
+  background: #050505;
+}
+
+.exercise-motion-fallback {
+  min-height: 190px;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  color: #ffd86b;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(212,175,55,0.08), rgba(74,222,128,0.06)), #050505;
+}
+
+.exercise-motion-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #ffd86b;
+  background: rgba(0,0,0,0.48);
+  font-size: 12px;
+  font-weight: 900;
+  pointer-events: none;
+}
+
+.exercise-source-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-top: 1px solid rgba(212,175,55,0.2);
+}
+
+.exercise-license-pill {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
 @media (max-width: 370px) {
   .nutrition-target-strip {
+    grid-template-columns: 1fr;
+  }
+  .nutrition-profile-grid,
+  .nutrition-checkbox-grid,
+  .generated-nutrition-summary {
     grid-template-columns: 1fr;
   }
   .meal-photo-card,
@@ -3677,9 +3836,16 @@ body.menu-open #menuPanel .menu-card span {
     <p class="subtitle" data-i18n="nutritionIntro">Lisa söögid, jälgi kaloreid, makrosid ja eesmärgipõhist toitumiskava.</p>
 
     <div class="feature-card">
-      <h2>Toitumiskavad treeningu tüübi järgi</h2>
+      <h2>Personaalse toitumiskava profiil</h2>
+      <p class="small">Täida andmed, vali allergiad ja eelistused. Kava seotakse valitud treeningkavaga ning eristab treening- ja puhkepäevi.</p>
+      <div id="nutritionProfileForm"></div>
+      <button onclick="saveNutritionProfileFromForm()">Salvesta toitumisprofiil</button>
+    </div>
+
+    <div class="feature-card">
+      <h2>Nutrition Plan</h2>
       <select id="nutritionGoal"></select>
-      <button onclick="renderNutritionPlan()">Näita toitumiskava</button>
+      <button onclick="generateNutritionPlanForSelectedProgram()">Generate nutrition plan</button>
       <div id="nutritionPlanOutput"></div>
     </div>
 
@@ -4113,6 +4279,19 @@ const defaultData = {
   goals: { weeklyWorkouts: 4, weeklyCalories: 1800, dailySteps: 8000, dailyWater: 2500 },
   selectedGoal: "fat",
   selectedProgram: "generalMuscle",
+  nutritionProfile: { activityLevel: "moderate", trainingDays: 4, allergies: [], dietPreferences: [], healthRisks: [], mealsPerDay: 4 },
+  nutritionProfiles: [],
+  foods: [],
+  recipes: [],
+  recipeIngredients: [],
+  mealTemplates: [],
+  generatedMealPlans: [],
+  generatedMeals: [],
+  allergies: [],
+  userAllergies: [],
+  dietPreferences: [],
+  userDietPreferences: [],
+  nutritionRules: [],
   equipment: ["fullGym"],
   onboardingDone: false,
   planMonth: "",
@@ -5302,6 +5481,14 @@ Object.assign(exerciseMedia, {
   }
 });
 
+Object.assign(exerciseMedia, {
+  "Bench press": { ...exerciseMedia["Bench press"], animationUrl: "assets/exercise-animations/bench-press.webm", animationType: "webm", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta." },
+  "Back squat": { ...exerciseMedia["Back squat"], animationUrl: "assets/exercise-animations/back-squat.webm", animationType: "webm", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta." },
+  "Push-up": { ...exerciseMedia["Push-up"], animationUrl: "assets/exercise-animations/push-up.webm", animationType: "webm", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta." },
+  "Lat pulldown": { ...exerciseMedia["Lat pulldown"], animationUrl: "assets/exercise-animations/lat-pulldown.webm", animationType: "webm", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta." },
+  "Kettlebell swing": { ...exerciseMedia["Kettlebell swing"], animationUrl: "assets/exercise-animations/kettlebell-swing.webm", animationType: "webm", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta." }
+});
+
 const plans = {
   fat: {
     title:"5 päeva rasvapõletuse kava",
@@ -5434,6 +5621,68 @@ const nutritionTemplates = {
     focus: "Kõrgem süsivesikute osakaal, vedelik ja elektrolüüdid pikemate treeningute jaoks.",
     meals: ["Hommik: puder + banaan + mesi", "Lõuna: pasta/riis + kana/kala/oad", "Enne pikka trenni: 1-4 g/kg süsivesikuid 1-4 h varem", "Pärast trenni: süsivesik + 20-40 g valku"]
   }
+};
+
+// NutritionPlanGenerator MVP reference rules:
+// - WHO healthy diet: varied minimally processed foods, vegetables/fruit/whole grains, lower free sugar/sodium/saturated fat.
+// - ISSN sports nutrition: physically active people commonly use about 1.4-2.0 g protein/kg/day, higher when dieting.
+// - NHS Eatwell / Mayo Clinic: balanced meals built from vegetables/fruit, whole grains and lean proteins.
+// This is a general fitness planner, not medical advice.
+const nutritionReferenceSources = [
+  { name: "WHO healthy diet", url: "https://www.who.int/news-room/fact-sheets/detail/healthy-diet" },
+  { name: "ISSN protein and exercise", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC2117006/" },
+  { name: "NHS Eatwell Guide", url: "https://www.nhs.uk/live-well/eat-well/food-guidelines-and-food-labels/the-eatwell-guide/" },
+  { name: "Mayo Clinic healthy meals", url: "https://www.mayoclinic.org/healthy-lifestyle/nutrition-and-healthy-eating/in-depth/healthy-meals/art-20546806" }
+];
+
+const nutritionSeedData = {
+  allergies: ["gluten", "dairy", "egg", "fish", "soy", "nuts"],
+  dietPreferences: ["omnivore", "vegetarian", "vegan", "highProtein", "budget", "quickMeals"],
+  foods: [
+    { id:"oats", name:"Kaerahelbed", calories:389, protein:17, carbs:66, fat:7, tags:["vegan","gluten"] },
+    { id:"rice", name:"Riis", calories:130, protein:3, carbs:28, fat:0, tags:["vegan"] },
+    { id:"potato", name:"Kartul", calories:87, protein:2, carbs:20, fat:0, tags:["vegan"] },
+    { id:"pasta", name:"Täisterapasta", calories:150, protein:6, carbs:30, fat:1, tags:["vegan","gluten"] },
+    { id:"chicken", name:"Kanafilee", calories:165, protein:31, carbs:0, fat:4, tags:["omnivore"] },
+    { id:"turkey", name:"Kalkun", calories:135, protein:29, carbs:0, fat:2, tags:["omnivore"] },
+    { id:"salmon", name:"Lõhe", calories:208, protein:20, carbs:0, fat:13, tags:["omnivore","fish"] },
+    { id:"egg", name:"Muna", calories:143, protein:13, carbs:1, fat:10, tags:["vegetarian","egg"] },
+    { id:"greekYogurt", name:"Kreeka jogurt", calories:90, protein:10, carbs:4, fat:4, tags:["vegetarian","dairy"] },
+    { id:"cottageCheese", name:"Kodujuust", calories:98, protein:11, carbs:3, fat:4, tags:["vegetarian","dairy"] },
+    { id:"tofu", name:"Tofu", calories:144, protein:15, carbs:3, fat:9, tags:["vegan","soy"] },
+    { id:"beans", name:"Oad", calories:127, protein:9, carbs:23, fat:1, tags:["vegan"] },
+    { id:"lentils", name:"Läätsed", calories:116, protein:9, carbs:20, fat:0, tags:["vegan"] },
+    { id:"banana", name:"Banaan", calories:89, protein:1, carbs:23, fat:0, tags:["vegan"] },
+    { id:"berries", name:"Marjad", calories:57, protein:1, carbs:14, fat:0, tags:["vegan"] },
+    { id:"oliveOil", name:"Oliiviõli", calories:884, protein:0, carbs:0, fat:100, tags:["vegan"] },
+    { id:"avocado", name:"Avokaado", calories:160, protein:2, carbs:9, fat:15, tags:["vegan"] },
+    { id:"nuts", name:"Pähklid", calories:607, protein:20, carbs:21, fat:54, tags:["vegan","nuts"] },
+    { id:"broccoli", name:"Brokoli", calories:35, protein:3, carbs:7, fat:0, tags:["vegan"] },
+    { id:"spinach", name:"Spinat", calories:23, protein:3, carbs:4, fat:0, tags:["vegan"] },
+    { id:"wholeBread", name:"Täisteraleib", calories:247, protein:13, carbs:41, fat:4, tags:["vegan","gluten"] }
+  ],
+  recipes: [
+    { id:"oatProteinBowl", meal:"breakfast", name:"Kaera-marjakauss jogurtiga", calories:520, protein:34, carbs:72, fat:12, ingredients:["oats","greekYogurt","berries","banana"], preferences:["vegetarian","highProtein"] },
+    { id:"eggToast", meal:"breakfast", name:"Munad ja täisteraleib", calories:470, protein:28, carbs:42, fat:21, ingredients:["egg","wholeBread","spinach"], preferences:["vegetarian","quickMeals"] },
+    { id:"tofuScramble", meal:"breakfast", name:"Tofu-köögivilja pann", calories:430, protein:27, carbs:38, fat:18, ingredients:["tofu","spinach","potato"], preferences:["vegan","quickMeals"] },
+    { id:"chickenRice", meal:"lunch", name:"Kana-riisikauss brokoliga", calories:680, protein:52, carbs:82, fat:14, ingredients:["chicken","rice","broccoli","oliveOil"], preferences:["omnivore","highProtein"] },
+    { id:"salmonPotato", meal:"lunch", name:"Lõhe kartuli ja spinatiga", calories:720, protein:45, carbs:66, fat:30, ingredients:["salmon","potato","spinach"], preferences:["omnivore"] },
+    { id:"lentilBowl", meal:"lunch", name:"Läätse-riisikauss", calories:610, protein:29, carbs:104, fat:8, ingredients:["lentils","rice","broccoli"], preferences:["vegan","budget"] },
+    { id:"turkeyPasta", meal:"dinner", name:"Kalkuni täisterapasta", calories:690, protein:50, carbs:88, fat:12, ingredients:["turkey","pasta","spinach"], preferences:["omnivore","highProtein"] },
+    { id:"tofuRice", meal:"dinner", name:"Tofu riisi ja brokoliga", calories:620, protein:31, carbs:82, fat:18, ingredients:["tofu","rice","broccoli"], preferences:["vegan"] },
+    { id:"beanPotato", meal:"dinner", name:"Oa-kartuli kauss avokaadoga", calories:640, protein:25, carbs:92, fat:19, ingredients:["beans","potato","avocado"], preferences:["vegan","budget"] },
+    { id:"cottageSnack", meal:"snack", name:"Kodujuust marjadega", calories:280, protein:25, carbs:22, fat:9, ingredients:["cottageCheese","berries"], preferences:["vegetarian","highProtein","quickMeals"] },
+    { id:"bananaYogurt", meal:"snack", name:"Banaan ja Kreeka jogurt", calories:300, protein:19, carbs:46, fat:5, ingredients:["banana","greekYogurt"], preferences:["vegetarian","quickMeals"] },
+    { id:"nutsFruit", meal:"snack", name:"Pähklid ja banaan", calories:360, protein:9, carbs:34, fat:22, ingredients:["nuts","banana"], preferences:["vegan","quickMeals"] }
+  ],
+  mealTemplates: ["breakfast", "lunch", "dinner", "snack"],
+  nutritionRules: [
+    { id:"fatLoss", goal:"fat", calorieDelta:-350, proteinPerKg:2.0, fatPerKg:0.8 },
+    { id:"muscle", goal:"muscle", calorieDelta:250, proteinPerKg:1.8, fatPerKg:0.9 },
+    { id:"strength", goal:"strength", calorieDelta:150, proteinPerKg:1.8, fatPerKg:0.9 },
+    { id:"endurance", goal:"endurance", calorieDelta:0, proteinPerKg:1.6, fatPerKg:0.8 },
+    { id:"maintenance", goal:"maintenance", calorieDelta:0, proteinPerKg:1.6, fatPerKg:0.8 }
+  ]
 };
 
 const exerciseNames = {
@@ -5814,6 +6063,7 @@ function loadData() {
       ...saved,
       profile: { ...defaultData.profile, ...(saved.profile || {}) },
       goals: { ...defaultData.goals, ...(saved.goals || {}) },
+      nutritionProfile: { ...defaultData.nutritionProfile, ...(saved.nutritionProfile || {}) },
       health: {
         ...defaultData.health,
         ...(saved.health || {}),
@@ -6284,28 +6534,38 @@ function fallbackExerciseGraphic(exerciseName) {
   `;
 }
 
-function exercisePhoto(exerciseName) {
+function ExerciseMotionPreview(exerciseName) {
   const media = exerciseMedia[exerciseName];
   if (!media) {
     const query = encodeURIComponent(`${exerciseName} exercise guide`);
     return `
-      <div class="exercise-photo-wrap">
+      <div class="exercise-motion-preview">
         ${fallbackExerciseGraphic(exerciseName)}
-        <a class="exercise-source" href="https://www.google.com/search?tbm=isch&q=${query}" target="_blank">
-          ${currentLang === "ru" ? `Искать изображение: ${localizedExerciseName(exerciseName)}` : currentLang === "en" ? `Search guide image: ${localizedExerciseName(exerciseName)}` : `Otsi juhendipilti: ${localizedExerciseName(exerciseName)}`}
-        </a>
+        <div class="exercise-source-row"><a class="exercise-source" href="https://www.google.com/search?tbm=isch&q=${query}" target="_blank">${currentLang === "en" ? "Find guide" : "Otsi juhendit"}</a><span class="exercise-license-pill">No media</span></div>
       </div>
     `;
   }
   const altImg = media.altImg || "";
   const altPage = media.altPage || media.page;
+  const sourceUrl = media.sourceUrl || altPage;
+  const animationType = media.animationType || "none";
+  const canAnimate = media.animationUrl && ["gif", "webm", "mp4"].includes(animationType);
+  const mediaHtml = canAnimate
+    ? `<video class="exercise-motion-media" src="${media.animationUrl}" poster="${media.img}" autoplay loop muted playsinline preload="none" data-fallback-src="${media.img}" onloadeddata="this.nextElementSibling.style.display='none'" onerror="this.outerHTML='<img class=&quot;exercise-motion-media&quot; src=&quot;${media.img}&quot; alt=&quot;${exerciseName}&quot; loading=&quot;lazy&quot;>'"></video><span class="exercise-motion-loading">Laen liikumist...</span>`
+    : `<img class="exercise-motion-media" src="${media.img}" data-alt-src="${altImg}" alt="${exerciseName}" loading="lazy" onerror="if(this.dataset.altSrc && !this.dataset.usedAlt){this.dataset.usedAlt='1';this.src=this.dataset.altSrc;}else{this.outerHTML='<div class=&quot;exercise-motion-fallback&quot;>${t[currentLang].imageFailed}</div>';}" />`;
   return `
-    <div class="exercise-photo-wrap">
-      <img class="exercise-photo" src="${media.img}" data-alt-src="${altImg}" alt="${exerciseName}" loading="lazy"
-        onerror="if(this.dataset.altSrc && !this.dataset.usedAlt){this.dataset.usedAlt='1';this.src=this.dataset.altSrc;}else{this.style.display='none';this.nextElementSibling.textContent='${t[currentLang].imageFailed}';}" />
-      <a class="exercise-source" href="${altPage}" target="_blank">${t[currentLang].source}</a>
+    <div class="exercise-motion-preview" data-animation-type="${animationType}">
+      ${mediaHtml}
+      <div class="exercise-source-row">
+        <a class="exercise-source" href="${sourceUrl}" target="_blank">${media.sourceName || t[currentLang].source}</a>
+        <span class="exercise-license-pill">${media.license || "image fallback"}</span>
+      </div>
     </div>
   `;
+}
+
+function exercisePhoto(exerciseName) {
+  return ExerciseMotionPreview(exerciseName);
 }
 
 function outdoorGymLabels() {
@@ -7698,7 +7958,7 @@ function generateProgramPlan(programId = appData.selectedProgram || "generalMusc
     html += `</div>`;
   });
 
-  html += renderWeeklyNutrition(program.goal);
+  html += renderProgramNutritionPanel(programId);
   document.getElementById("planOutput").innerHTML = html;
   updateProgramLiveData();
   return true;
@@ -7770,6 +8030,255 @@ function generatePlan() {
   document.getElementById("planOutput").innerHTML = html;
 }
 
+function ensureNutritionSeedData() {
+  appData.foods = appData.foods?.length ? appData.foods : structuredClone(nutritionSeedData.foods);
+  appData.recipes = appData.recipes?.length ? appData.recipes : structuredClone(nutritionSeedData.recipes);
+  appData.recipeIngredients = appData.recipeIngredients?.length ? appData.recipeIngredients : nutritionSeedData.recipes.flatMap(recipe => recipe.ingredients.map(foodId => ({ recipeId: recipe.id, foodId })));
+  appData.mealTemplates = appData.mealTemplates?.length ? appData.mealTemplates : structuredClone(nutritionSeedData.mealTemplates);
+  appData.allergies = appData.allergies?.length ? appData.allergies : structuredClone(nutritionSeedData.allergies);
+  appData.dietPreferences = appData.dietPreferences?.length ? appData.dietPreferences : structuredClone(nutritionSeedData.dietPreferences);
+  appData.nutritionRules = appData.nutritionRules?.length ? appData.nutritionRules : structuredClone(nutritionSeedData.nutritionRules);
+  appData.generatedMealPlans = appData.generatedMealPlans || [];
+  appData.generatedMeals = appData.generatedMeals || [];
+  appData.userAllergies = appData.userAllergies || [];
+  appData.userDietPreferences = appData.userDietPreferences || [];
+  appData.nutritionProfiles = appData.nutritionProfiles || [];
+}
+
+function nutritionProfile() {
+  ensureNutritionSeedData();
+  const base = appData.nutritionProfile || {};
+  return {
+    gender: appData.profile.gender || "male",
+    age: Number(appData.profile.age || 0),
+    height: Number(appData.profile.height || 0),
+    weight: Number(appData.profile.weight || 0),
+    goal: appData.selectedGoal || trainingPrograms[appData.selectedProgram]?.goal || "fat",
+    activityLevel: base.activityLevel || "moderate",
+    trainingPlanId: appData.selectedProgram || "generalMuscle",
+    trainingDays: Number(base.trainingDays || appData.goals.weeklyWorkouts || 4),
+    allergies: base.allergies || [],
+    dietPreferences: base.dietPreferences || [],
+    healthRisks: base.healthRisks || [],
+    mealsPerDay: Number(base.mealsPerDay || 4)
+  };
+}
+
+function calculateBMR(profile = nutritionProfile()) {
+  const base = 10 * Number(profile.weight) + 6.25 * Number(profile.height) - 5 * Number(profile.age);
+  return Math.round(base + (profile.gender === "female" ? -161 : 5));
+}
+
+function calculateTDEE(profile = nutritionProfile()) {
+  const factors = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, athlete: 1.9 };
+  return Math.round(calculateBMR(profile) * (factors[profile.activityLevel] || factors.moderate));
+}
+
+function nutritionRuleForGoal(goal) {
+  return appData.nutritionRules.find(rule => rule.goal === goal) || appData.nutritionRules.find(rule => rule.goal === "maintenance") || nutritionSeedData.nutritionRules[4];
+}
+
+function adjustedCalories(tdee, goal, profile = nutritionProfile()) {
+  const rule = nutritionRuleForGoal(goal);
+  const hasRisk = (profile.healthRisks || []).length > 0;
+  const delta = hasRisk && rule.calorieDelta < 0 ? Math.max(rule.calorieDelta, -150) : rule.calorieDelta;
+  return Math.max(1400, Math.round(tdee + delta));
+}
+
+function calculateMacros(profile = nutritionProfile(), goal = profile.goal, dayType = "training") {
+  const tdee = calculateTDEE(profile);
+  const rule = nutritionRuleForGoal(goal);
+  const trainingCarbShift = dayType === "training" ? 120 : -100;
+  const calories = adjustedCalories(tdee, goal, profile) + trainingCarbShift;
+  const protein = Math.round(Number(profile.weight) * rule.proteinPerKg);
+  const fat = Math.max(Math.round(Number(profile.weight) * rule.fatPerKg), Math.round((calories * 0.2) / 9));
+  const carbs = Math.max(80, Math.round((calories - protein * 4 - fat * 9) / 4));
+  return { calories, protein, carbs, fat, tdee, bmr: calculateBMR(profile), dayType };
+}
+
+function recipeMatchesProfile(recipe, profile) {
+  const tags = new Set((recipe.ingredients || []).flatMap(foodId => (appData.foods.find(food => food.id === foodId)?.tags || [])));
+  if ((profile.allergies || []).some(allergy => tags.has(allergy))) return false;
+  if (profile.dietPreferences?.includes("vegan") && !recipe.preferences?.includes("vegan")) return false;
+  if (profile.dietPreferences?.includes("vegetarian") && !recipe.preferences?.some(pref => ["vegetarian", "vegan"].includes(pref))) return false;
+  return true;
+}
+
+function pickRecipe(meal, profile, index) {
+  const pool = appData.recipes.filter(recipe => recipe.meal === meal && recipeMatchesProfile(recipe, profile));
+  const fallbackPool = appData.recipes.filter(recipe => recipe.meal === meal);
+  const list = pool.length ? pool : fallbackPool;
+  return list[index % list.length];
+}
+
+function generateNutritionPlan(userId = "local", trainingPlanId = appData.selectedProgram || "generalMuscle") {
+  ensureNutritionSeedData();
+  const profile = nutritionProfile();
+  const missing = [];
+  if (!profile.gender) missing.push("sugu");
+  if (!profile.age) missing.push("vanus");
+  if (!profile.height) missing.push("pikkus");
+  if (!profile.weight) missing.push("kaal");
+  if (missing.length) return { ok: false, error: `Puudub vajalik profiiliinfo: ${missing.join(", ")}.` };
+
+  const program = trainingPrograms[trainingPlanId] || trainingPrograms.generalMuscle;
+  const goal = program.goal || profile.goal || "maintenance";
+  const trainingDays = Math.max(1, Math.min(6, Number(profile.trainingDays || program.days?.length || 4)));
+  const highRisk = (profile.healthRisks || []).length > 0;
+  const dayNames = ["Päev 1", "Päev 2", "Päev 3", "Päev 4", "Päev 5", "Päev 6", "Päev 7"];
+  const meals = ["breakfast", "lunch", "dinner", "snack"];
+  const days = dayNames.map((day, index) => {
+    const dayType = index < trainingDays ? "training" : "rest";
+    const macros = calculateMacros(profile, highRisk && goal === "fat" ? "maintenance" : goal, dayType);
+    const recipes = meals.map((meal, mealIndex) => pickRecipe(meal, profile, index + mealIndex)).filter(Boolean);
+    return { day, dayType, macros, meals: recipes };
+  });
+  const plan = {
+    id: `nutrition-${Date.now()}`,
+    userId,
+    trainingPlanId,
+    generatedAt: new Date().toISOString(),
+    disclaimer: "See toitumiskava on üldine fitness-soovitus ega asenda arsti või dietoloogi nõu.",
+    warning: highRisk ? "Märgitud terviseriski tõttu ei loo äpp agressiivset dieeti. Palun konsulteeri arsti või dietoloogiga." : "",
+    bmr: calculateBMR(profile),
+    tdee: calculateTDEE(profile),
+    goal,
+    profileSnapshot: profile,
+    days
+  };
+  appData.generatedMealPlans = [plan, ...(appData.generatedMealPlans || []).filter(item => item.trainingPlanId !== trainingPlanId)].slice(0, 8);
+  appData.generatedMeals = days.flatMap(day => day.meals.map(recipe => ({ planId: plan.id, day: day.day, dayType: day.dayType, recipeId: recipe.id })));
+  appData.nutritionProfiles = [{ id: "local", ...profile, updatedAt: new Date().toISOString() }];
+  appData.userAllergies = profile.allergies.map(allergy => ({ userId: "local", allergy }));
+  appData.userDietPreferences = profile.dietPreferences.map(preference => ({ userId: "local", preference }));
+  localStorage.setItem("eliteFitnessData", JSON.stringify(appData));
+  return { ok: true, plan };
+}
+
+function latestNutritionPlan(trainingPlanId = appData.selectedProgram || "generalMuscle") {
+  return (appData.generatedMealPlans || []).find(plan => plan.trainingPlanId === trainingPlanId);
+}
+
+function saveNutritionProfileFromForm() {
+  const allergies = Array.from(document.querySelectorAll("[data-nutrition-allergy]:checked")).map(input => input.value);
+  const dietPreferences = Array.from(document.querySelectorAll("[data-nutrition-pref]:checked")).map(input => input.value);
+  const healthRisks = Array.from(document.querySelectorAll("[data-nutrition-risk]:checked")).map(input => input.value);
+  appData.profile.gender = document.getElementById("nutritionGender")?.value || appData.profile.gender;
+  appData.profile.age = Number(document.getElementById("nutritionAge")?.value || appData.profile.age || 0);
+  appData.profile.height = Number(document.getElementById("nutritionHeight")?.value || appData.profile.height || 0);
+  appData.profile.weight = Number(document.getElementById("nutritionWeight")?.value || appData.profile.weight || 0);
+  appData.selectedGoal = document.getElementById("nutritionProfileGoal")?.value || appData.selectedGoal;
+  appData.selectedProgram = document.getElementById("nutritionTrainingPlan")?.value || appData.selectedProgram;
+  appData.nutritionProfile = {
+    activityLevel: document.getElementById("nutritionActivity")?.value || "moderate",
+    trainingDays: Number(document.getElementById("nutritionTrainingDays")?.value || appData.goals.weeklyWorkouts || 4),
+    allergies,
+    dietPreferences,
+    healthRisks,
+    mealsPerDay: 4
+  };
+  appData.goals.weeklyWorkouts = appData.nutritionProfile.trainingDays;
+  saveData();
+  renderNutritionProfileForm();
+  toast("Toitumisprofiil salvestatud");
+}
+
+function renderNutritionProfileForm() {
+  const root = document.getElementById("nutritionProfileForm");
+  if (!root) return;
+  ensureNutritionSeedData();
+  const profile = nutritionProfile();
+  const programOptions = Object.entries(trainingPrograms).map(([id, program]) => `<option value="${id}" ${profile.trainingPlanId === id ? "selected" : ""}>${langText(programCards.find(card => card.id === program.cardId)?.title || { et:id, en:id, ru:id })}</option>`).join("");
+  const allergyLabels = { gluten:"Gluteen", dairy:"Piim", egg:"Muna", fish:"Kala", soy:"Soja", nuts:"Pähklid" };
+  const prefLabels = { omnivore:"Segatoit", vegetarian:"Taimetoit", vegan:"Vegan", highProtein:"Kõrge valk", budget:"Soodne", quickMeals:"Kiired söögid" };
+  const riskLabels = { pregnancy:"Rasedus", diabetes:"Diabeet", eatingDisorder:"Söömishäire", kidneyDisease:"Neeruhaigus", other:"Muu kõrge terviserisk" };
+  root.innerHTML = `
+    <div class="nutrition-profile-grid">
+      <label>Sugu<select id="nutritionGender"><option value="male" ${profile.gender === "male" ? "selected" : ""}>Mees</option><option value="female" ${profile.gender === "female" ? "selected" : ""}>Naine</option></select></label>
+      <label>Vanus<input id="nutritionAge" type="number" value="${profile.age || ""}"></label>
+      <label>Pikkus cm<input id="nutritionHeight" type="number" value="${profile.height || ""}"></label>
+      <label>Kaal kg<input id="nutritionWeight" type="number" value="${profile.weight || ""}"></label>
+      <label>Eesmärk<select id="nutritionProfileGoal"><option value="fat" ${profile.goal === "fat" ? "selected" : ""}>Kaalulangus</option><option value="muscle" ${profile.goal === "muscle" ? "selected" : ""}>Lihasmass</option><option value="strength" ${profile.goal === "strength" ? "selected" : ""}>Jõud</option><option value="endurance" ${profile.goal === "endurance" ? "selected" : ""}>Vastupidavus</option><option value="maintenance" ${profile.goal === "maintenance" ? "selected" : ""}>Säilitamine</option></select></label>
+      <label>Aktiivsus<select id="nutritionActivity"><option value="sedentary" ${profile.activityLevel === "sedentary" ? "selected" : ""}>Madal</option><option value="light" ${profile.activityLevel === "light" ? "selected" : ""}>Kerge</option><option value="moderate" ${profile.activityLevel === "moderate" ? "selected" : ""}>Keskmine</option><option value="active" ${profile.activityLevel === "active" ? "selected" : ""}>Kõrge</option><option value="athlete" ${profile.activityLevel === "athlete" ? "selected" : ""}>Väga kõrge</option></select></label>
+      <label class="wide">Treeningkava<select id="nutritionTrainingPlan">${programOptions}</select></label>
+      <label>Treeningpäevi nädalas<input id="nutritionTrainingDays" type="number" min="1" max="6" value="${profile.trainingDays}"></label>
+    </div>
+    <h3>Allergiad</h3>
+    <div class="nutrition-checkbox-grid">${appData.allergies.map(item => `<label class="nutrition-check"><input type="checkbox" data-nutrition-allergy value="${item}" ${profile.allergies.includes(item) ? "checked" : ""}>${allergyLabels[item] || item}</label>`).join("")}</div>
+    <h3>Toidueelistused</h3>
+    <div class="nutrition-checkbox-grid">${appData.dietPreferences.map(item => `<label class="nutrition-check"><input type="checkbox" data-nutrition-pref value="${item}" ${profile.dietPreferences.includes(item) ? "checked" : ""}>${prefLabels[item] || item}</label>`).join("")}</div>
+    <h3>Terviseriskid</h3>
+    <div class="nutrition-checkbox-grid">${Object.entries(riskLabels).map(([id, label]) => `<label class="nutrition-check"><input type="checkbox" data-nutrition-risk value="${id}" ${profile.healthRisks.includes(id) ? "checked" : ""}>${label}</label>`).join("")}</div>
+  `;
+}
+
+function renderGeneratedNutritionPlan(plan) {
+  if (!plan) return `<p class="small">Toitumiskava pole veel genereeritud.</p>`;
+  const mealNames = { breakfast:"Hommikusöök", lunch:"Lõuna", dinner:"Õhtusöök", snack:"Vahepala" };
+  return `
+    <div class="nutrition-plan-shell">
+      <div class="generated-nutrition-summary">
+        <div class="card"><strong>${plan.bmr}</strong><small>BMR</small></div>
+        <div class="card"><strong>${plan.tdee}</strong><small>TDEE</small></div>
+        <div class="card"><strong>${langText(programCards.find(card => card.id === trainingPrograms[plan.trainingPlanId]?.cardId)?.title || { et: plan.trainingPlanId })}</strong><small>treeningkava</small></div>
+        <div class="card"><strong>${plan.profileSnapshot.trainingDays}</strong><small>trennipäeva</small></div>
+      </div>
+      ${plan.warning ? `<div class="nutrition-disclaimer">${plan.warning}</div>` : ""}
+      <div class="meal-day-grid">
+        ${plan.days.map(day => `
+          <div class="meal-day-card">
+            <div class="meal-day-header"><h3>${day.day}</h3><span class="nutrition-day-type">${day.dayType === "training" ? "Treeningpäev" : "Puhkepäev"}</span></div>
+            <div class="nutrition-target-strip">
+              <div class="card"><strong>${day.macros.calories}</strong><small>kcal</small></div>
+              <div class="card"><strong>${day.macros.protein}g</strong><small>valk</small></div>
+              <div class="card"><strong>${day.macros.carbs}g</strong><small>süsivesikud</small></div>
+              <div class="card"><strong>${day.macros.fat}g</strong><small>rasvad</small></div>
+            </div>
+            <div class="meal-stack">
+              ${day.meals.map(recipe => `<div class="meal-photo-card"><img src="${mealImage(recipe.name)}" alt="${recipe.name}" loading="lazy"><div class="meal-card-copy"><span class="meal-tag">${mealNames[recipe.meal] || recipe.meal}</span><strong>${recipe.name}</strong><small>${recipe.calories} kcal · P ${recipe.protein}g · S ${recipe.carbs}g · R ${recipe.fat}g</small></div></div>`).join("")}
+            </div>
+          </div>`).join("")}
+      </div>
+      <div class="nutrition-disclaimer">${plan.disclaimer}</div>
+      <div class="nutrition-source-list">${nutritionReferenceSources.map(source => `<a href="${source.url}" target="_blank">${source.name}</a>`).join("")}</div>
+    </div>
+  `;
+}
+
+function generateNutritionPlanForSelectedProgram(trainingPlanId = document.getElementById("nutritionTrainingPlan")?.value || appData.selectedProgram || "generalMuscle") {
+  saveNutritionProfileFromForm();
+  const result = generateNutritionPlan("local", trainingPlanId);
+  const output = document.getElementById("nutritionPlanOutput");
+  if (!result.ok) {
+    if (output) output.innerHTML = `<div class="nutrition-disclaimer">${result.error}</div>`;
+    return result;
+  }
+  if (output) output.innerHTML = renderGeneratedNutritionPlan(result.plan);
+  toast("Toitumiskava genereeritud");
+  return result;
+}
+
+function renderProgramNutritionPanel(trainingPlanId) {
+  const plan = latestNutritionPlan(trainingPlanId);
+  return `
+    <div class="feature-card">
+      <h2>Nutrition Plan</h2>
+      <p class="small">Kava sõltub sellest treeningkavast ja sinu toitumisprofiilist.</p>
+      <button onclick="generateNutritionPlanForSelectedProgram('${trainingPlanId}')">Generate nutrition plan</button>
+      <div>${renderGeneratedNutritionPlan(plan)}</div>
+    </div>
+  `;
+}
+
+function renderNutritionPlan() {
+  ensureNutritionSeedData();
+  const goalSelect = document.getElementById("nutritionGoal");
+  const goal = goalSelect?.value || appData.selectedGoal || trainingPrograms[appData.selectedProgram]?.goal || "fat";
+  appData.selectedGoal = goal;
+  const plan = latestNutritionPlan(appData.selectedProgram || "generalMuscle");
+  const output = document.getElementById("nutritionPlanOutput");
+  if (output) output.innerHTML = plan ? renderGeneratedNutritionPlan(plan) : renderWeeklyNutrition(goal);
+}
 function addMeal() {
   const meal = {
     id: Date.now(),
@@ -7784,32 +8293,6 @@ function addMeal() {
   ["mealName","mealCalories","mealProtein","mealCarbs","mealFat"].forEach(id => document.getElementById(id).value = "");
   saveData();
   toast("Söök lisatud");
-}
-
-function renderNutritionPlan() {
-  const goal = document.getElementById("nutritionGoal").value || appData.selectedGoal || "fat";
-  appData.selectedGoal = goal;
-  localStorage.setItem("eliteFitnessData", JSON.stringify(appData));
-  const variant = Number(appData.planVersion || 1);
-  const monthText = appData.planMonth || currentMonthKey();
-  const sourceText = currentLang === "ru"
-    ? "Источники: ISSN рекомендации по белку; ACSM/AND/DC спортивное питание."
-    : currentLang === "en"
-      ? "Sources: ISSN protein guidance; ACSM/AND/DC sports nutrition recommendations."
-      : "Allikad: ISSN valgusoovitused; ACSM/AND/DC sporditoitumise soovitused.";
-  const heading = currentLang === "ru" ? "Фокус питания" : currentLang === "en" ? "Nutrition focus" : "Toitumise fookus";
-  document.getElementById("nutritionPlanOutput").innerHTML = `
-    <div class="nutrition-hero-card">
-      <img src="${nutritionHeroImage(goal)}" alt="${heading}" loading="lazy">
-      <div class="nutrition-hero-copy">
-        <span class="badge">${t[currentLang].planVersion} ${variant} · ${monthText}</span>
-        <h2>${heading}</h2>
-        <p>${aiNutritionFocus(goal)}</p>
-      </div>
-    </div>
-    ${renderWeeklyNutrition(goal)}
-    <p class="small">${sourceText}</p>
-  `;
 }
 
 function monthlyMealTwist(meal, variant) {
@@ -9500,6 +9983,7 @@ function renderDashboard() {
   document.getElementById("age").value = appData.profile.age || "";
   document.getElementById("gender").value = appData.profile.gender || "male";
   document.getElementById("nutritionGoal").value = appData.selectedGoal || "fat";
+  renderNutritionProfileForm();
   renderNutritionPlan();
   renderBodyTypeSelectors();
 

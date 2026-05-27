@@ -1,6 +1,7 @@
 {
   "scripts": {
     "check": "node scripts/check-html.cjs",
+    "test:nutrition": "node scripts/nutrition-mvp-tests.cjs",
     "fetch:outdoor-photos": "node scripts/fetch-google-place-photos.cjs",
     "fetch:harjumaa-outdoor-gyms": "node scripts/fetch-google-place-photos.cjs --discover-harjumaa"
   }
