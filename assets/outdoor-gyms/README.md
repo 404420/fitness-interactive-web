@@ -10,3 +10,11 @@ The app looks for files by slug, for example:
 
 Use `npm run fetch:outdoor-photos` with a Google Places API key to download official Google Places photos into this folder. Do not add random stock photos for location cards.
 
+Use `npm run fetch:harjumaa-outdoor-gyms` to query Google Places for `välijõusaal Harjumaa`, save `harjumaa-google-places.json`, and download the first Google Places photo for each discovered outdoor gym.
+
+Required environment variable:
+
+```powershell
+$env:GOOGLE_MAPS_API_KEY="your-key"
+npm run fetch:harjumaa-outdoor-gyms
+```

@@ -4385,9 +4385,31 @@ function outdoorGymCategoryFor(gym) {
 }
 const outdoorGyms = [
   {
+    name: "A. H. Tammsaare tee 83 välijõusaal",
+    address: "A. H. Tammsaare tee 83, 13416 Tallinn",
+    photoSlug: "tammsaare-tee-83-valijousaal",
+    source: "https://www.google.com/maps/search/?api=1&query=A.%20H.%20Tammsaare%20tee%2083%20v%C3%A4lij%C3%B5usaal%20Tallinn",
+    sourceLabel: "Google Maps",
+    verified: true,
+    note: "Avalik õues olev jõulinnak. Kaardipilt peab olema selle koha seadmetest, mitte majast ega üldisest pargivaadest.",
+    equipment: [
+      { name: "Lõuatõmbe- ja rippumiskangid", photo: "assets/outdoor-gyms/tammsaare-tee-83-pull-bars.jpg", work: "4 seeriat: 3-8 lõuatõmmet või 20-40 sek rippumist." },
+      { name: "Rööbaspuud ja tugitoed", photo: "assets/outdoor-gyms/tammsaare-tee-83-dip-bars.jpg", work: "3x6-10 dippe või toetatud põlvetõsteid." },
+      { name: "Välijõupingid", photo: "assets/outdoor-gyms/tammsaare-tee-83-benches.jpg", work: "3x10-12 kontrollitud surumist, tõmmet või keretööd vastavalt nähtavale pingile." },
+      { name: "Kere- ja kõhulihaste ala", photo: "assets/outdoor-gyms/tammsaare-tee-83-core.jpg", work: "3x10-15 keretõstet või 3x30 sek plank." }
+    ],
+    plan: [
+      "Soojendus: 6 min rahulik kõnd ja õla/puusa liikuvus.",
+      "Tõmme: lõuatõmme või rippumine 4 seeriat.",
+      "Surumine: rööbaspuudel dipid või pingilt kätekõverdus 3 seeriat.",
+      "Kere: kõhulihaste pink või plank 3 seeriat.",
+      "Lõpp: 5 min rahulik kõnd ja venitus."
+    ]
+  },
+  {
     name: "Astangu tn 74 jõulinnak",
     address: "Astangu tn 74, Tallinn",
-    image: "https://tse1.mm.bing.net/th?q=Astangu%20tn%2074%20j%C3%B5ulinnak%20Tallinn&w=900&h=520&c=7&rs=1&p=0&o=5&pid=1.7",
+    photoSlug: "astangu-tn-74-joulinnak",
     source: "https://www.spordiregister.ee/et/ehitis/3900/haabersti_astangu_tn_74_multifunktsionaalne_pallivaljak",
     sourceLabel: "Eesti spordiregister",
     verified: true,
@@ -4409,7 +4431,7 @@ const outdoorGyms = [
   {
     name: "Pirita rannaala jõulinnak",
     address: "Pirita rannaala, Tallinn",
-    image: "https://tse2.mm.bing.net/th?q=Pirita%20rannaala%20j%C3%B5ulinnak%20Tallinn&w=900&h=520&c=7&rs=1&p=0&o=5&pid=1.7",
+    photoSlug: "pirita-rannaala-joulinnak",
     source: "https://www.spordiregister.ee/et/ehitis/4206/pirita_rannaala_spordirajatised",
     sourceLabel: "Eesti spordiregister",
     verified: true,
@@ -4432,7 +4454,7 @@ const outdoorGyms = [
   {
     name: "Pirita terviseraja jõulinnak",
     address: "Rummu tee 3 / Pirita terviserada, Tallinn",
-    image: "https://tse3.mm.bing.net/th?q=Pirita%20terviseraja%20j%C3%B5ulinnak%20Rummu%20tee%20Tallinn&w=900&h=520&c=7&rs=1&p=0&o=5&pid=1.7",
+    photoSlug: "pirita-terviseraja-joulinnak",
     source: "https://www.spordiregister.ee/en/ehitis/600/detail",
     sourceLabel: "Eesti spordiregister",
     verified: true,
@@ -4454,7 +4476,7 @@ const outdoorGyms = [
   {
     name: "Õismäe raba välijõusaal",
     address: "Vabaõhumuuseumi tee 63, Tallinn",
-    image: "https://live.staticflickr.com/65535/53356602781_6c3f8c8b32_c.jpg",
+    photoSlug: "oismäe-raba-valijousaal",
     source: "https://www.tallinn.ee/et/sport/valijousaalid",
     sourceLabel: "Tallinna välijõusaalide nimekiri",
     verified: true,
@@ -4478,7 +4500,7 @@ const outdoorGyms = [
   {
     name: "Stroomi ranna jõulinnak",
     address: "Pelgurand, Tallinn",
-    image: "https://tse4.mm.bing.net/th?q=Stroomi%20ranna%20j%C3%B5ulinnak%20Tallinn&w=900&h=520&c=7&rs=1&p=0&o=5&pid=1.7",
+    photoSlug: "stroomi-ranna-joulinnak",
     source: "https://www.spordiregister.ee/et/ehitis/3843/stroomi_ranna_joulinnak",
     sourceLabel: "Eesti spordiregister",
     verified: false,
@@ -4498,7 +4520,7 @@ const outdoorGyms = [
   {
     name: "Pae pargi jõulinnak",
     address: "Paepargi tn 9, Tallinn",
-    image: "https://tse1.mm.bing.net/th?q=Pae%20pargi%20j%C3%B5ulinnak%20Paepargi%20tn%209%20Tallinn&w=900&h=520&c=7&rs=1&p=0&o=5&pid=1.7",
+    photoSlug: "pae-pargi-joulinnak",
     source: "https://www.tallinn.ee/et/sport/valijousaalid",
     sourceLabel: "Tallinna välijõusaalide nimekiri",
     verified: false,
@@ -4516,32 +4538,10 @@ const outdoorGyms = [
     ]
   },
   {
-    name: "Tuule Spordihoone jõulinnak",
-    address: "Jüri, Rae vald, Harjumaa",
-    category: "harjumaa",
-    image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=900&q=80",
-    source: "https://www.google.com/maps/search/?api=1&query=Tuule%20Spordihoone%20j%C3%B5ulinnak%20J%C3%BCri%20Rae%20vald",
-    sourceLabel: "Kaardiotsing",
-    verified: false,
-    note: "Harjumaa lisavalik Rae vallas. Täpne varustus vajab kohapealset kontrolli, seega kava kasutab turvalisi keharaskuse ja nähtava inventari valikuid.",
-    equipment: [
-      { name: "Keharaskuse ala", work: "3-4 ringi nähtaval inventaril, hoia tehnika kontrollitud." },
-      { name: "Treeningpink", work: "3x10 step-up või pingilt kätekõverdus." },
-      { name: "Avatud ala", work: "10 min kõnd, kerge jooks või liikuvus." }
-    ],
-    plan: [
-      "Soojendus: 6 min kõnd või kerge jooks.",
-      "Kang/pink olemasolul: 4 seeriat tõmbeid, surumisi või toetatud kätekõverdusi.",
-      "Jalad: 3x12 väljaasted kummalegi jalale.",
-      "Kere: 3x30 sek plank.",
-      "Lõpp: rahulik kõnd ja venitused."
-    ]
-  },
-  {
     name: "Pärnu Jaansoni raja välijõusaal",
     address: "Jaansoni rada, Pärnu",
     category: "laaneEesti",
-    image: "https://images.unsplash.com/photo-1534368420009-621bfab424a8?auto=format&fit=crop&w=900&q=80",
+    photoSlug: "parnu-jaansoni-raja-valijousaal",
     source: "https://www.google.com/maps/search/?api=1&query=P%C3%A4rnu%20Jaansoni%20rada%20v%C3%A4lij%C3%B5usaal",
     sourceLabel: "Kaardiotsing",
     verified: false,
@@ -4563,7 +4563,7 @@ const outdoorGyms = [
     name: "Jõulumäe Tervisespordikeskuse välijõusaal",
     address: "Jõulumäe, Häädemeeste vald, Pärnumaa",
     category: "laaneEesti",
-    image: "https://images.unsplash.com/photo-1517963879433-6ad2b056d712?auto=format&fit=crop&w=900&q=80",
+    photoSlug: "joulumae-tervisespordikeskuse-valijousaal",
     source: "https://joulumae.ee/",
     sourceLabel: "Jõulumäe keskus",
     verified: false,
@@ -4585,7 +4585,7 @@ const outdoorGyms = [
     name: "Elva välijõusaal",
     address: "Elva linn, Tartumaa",
     category: "lounaEesti",
-    image: "https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=900&q=80",
+    photoSlug: "elva-valijousaal",
     source: "https://www.google.com/maps/search/?api=1&query=Elva%20v%C3%A4lij%C3%B5usaal",
     sourceLabel: "Kaardiotsing",
     verified: false,
@@ -4606,7 +4606,7 @@ const outdoorGyms = [
     name: "Viljandi järveäärne välijõusaal",
     address: "Viljandi järve rand, Viljandi",
     category: "lounaEesti",
-    image: "https://images.unsplash.com/photo-1434608519344-49d77a699e1d?auto=format&fit=crop&w=900&q=80",
+    photoSlug: "viljandi-jarveaarne-valijousaal",
     source: "https://www.google.com/maps/search/?api=1&query=Viljandi%20j%C3%A4rve%20v%C3%A4lij%C3%B5usaal",
     sourceLabel: "Kaardiotsing",
     verified: false,
@@ -4628,7 +4628,7 @@ const outdoorGyms = [
     name: "Narva Joaoru välijõusaal",
     address: "Joaoru puhkeala, Narva",
     category: "idaEesti",
-    image: "https://images.unsplash.com/photo-1581009137042-c552e485697a?auto=format&fit=crop&w=900&q=80",
+    photoSlug: "narva-joaoru-valijousaal",
     source: "https://www.google.com/maps/search/?api=1&query=Narva%20Joaoru%20v%C3%A4lij%C3%B5usaal",
     sourceLabel: "Kaardiotsing",
     verified: false,
@@ -4650,7 +4650,7 @@ const outdoorGyms = [
     name: "Rakvere Palermo terviseraja jõulinnak",
     address: "Palermo terviserada, Rakvere",
     category: "idaEesti",
-    image: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=900&q=80",
+    photoSlug: "rakvere-palermo-terviseraja-joulinnak",
     source: "https://www.google.com/maps/search/?api=1&query=Rakvere%20Palermo%20terviserada%20j%C3%B5ulinnak",
     sourceLabel: "Kaardiotsing",
     verified: false,
@@ -4671,7 +4671,7 @@ const outdoorGyms = [
     name: "Paide tehisjärve välijõusaal",
     address: "Paide tehisjärv, Paide",
     category: "keskEesti",
-    image: "https://images.unsplash.com/photo-1566241142559-40e1dab266c6?auto=format&fit=crop&w=900&q=80",
+    photoSlug: "paide-tehisjarve-valijousaal",
     source: "https://www.google.com/maps/search/?api=1&query=Paide%20tehisj%C3%A4rve%20v%C3%A4lij%C3%B5usaal",
     sourceLabel: "Kaardiotsing",
     verified: false,
@@ -4692,7 +4692,7 @@ const outdoorGyms = [
     name: "Rapla Vesiroosi välitreeninguala",
     address: "Vesiroosi terviserada, Rapla",
     category: "keskEesti",
-    image: "https://images.unsplash.com/photo-1583454155184-870a1f63aebc?auto=format&fit=crop&w=900&q=80",
+    photoSlug: "rapla-vesiroosi-valitreeninguala",
     source: "https://www.google.com/maps/search/?api=1&query=Rapla%20Vesiroosi%20v%C3%A4litreeninguala",
     sourceLabel: "Kaardiotsing",
     verified: false,
