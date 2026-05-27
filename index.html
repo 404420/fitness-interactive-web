@@ -1786,6 +1786,43 @@ li {
   border: 1px solid rgba(212,175,55,0.58);
   background: rgba(0,0,0,0.94);
   box-shadow: 0 12px 32px rgba(0,0,0,0.42);
+  transition: transform .24s ease;
+  will-change: transform;
+}
+
+.program-live-tracker.collapsed {
+  transform: translateX(calc(-100% + 36px));
+}
+
+.program-live-toggle {
+  position: absolute;
+  top: 50%;
+  right: -1px;
+  width: 34px;
+  min-height: 96px;
+  transform: translateY(-50%);
+  border-radius: 0 12px 12px 0;
+  padding: 8px 4px;
+  border: 1px solid rgba(212,175,55,0.45);
+  border-left: 0;
+  background: linear-gradient(180deg, #d4af37, #9f7d18);
+  color: #080808;
+  font-size: 16px;
+  font-weight: 950;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 8px 0 18px rgba(0,0,0,0.28);
+}
+
+.program-live-toggle span {
+  display: block;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+}
+
+.program-live-tracker.collapsed .program-live-toggle span {
+  transform: none;
 }
 
 .program-live-title {
@@ -7180,6 +7217,7 @@ function renderProgramLiveTracker(programTitle) {
   const safeTitle = String(programTitle).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
   return `
     <div id="programLiveTracker" class="program-live-tracker">
+      <button class="program-live-toggle" type="button" onclick="toggleProgramLiveTracker()" aria-label="Peida treeningu jälgimine"><span>‹</span></button>
       <div class="program-live-actions">
         <button onclick="startProgramWorkout('${safeTitle}')">${labels.start}</button>
         <button class="stop" onclick="stopProgramWorkout()">${labels.stop}</button>
@@ -7192,6 +7230,18 @@ function renderProgramLiveTracker(programTitle) {
       </div>
     </div>
   `;
+}
+
+function toggleProgramLiveTracker() {
+  const tracker = document.getElementById("programLiveTracker");
+  if (!tracker) return;
+  tracker.classList.toggle("collapsed");
+  const toggle = tracker.querySelector(".program-live-toggle");
+  if (toggle) {
+    const collapsed = tracker.classList.contains("collapsed");
+    toggle.setAttribute("aria-label", collapsed ? "Näita treeningu jälgimist" : "Peida treeningu jälgimine");
+    toggle.querySelector("span").textContent = collapsed ? "›" : "‹";
+  }
 }
 
 function generateProgramPlan(programId = appData.selectedProgram || "generalMuscle") {
