@@ -1791,7 +1791,7 @@ li {
 }
 
 .program-live-tracker.collapsed {
-  transform: translateX(-100%);
+  transform: translateX(calc(-1 * (100vw - 18px)));
 }
 
 .program-live-toggle {
@@ -1812,6 +1812,11 @@ li {
   line-height: 1;
   cursor: pointer;
   box-shadow: 5px 0 12px rgba(0,0,0,0.26);
+}
+
+.program-live-tracker.collapsed .program-live-toggle {
+  right: 0;
+  transform: translate(100%, -50%);
 }
 
 .program-live-toggle span {
