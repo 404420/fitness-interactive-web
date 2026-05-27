@@ -1791,7 +1791,7 @@ li {
 }
 
 .program-live-tracker.collapsed {
-  transform: translateX(calc(-100% - 64px));
+  transform: translateX(var(--program-tracker-shift, -100%));
 }
 
 .program-live-toggle {
@@ -1815,12 +1815,8 @@ li {
 }
 
 .program-live-tracker.collapsed .program-live-toggle {
-  position: fixed;
-  left: 4px;
-  right: auto;
-  top: 42vh;
-  transform: none;
-  z-index: 50;
+  right: -18px;
+  transform: translateY(-50%);
 }
 
 .program-live-toggle span {
@@ -7243,7 +7239,16 @@ function renderProgramLiveTracker(programTitle) {
 function toggleProgramLiveTracker() {
   const tracker = document.getElementById("programLiveTracker");
   if (!tracker) return;
-  tracker.classList.toggle("collapsed");
+  const shouldCollapse = !tracker.classList.contains("collapsed");
+  if (shouldCollapse) {
+    const rect = tracker.getBoundingClientRect();
+    const shift = 4 - rect.left - rect.width;
+    tracker.style.setProperty("--program-tracker-shift", `${shift}px`);
+    tracker.classList.add("collapsed");
+  } else {
+    tracker.classList.remove("collapsed");
+    tracker.style.removeProperty("--program-tracker-shift");
+  }
   const toggle = tracker.querySelector(".program-live-toggle");
   if (toggle) {
     const collapsed = tracker.classList.contains("collapsed");
@@ -7251,6 +7256,15 @@ function toggleProgramLiveTracker() {
     toggle.querySelector("span").textContent = collapsed ? "›" : "‹";
   }
 }
+
+window.addEventListener("resize", () => {
+  const tracker = document.getElementById("programLiveTracker");
+  if (!tracker?.classList.contains("collapsed")) return;
+  tracker.classList.remove("collapsed");
+  const rect = tracker.getBoundingClientRect();
+  tracker.style.setProperty("--program-tracker-shift", `${4 - rect.left - rect.width}px`);
+  tracker.classList.add("collapsed");
+});
 
 function generateProgramPlan(programId = appData.selectedProgram || "generalMuscle") {
   const program = trainingPrograms[programId] || trainingPrograms.generalMuscle;
