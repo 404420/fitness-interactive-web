@@ -462,6 +462,31 @@ button:active { transform: translateY(1px); }
   margin: 0;
 }
 
+.body-slider-section-target {
+  margin-top: 6px;
+}
+
+.body-goal-note {
+  display: grid;
+  gap: 7px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(212,175,55,0.26);
+  background: rgba(212,175,55,0.08);
+}
+
+.body-goal-note strong {
+  color: #ffd86b;
+  font-size: 17px;
+}
+
+.body-goal-note p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
 .body-slider-panel {
   display: grid;
   gap: 14px;
@@ -485,14 +510,12 @@ button:active { transform: translateY(1px); }
   object-fit: contain;
   object-position: center bottom;
   filter: drop-shadow(0 18px 28px rgba(0,0,0,0.42));
-  animation: bodyChoiceFade 220ms ease-out;
 }
 
 .body-slider-copy {
   display: grid;
   gap: 6px;
   text-align: center;
-  animation: bodyChoiceFade 220ms ease-out;
 }
 
 .body-slider-copy strong {
@@ -593,6 +616,87 @@ button:active { transform: translateY(1px); }
   min-height: 56px;
   margin-top: 2px;
   font-size: 18px;
+}
+
+.home-body-summary {
+  margin: 16px 0 18px;
+}
+
+.saved-body-window {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(212,175,55,0.28);
+  background: linear-gradient(145deg, rgba(212,175,55,0.12), rgba(74,222,128,0.07)), rgba(0,0,0,0.62);
+  box-shadow: 0 16px 36px rgba(0,0,0,0.26);
+}
+
+.saved-body-window.home {
+  margin-top: 0;
+}
+
+.saved-body-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.saved-body-heading strong {
+  color: #ffd86b;
+  font-size: 17px;
+}
+
+.saved-body-heading small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.saved-body-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.saved-body-tile {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.48);
+  text-align: center;
+  overflow: hidden;
+}
+
+.saved-body-tile span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.saved-body-tile img {
+  width: 100%;
+  height: 180px;
+  object-fit: contain;
+  object-position: center bottom;
+  border-radius: 10px;
+  background: #050505;
+}
+
+.saved-body-tile strong {
+  min-height: 34px;
+  color: #fff7d7;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.body-slider-choice[data-mode="target"][data-key="C"] .body-slider-figure img,
+.saved-body-tile[data-mode="target"][data-key="C"] img {
+  clip-path: inset(10px 0 0 0);
 }
 
 @keyframes bodyChoiceFade {
@@ -3472,6 +3576,8 @@ body.menu-open #menuPanel .menu-card span {
     <h1>Elite Fitness</h1>
     <p class="subtitle" data-i18n="subtitle">Premium treeningkogemus sinu nutikellaga</p>
 
+    <div id="homeBodySummary" class="home-body-summary"></div>
+
     <div class="fitness-dashboard" id="homeSummary"></div>
   </div>
 
@@ -3483,7 +3589,11 @@ body.menu-open #menuPanel .menu-card span {
         <h2>Praegune kehatüüp</h2>
         <div id="currentBodyTypes" class="body-slider-panel"></div>
       </section>
-      <section class="body-slider-section">
+      <div class="body-goal-note">
+        <strong>Vali enda soovitud eesmärk</strong>
+        <p>Liiguta alumist sliderit sellele kehale, kuhu tahad järgmise treeningkuuriga jõuda. Kui profiili salvestad, näed praegust kehatüüpi ja eesmärki nii siin progressis kui ka avalehe esimeses vaates.</p>
+      </div>
+      <section class="body-slider-section body-slider-section-target">
         <h2>Soovitud tulemus</h2>
         <div id="targetBodyTypes" class="body-slider-panel"></div>
       </section>
@@ -8874,13 +8984,52 @@ function bodyTypeIndex(type) {
   return ["A", "B", "C", "D", "E"].indexOf(type);
 }
 
+function selectedBodyTypeKey(mode) {
+  return mode === "target"
+    ? appData.profile.desiredBodyType || appData.profile.targetType || "B"
+    : appData.profile.currentBodyType || appData.profile.currentType || "C";
+}
+
+function renderBodyTypeSelector(mode) {
+  const container = document.getElementById(mode === "target" ? "targetBodyTypes" : "currentBodyTypes");
+  if (!container) return;
+  container.innerHTML = bodyTypeSlider(mode, selectedBodyTypeKey(mode));
+}
+
 function renderBodyTypeSelectors() {
-  const current = appData.profile.currentBodyType || appData.profile.currentType || "C";
-  const target = appData.profile.desiredBodyType || appData.profile.targetType || "B";
-  const currentContainer = document.getElementById("currentBodyTypes");
-  const targetContainer = document.getElementById("targetBodyTypes");
-  if (currentContainer) currentContainer.innerHTML = bodyTypeSlider("current", current);
-  if (targetContainer) targetContainer.innerHTML = bodyTypeSlider("target", target);
+  renderBodyTypeSelector("current");
+  renderBodyTypeSelector("target");
+}
+
+function updateBodyTypeSelector(mode) {
+  const container = document.getElementById(mode === "target" ? "targetBodyTypes" : "currentBodyTypes");
+  const choice = container?.querySelector(".body-slider-choice");
+  if (!choice) {
+    renderBodyTypeSelector(mode);
+    return;
+  }
+  const types = mode === "target" ? targetBodyTypes : currentBodyTypes;
+  const keys = Object.keys(types);
+  const key = keys.includes(selectedBodyTypeKey(mode)) ? selectedBodyTypeKey(mode) : keys[0];
+  const index = Math.max(0, keys.indexOf(key));
+  const type = types[key];
+  const gender = appData.profile.gender === "female" ? "female" : "male";
+  choice.dataset.mode = mode;
+  choice.dataset.key = key;
+  const figure = choice.querySelector(".body-slider-figure");
+  const title = choice.querySelector(".body-slider-copy strong");
+  const text = choice.querySelector(".body-slider-copy small");
+  const range = choice.querySelector(".body-slider-range");
+  const steps = choice.querySelector(".body-slider-steps");
+  if (figure) figure.innerHTML = bodyTypePreview(key, gender, mode);
+  if (title) title.textContent = type.title?.et || langText(type.title);
+  if (text) text.textContent = type.text?.et || langText(type.text);
+  if (range) range.value = index;
+  if (steps) {
+    steps.querySelectorAll("span").forEach((step, stepIndex) => {
+      step.classList.toggle("active", stepIndex === index);
+    });
+  }
 }
 
 function bodyTypeSlider(mode, selectedKey) {
@@ -8913,19 +9062,51 @@ function bodyTypeSlider(mode, selectedKey) {
   `;
 }
 
+function bodyTypeImageSrc(key, gender, mode = "current") {
+  return bodyTypeImages[gender]?.[mode]?.[key] || bodyTypeImages.male[mode]?.[key] || bodyTypeImages.male.current.C;
+}
+
 function bodyTypePreview(key, gender, mode = "current") {
-  const image = bodyTypeImages[gender]?.[mode]?.[key] || bodyTypeImages.male[mode]?.[key] || bodyTypeImages.male.current.C;
+  const image = bodyTypeImageSrc(key, gender, mode);
   const type = mode === "target" ? targetBodyTypes[key] : currentBodyTypes[key];
   const alt = `${type.title?.et || langText(type.title)} ${mode === "target" ? "eesmärgi" : "kehatüübi"} foto`;
-  return `<img src="${image}" alt="${alt}" loading="lazy">`;
+  return `<img src="${image}" alt="${alt}" loading="eager">`;
+}
+
+function savedBodyTypeSummary(context = "profile") {
+  const gender = appData.profile.gender === "female" ? "female" : "male";
+  const currentKey = appData.profile.currentBodyType || appData.profile.currentType || "C";
+  const targetKey = appData.profile.desiredBodyType || appData.profile.targetType || "B";
+  const currentType = currentBodyTypes[currentKey] || currentBodyTypes.C;
+  const targetType = targetBodyTypes[targetKey] || targetBodyTypes.B;
+  const homeClass = context === "home" ? " home" : "";
+  return `
+    <div class="saved-body-window${homeClass}">
+      <div class="saved-body-heading">
+        <strong>${context === "home" ? "Sinu keha ja eesmärk" : "Salvestatud valik"}</strong>
+        <small>${appData.profile.courseWeeks || 12} nädalat</small>
+      </div>
+      <div class="saved-body-pair">
+        <div class="saved-body-tile" data-mode="current" data-key="${currentKey}">
+          <span>Praegu</span>
+          <img src="${bodyTypeImageSrc(currentKey, gender, "current")}" alt="${currentType.title?.et || langText(currentType.title)}" loading="eager">
+          <strong>${currentType.title?.et || langText(currentType.title)}</strong>
+        </div>
+        <div class="saved-body-tile" data-mode="target" data-key="${targetKey}">
+          <span>Eesmärk</span>
+          <img src="${bodyTypeImageSrc(targetKey, gender, "target")}" alt="${targetType.title?.et || langText(targetType.title)}" loading="eager">
+          <strong>${targetType.title?.et || langText(targetType.title)}</strong>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function selectBodyType(field, value) {
   appData.profile[field] = value;
   if (field === "currentType") appData.profile.currentBodyType = value;
   if (field === "targetType") appData.profile.desiredBodyType = value;
-  renderBodyTypeSelectors();
-  renderDashboard();
+  updateBodyTypeSelector(field === "targetType" ? "target" : "current");
 }
 
 function slideBodyType(mode, value) {
@@ -8939,8 +9120,7 @@ function slideBodyType(mode, value) {
     appData.profile.currentType = key;
     appData.profile.currentBodyType = key;
   }
-  renderBodyTypeSelectors();
-  renderDashboard();
+  updateBodyTypeSelector(mode);
 }
 
 function stepBodyType(mode, direction) {
@@ -9196,6 +9376,9 @@ function renderDashboard() {
   const healthSummary = getTodayHealthSummary();
   const dailyRecommendation = getTodayDailyRecommendation();
 
+  const homeBodySummary = document.getElementById("homeBodySummary");
+  if (homeBodySummary) homeBodySummary.innerHTML = savedBodyTypeSummary("home");
+
   document.getElementById("homeSummary").innerHTML = `
     <div class="dashboard-top">
       <div>
@@ -9238,9 +9421,8 @@ function renderDashboard() {
 
   const profilePct = profileProgressPercent();
   document.getElementById("profileProgress").innerHTML = `
+    ${savedBodyTypeSummary("profile")}
     <div class="stats">
-      <div class="card"><strong>${appData.profile.currentType || "C"}</strong><small>${dl.current}</small></div>
-      <div class="card"><strong>${appData.profile.targetType || "B"}</strong><small>${dl.target}</small></div>
       <div class="card"><strong>${appData.profile.courseWeeks || 12}</strong><small>${dl.weeks}</small></div>
       <div class="card"><strong>${intensityLabels[appData.profile.intensity] || intensityLabels.medium}</strong><small>${dl.intensity}</small></div>
     </div>
