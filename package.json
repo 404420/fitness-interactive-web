@@ -1,5 +1,6 @@
 {
   "scripts": {
-    "check": "node scripts/check-html.cjs"
+    "check": "node scripts/check-html.cjs",
+    "fetch:outdoor-photos": "node scripts/fetch-google-place-photos.cjs"
   }
 }

@@ -748,6 +748,54 @@ li {
   background: #111;
 }
 
+.outdoor-photo-frame {
+  position: relative;
+  width: 100%;
+  min-height: 148px;
+  overflow: hidden;
+  border: 1px solid rgba(212,175,55,0.42);
+  border-radius: 18px;
+  background: #070707;
+}
+
+.outdoor-photo-frame.modal-photo {
+  min-height: 180px;
+  margin-bottom: 12px;
+}
+
+.outdoor-photo-frame img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.72) saturate(1.05);
+}
+
+.outdoor-photo-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 16px;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.84)),
+    repeating-linear-gradient(135deg, rgba(212,175,55,0.12) 0 1px, transparent 1px 14px);
+}
+
+.outdoor-photo-placeholder strong {
+  color: #ffd86b;
+  font-size: 18px;
+  line-height: 1.12;
+}
+
+.outdoor-photo-placeholder small {
+  color: #fff4c2;
+  line-height: 1.32;
+}
+
 .outdoor-category-grid,
 .outdoor-gym-grid {
   display: grid;
@@ -772,7 +820,16 @@ li {
 }
 
 .outdoor-category-card img,
-.outdoor-place-card img {
+.outdoor-place-card .outdoor-photo-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+}
+
+.outdoor-category-card img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -3118,12 +3175,14 @@ body.menu-open #menuPanel .menu-card span {
   bottom: calc(68px + env(safe-area-inset-bottom)) !important;
   left: 50% !important;
   width: min(430px, 100vw) !important;
-  height: auto !important;
+  height: calc(100svh - 68px - env(safe-area-inset-bottom)) !important;
   max-height: none !important;
   overflow: hidden !important;
   transform: translateX(-50%) !important;
   z-index: 100 !important;
   padding: max(12px, env(safe-area-inset-top)) 10px 10px !important;
+  box-sizing: border-box !important;
+  contain: layout size !important;
 }
 
 #menuPanel.stable-menu-panel.active {
@@ -3140,11 +3199,16 @@ body.menu-open #menuPanel .menu-card span {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   grid-template-rows: repeat(5, minmax(0, 1fr)) !important;
+  grid-auto-rows: 0 !important;
+  grid-auto-flow: row !important;
   gap: 8px !important;
   flex: 1 1 auto !important;
   min-height: 0 !important;
+  height: auto !important;
+  max-height: 100% !important;
   margin: 0 !important;
   overflow: hidden !important;
+  align-items: stretch !important;
 }
 
 #menuPanel.stable-menu-panel .menu-item.menu-card {
@@ -3153,6 +3217,8 @@ body.menu-open #menuPanel .menu-card span {
   justify-content: flex-start !important;
   min-height: 0 !important;
   height: 100% !important;
+  max-height: 100% !important;
+  box-sizing: border-box !important;
   margin: 0 !important;
   padding: 12px !important;
   border-radius: 14px !important;
@@ -6013,6 +6079,42 @@ function outdoorGymLabels() {
   }[currentLang] || {};
 }
 
+function outdoorGymSlug(gym) {
+  return String(gym.photoSlug || gym.name || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[õÕ]/g, "o")
+    .replace(/[äÄ]/g, "a")
+    .replace(/[öÖ]/g, "o")
+    .replace(/[üÜ]/g, "u")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
+}
+
+function outdoorGymPhotoPath(gym) {
+  return gym.photo || `assets/outdoor-gyms/${outdoorGymSlug(gym)}.jpg`;
+}
+
+function outdoorGymPhotoPlaceholder(gym) {
+  const labels = {
+    et: { title: "Google Maps foto lisamata", text: "Lisa selle koha Places Photo fail kausta assets/outdoor-gyms." },
+    en: { title: "Google Maps photo missing", text: "Add this place photo into assets/outdoor-gyms." },
+    ru: { title: "Фото Google Maps не добавлено", text: "Добавь фото места в assets/outdoor-gyms." }
+  }[currentLang] || {};
+  return `<span class="outdoor-photo-placeholder"><strong>${labels.title}</strong><small>${gym.name}<br>${labels.text}</small></span>`;
+}
+
+function renderOutdoorGymPhoto(gym, extraClass = "") {
+  const src = outdoorGymPhotoPath(gym);
+  return `
+    <span class="outdoor-photo-frame ${extraClass}">
+      <img src="${src}" alt="${gym.name}" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+      <span hidden>${outdoorGymPhotoPlaceholder(gym)}</span>
+    </span>
+  `;
+}
+
 function outdoorEquipmentImage(name, gym) {
   const key = name.toLowerCase();
   if (key.includes("jala") || key.includes("leg press") || key.includes("küki")) return "https://commons.wikimedia.org/wiki/Special:FilePath/Sandown%20outdoor%20gym%20leg%20press.JPG";
@@ -6021,9 +6123,9 @@ function outdoorEquipmentImage(name, gym) {
   if (key.includes("rööbas") || key.includes("parallel")) return "https://commons.wikimedia.org/wiki/Special:FilePath/Sandown%20outdoor%20gym%20dips%20equipment.JPG";
   if (key.includes("lõua") || key.includes("pull") || key.includes("monkey")) return "https://commons.wikimedia.org/wiki/Special:FilePath/Sandown%20outdoor%20gym%20pull%20ups%20equipment.JPG";
   if (key.includes("seljatõmbe")) return "https://commons.wikimedia.org/wiki/Special:FilePath/Outdoor%20gym%20machine.jpg";
-  if (key.includes("biitseps")) return exerciseMedia["Dumbbell curl"]?.img || gym.image;
+  if (key.includes("biitseps")) return exerciseMedia["Dumbbell curl"]?.img || "https://commons.wikimedia.org/wiki/Special:FilePath/Outdoor%20gym%20machine.jpg";
   if (key.includes("kere") || key.includes("dragon") || key.includes("bench") || key.includes("pink")) return "https://commons.wikimedia.org/wiki/Special:FilePath/Sandown%20outdoor%20gym%20sit%20ups%20equipment.JPG";
-  return gym.image;
+  return "https://commons.wikimedia.org/wiki/Special:FilePath/Outdoor%20gym%20machine.jpg";
 }
 
 function outdoorExerciseName(equipmentName) {
@@ -6140,7 +6242,7 @@ function openOutdoorGym(index) {
       <h2>${gym.name}</h2>
       <button class="dark-btn modal-close" onclick="closeOutdoorGym()">${labels.close}</button>
     </div>
-    <img class="outdoor-photo" src="${gym.image}" alt="${gym.name}" loading="lazy">
+    ${renderOutdoorGymPhoto(gym, "modal-photo")}
     <p><strong>${t[currentLang].address}:</strong> ${gym.address}</p>
     <p class="outdoor-summary">${gym.note}</p>
     <h3>${labels.equipment}</h3>
@@ -6284,7 +6386,7 @@ function renderOutdoorGyms(categoryId = selectedOutdoorGymCategory) {
         return `
           <div class="outdoor-card">
             <button class="outdoor-place-card" onclick="openOutdoorGym(${index})" aria-label="${gym.name}">
-              <img src="${gym.image}" alt="${gym.name}" loading="lazy">
+              ${renderOutdoorGymPhoto(gym)}
               <span class="outdoor-card-copy">
                 <span class="outdoor-category-meta">${gym.verified ? labels.verified : labels.mapCheck}</span>
                 <h2>${gym.name}</h2>
@@ -6562,6 +6664,7 @@ function toggleMenu() {
 }
 
 function closeMenu() {
+  normalizeMenuLayout();
   document.getElementById("menuPanel").classList.remove("active");
   document.body.classList.remove("menu-open");
 }
