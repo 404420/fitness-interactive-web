@@ -6331,24 +6331,18 @@ function renderOutdoorGyms(categoryId = selectedOutdoorGymCategory) {
         categoryIntro: "Vali piirkond ja seejärel konkreetne välijõusaal.",
         backCategories: "Tagasi piirkondadesse",
         places: "kohta",
-        verified: "Kontrollitud allikas",
-        mapCheck: "Kaart + kontrolli kohapeal",
         gymSummary: count => `${count} seadet või treeninguala. Ava enne kohalesõitu, et näha varustust ja luua selle koha kava.`
       },
       en: {
         categoryIntro: "Choose an area, then open a specific outdoor gym.",
         backCategories: "Back to areas",
         places: "places",
-        verified: "Verified source",
-        mapCheck: "Map + check on site",
         gymSummary: count => `${count} equipment items or training areas. Open it before going to see the equipment and build a workout for that spot.`
       },
       ru: {
         categoryIntro: "Выбери район, затем конкретную площадку.",
         backCategories: "Назад к районам",
         places: "мест",
-        verified: "Проверенный источник",
-        mapCheck: "Карта + проверь на месте",
         gymSummary: count => `${count} элементов или зон для тренировки. Открой место перед поездкой, чтобы посмотреть оборудование и собрать план.`
       }
     }[currentLang] || {})
@@ -6396,7 +6390,6 @@ function renderOutdoorGyms(categoryId = selectedOutdoorGymCategory) {
             <button class="outdoor-place-card" onclick="openOutdoorGym(${index})" aria-label="${gym.name}">
               ${renderOutdoorGymPhoto(gym)}
               <span class="outdoor-card-copy">
-                <span class="outdoor-category-meta">${gym.verified ? labels.verified : labels.mapCheck}</span>
                 <h2>${gym.name}</h2>
                 <p>${gym.address}</p>
               </span>
