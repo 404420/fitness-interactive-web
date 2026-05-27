@@ -3574,11 +3574,7 @@ body.menu-open #menuPanel .menu-card span {
   <div id="home" class="page active">
     <button class="home-onboarding-btn dark-btn" onclick="showOnboarding(true)" data-i18n="restartOnboarding">Käivita sissejuhatus uuesti</button>
     <h1>Elite Fitness</h1>
-    <p class="subtitle" data-i18n="subtitle">Premium treeningkogemus sinu nutikellaga</p>
-
-    <div id="homeBodySummary" class="home-body-summary"></div>
-
-    <div class="fitness-dashboard" id="homeSummary"></div>
+    <p class="subtitle" data-i18n="subtitle">Premium treeningkogemus sinu nutikellaga</p>`r`n`r`n<div class="fitness-dashboard" id="homeSummary"></div>
   </div>
 
     <div id="myProfile" class="page">
@@ -9376,10 +9372,8 @@ function renderDashboard() {
   const healthSummary = getTodayHealthSummary();
   const dailyRecommendation = getTodayDailyRecommendation();
 
-  const homeBodySummary = document.getElementById("homeBodySummary");
-  if (homeBodySummary) homeBodySummary.innerHTML = savedBodyTypeSummary("home");
-
   document.getElementById("homeSummary").innerHTML = `
+    ${savedBodyTypeSummary("home")}
     <div class="dashboard-top">
       <div>
         <div class="dashboard-eyebrow">${homeText.hello}, ${appData.profile.name || "Kasutaja"}</div>
