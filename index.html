@@ -3481,6 +3481,7 @@ body.menu-open #menuPanel .menu-card span {
     <div class="feature-card">
       <h2 data-i18n="readiness">Unepõhine treeningusoovitus</h2>
       <button onclick="saveRecovery()" data-i18n="saveRecovery">Salvesta taastumine</button>
+      <button class="dark-btn" onclick="requestAppleHealthPermissions()">Apple Health sync</button>
       <div id="recoveryScore"></div>
       <details class="sleep-source-fields">
         <summary>Muuda une ja koormuse sisendit</summary>
@@ -3771,6 +3772,13 @@ const defaultData = {
   meals: [],
   progress: [],
   recovery: {},
+  health: {
+    source: "mock",
+    permissionStatus: "notRequested",
+    lastSyncAt: "",
+    dailySummaries: {},
+    dailyRecommendations: {}
+  },
   wearableMovement: {},
   trainingLoad: {},
   muscleRecovery: {},
@@ -5456,6 +5464,12 @@ function loadData() {
       ...saved,
       profile: { ...defaultData.profile, ...(saved.profile || {}) },
       goals: { ...defaultData.goals, ...(saved.goals || {}) },
+      health: {
+        ...defaultData.health,
+        ...(saved.health || {}),
+        dailySummaries: { ...defaultData.health.dailySummaries, ...((saved.health || {}).dailySummaries || {}) },
+        dailyRecommendations: { ...defaultData.health.dailyRecommendations, ...((saved.health || {}).dailyRecommendations || {}) }
+      },
       aiCoach: { ...defaultData.aiCoach, ...(saved.aiCoach || {}) }
     };
   } catch {
@@ -7508,6 +7522,186 @@ function formatSleepMinutes(minutes) {
   return hours ? `${hours}h ${rest}m` : `${rest}m`;
 }
 
+function ensureHealthState() {
+  appData.health = {
+    ...defaultData.health,
+    ...(appData.health || {}),
+    dailySummaries: { ...((appData.health || {}).dailySummaries || {}) },
+    dailyRecommendations: { ...((appData.health || {}).dailyRecommendations || {}) }
+  };
+  return appData.health;
+}
+
+function recoveryStagesFromHealthStages(stages = {}) {
+  return {
+    awake: Math.round(Number(stages.awakeMinutes ?? stages.awake ?? 0)),
+    rem: Math.round(Number(stages.remMinutes ?? stages.rem ?? 0)),
+    core: Math.round(Number(stages.coreMinutes ?? stages.core ?? 0)),
+    deep: Math.round(Number(stages.deepMinutes ?? stages.deep ?? 0))
+  };
+}
+
+function recentWorkoutSummaries(limit = 6) {
+  return (appData.history || []).slice(0, limit).map(item => ({
+    type: item.workout || "Workout",
+    durationMin: Number(item.duration || 0),
+    activeEnergyKcal: Number(item.calories || 0),
+    avgHeartRate: Number(item.avgHeart || 0),
+    startedAt: item.date || todayKey()
+  }));
+}
+
+function workoutLoadFromSummaries(workouts = []) {
+  return clampNumber(Math.round(workouts.reduce((sum, item) => {
+    return sum + Number(item.durationMin || 0) * 0.45 + Number(item.activeEnergyKcal || 0) * 0.035;
+  }, 0)), 0, 100);
+}
+
+function mockHealthKitDailySummary(date = todayKey()) {
+  const sleepHours = 7.35;
+  const stages = defaultSleepStages(sleepHours);
+  const recentWorkouts = recentWorkoutSummaries();
+  return {
+    date,
+    source: "mock",
+    permissionStatus: "mock",
+    syncedAt: new Date().toISOString(),
+    sleep: {
+      totalMinutes: Math.round(sleepHours * 60),
+      qualityScore: Number(appData.profile.sleepQuality || 76),
+      stages: {
+        awakeMinutes: stages.awake,
+        remMinutes: stages.rem,
+        coreMinutes: stages.core,
+        deepMinutes: stages.deep
+      }
+    },
+    vitals: {
+      restingHeartRate: 58,
+      hrv: 55
+    },
+    activity: {
+      steps: Number((appData.history || [])[0]?.steps || 7200),
+      activeEnergyKcal: Number((appData.history || [])[0]?.calories || 430)
+    },
+    workouts: recentWorkouts
+  };
+}
+
+function normalizeHealthDailySummary(raw = {}) {
+  const date = raw.date || todayKey();
+  const sleep = raw.sleep || {};
+  const vitals = raw.vitals || {};
+  const activity = raw.activity || {};
+  const fallbackStages = defaultSleepStages(Number(sleep.totalMinutes || 420) / 60);
+  const stages = recoveryStagesFromHealthStages(sleep.stages || fallbackStages);
+  const totalMinutes = Math.round(Number(sleep.totalMinutes || stages.awake + stages.rem + stages.core + stages.deep || 420));
+  const workouts = Array.isArray(raw.workouts) ? raw.workouts : recentWorkoutSummaries();
+  return {
+    date,
+    source: raw.source || "mock",
+    permissionStatus: raw.permissionStatus || "unknown",
+    syncedAt: raw.syncedAt || new Date().toISOString(),
+    sleep: {
+      totalMinutes,
+      qualityScore: clampNumber(sleep.qualityScore ?? sleep.sleepScore ?? appData.profile.sleepQuality ?? 72, 0, 100),
+      stages: {
+        awakeMinutes: stages.awake,
+        remMinutes: stages.rem,
+        coreMinutes: stages.core,
+        deepMinutes: stages.deep
+      }
+    },
+    vitals: {
+      restingHeartRate: clampNumber(vitals.restingHeartRate ?? raw.restingHeartRate ?? 58, 35, 120),
+      hrv: clampNumber(vitals.hrv ?? raw.hrv ?? 55, 5, 180)
+    },
+    activity: {
+      steps: Math.max(0, Math.round(Number(activity.steps ?? raw.steps ?? 0))),
+      activeEnergyKcal: Math.max(0, Math.round(Number(activity.activeEnergyKcal ?? raw.activeEnergyKcal ?? 0)))
+    },
+    workouts: workouts.map(item => ({
+      type: item.type || item.workout || "Workout",
+      durationMin: Number(item.durationMin ?? item.duration ?? 0),
+      activeEnergyKcal: Number(item.activeEnergyKcal ?? item.calories ?? 0),
+      avgHeartRate: Number(item.avgHeartRate ?? item.avgHeart ?? 0),
+      startedAt: item.startedAt || item.date || date
+    }))
+  };
+}
+
+function saveHealthDailySummary(rawSummary, options = {}) {
+  const health = ensureHealthState();
+  const summary = normalizeHealthDailySummary(rawSummary);
+  health.source = summary.source;
+  health.permissionStatus = summary.permissionStatus;
+  health.lastSyncAt = summary.syncedAt;
+  health.dailySummaries[summary.date] = summary;
+  if (!options.skipSave) localStorage.setItem("eliteFitnessData", JSON.stringify(appData));
+  return summary;
+}
+
+function getTodayHealthSummary() {
+  const health = ensureHealthState();
+  const date = todayKey();
+  if (health.dailySummaries[date]) return health.dailySummaries[date];
+  return saveHealthDailySummary(mockHealthKitDailySummary(date), { skipSave: true });
+}
+
+function recoveryInputFromHealthSummary(summary = getTodayHealthSummary()) {
+  const stages = recoveryStagesFromHealthStages(summary.sleep?.stages);
+  const workoutLoad = workoutLoadFromSummaries(summary.workouts || []);
+  return {
+    sleepDuration: Number(summary.sleep?.totalMinutes || 420) / 60,
+    sleepQualityScore: Number(summary.sleep?.qualityScore || 72),
+    restingHeartRate: Number(summary.vitals?.restingHeartRate || 58),
+    hrv: Number(summary.vitals?.hrv || 55),
+    previousWorkoutLoad: workoutLoad || latestWorkoutLoadScore(),
+    sorenessLevel: Number(appData.recovery?.[summary.date]?.sorenessLevel || 4),
+    sleepStages: stages,
+    wristMovement: defaultWristMovementSignal(),
+    healthSource: summary.source,
+    healthPermissionStatus: summary.permissionStatus,
+    steps: Number(summary.activity?.steps || 0),
+    activeEnergyKcal: Number(summary.activity?.activeEnergyKcal || 0),
+    recentWorkouts: summary.workouts || []
+  };
+}
+
+async function requestAppleHealthPermissions() {
+  const health = ensureHealthState();
+  health.permissionStatus = "requesting";
+  if (window.EliteHealthKit?.requestPermissions) {
+    await window.EliteHealthKit.requestPermissions();
+    return;
+  }
+  if (window.webkit?.messageHandlers?.healthKitBridge) {
+    window.webkit.messageHandlers.healthKitBridge.postMessage({ type: "requestPermissions" });
+    return;
+  }
+  const summary = saveHealthDailySummary(mockHealthKitDailySummary(), { skipSave: true });
+  health.source = "mock";
+  health.permissionStatus = "mock";
+  const recovery = calculateRecoveryScore(recoveryInputFromHealthSummary(summary));
+  appData.recovery[todayKey()] = {
+    ...recovery,
+    score: recovery.recoveryScore
+  };
+  saveData();
+  toast("Apple Health bridge puudub, kasutan mock andmeid");
+}
+
+function receiveHealthKitData(payload) {
+  const summary = saveHealthDailySummary({ ...payload, source: payload.source || "healthKit", permissionStatus: payload.permissionStatus || "authorized" }, { skipSave: true });
+  const recovery = calculateRecoveryScore(recoveryInputFromHealthSummary(summary));
+  const recommendation = generateDailyWorkoutRecommendation(summary, recovery);
+  appData.recovery[summary.date] = { ...recovery, score: recovery.recoveryScore, recommendation };
+  ensureHealthState().dailyRecommendations[summary.date] = recommendation;
+  saveData();
+  toast("Apple Health andmed uuendatud");
+  return { summary, recovery, recommendation };
+}
+
 function sleepAnalysisFromRecovery(recovery) {
   const stages = recovery.sleepStages || defaultSleepStages(recovery.sleepDuration);
   const total = Math.max(1, stages.awake + stages.rem + stages.core + stages.deep);
@@ -7633,6 +7827,106 @@ function generateAdaptiveWorkoutRecommendation(recovery) {
     planAdjustment: cappedByHrv ? copy.hrvPlan : copy.highPlan,
     reason: cappedByHrv ? copy.hrvReason : copy.highReason
   };
+}
+
+function workoutTemplateForRecommendation(goal, intensity) {
+  const templates = {
+    recovery: {
+      programId: "fullBody45",
+      title: "Recovery / mobility day",
+      type: "Mobility",
+      durationMin: 20,
+      details: "15-25 min liikuvus, kerge kond ja hingamine. Rasked seeriad ja HIIT jaavad ara."
+    },
+    fat: {
+      low: { programId: "fatLossCircuit", title: "Light fat-loss circuit", type: "Mobility", durationMin: 25, details: "Kerge ring, pikemad pausid ja madal pulss." },
+      medium: { programId: "fatLossCircuit", title: "Moderate fat-loss circuit", type: "HIIT", durationMin: 35, details: "Tee plaan 80% mahuga ja hoia tempo kontrolli all." },
+      high: { programId: "sixPackAbs", title: "High-output conditioning", type: "HIIT", durationMin: 40, details: "Tee tavaplaan, lopus luhike finisher kui pulss taastub." }
+    },
+    muscle: {
+      low: { programId: "fullBody45", title: "Light full-body strength", type: "Traditional Strength Training", durationMin: 30, details: "Tehnika, kerge raskus ja 1 seeria vahem." },
+      medium: { programId: "generalMuscle", title: "Moderate hypertrophy", type: "Traditional Strength Training", durationMin: 45, details: "Tavaplaan, kuid 10-20% kergem raskus." },
+      high: { programId: "generalMuscle", title: "Progressive hypertrophy", type: "Traditional Strength Training", durationMin: 55, details: "Lisa pohiharjutusele 1 seeria voi veidi raskust." }
+    },
+    strength: {
+      low: { programId: "fullBody45", title: "Technique strength day", type: "Traditional Strength Training", durationMin: 30, details: "Ainult tehnilised seeriad, ara mine maksimumi lahedale." },
+      medium: { programId: "powerlifting", title: "Controlled strength session", type: "Traditional Strength Training", durationMin: 45, details: "Hoia RPE 7 juures ja ara lisa raskust." },
+      high: { programId: "powerlifting", title: "Heavy strength day", type: "Traditional Strength Training", durationMin: 60, details: "Rasked pohiseeriad sobivad, kui tehnika pusib." }
+    },
+    endurance: {
+      low: { programId: "crossfit", title: "Easy aerobic base", type: "Outdoor Run", durationMin: 25, details: "Rahulik tsoon 2 voi kond." },
+      medium: { programId: "crossfit", title: "Moderate conditioning", type: "Cycling", durationMin: 40, details: "Uhtlane tempo, valdi maksimaalseid intervalle." },
+      high: { programId: "crossfit", title: "Intervals or WOD", type: "HIIT", durationMin: 45, details: "Intervallid sobivad, kui pulss taastub normaalselt." }
+    }
+  };
+  if (intensity === "recovery") return templates.recovery;
+  const goalTemplates = templates[goal] || templates.muscle;
+  return goalTemplates[intensity] || goalTemplates.medium;
+}
+
+function generateDailyWorkoutRecommendation(healthSummary = getTodayHealthSummary(), recovery = getTodayRecoverySnapshot()) {
+  const adaptive = generateAdaptiveWorkoutRecommendation(recovery);
+  const goal = appData.selectedGoal || trainingPrograms[appData.selectedProgram]?.goal || "muscle";
+  const workouts = healthSummary.workouts || [];
+  const recentLoad = workoutLoadFromSummaries(workouts);
+  const recentWorkoutCount = workouts.length;
+  const steps = Number(healthSummary.activity?.steps || recovery.steps || 0);
+  const highRisk =
+    recovery.recoveryScore < 55 ||
+    recovery.hrv < 35 ||
+    recovery.restingHeartRate > 68 ||
+    recentLoad > 82 ||
+    (recovery.sleepDuration < 6 && recentWorkoutCount >= 3);
+
+  let intensity = "medium";
+  if (highRisk) intensity = "recovery";
+  else if (recovery.recoveryScore >= 78 && recentLoad < 70 && recovery.hrv >= 45) intensity = "high";
+  else if (recovery.recoveryScore < 68 || recentLoad > 70) intensity = "low";
+
+  const template = workoutTemplateForRecommendation(goal, intensity);
+  const reasons = [
+    `Taastumine ${recovery.recoveryScore}/100`,
+    `Uni ${formatSleepMinutes(healthSummary.sleep?.totalMinutes || recovery.sleepDuration * 60)} ja HRV ${Math.round(recovery.hrv || 0)} ms`,
+    `${recentWorkoutCount} treeningut viimases andmeaknas, koormus ${recentLoad}/100`,
+    `${steps} sammu tana`
+  ];
+  if (highRisk) reasons.push("Ulekoormuse riski tottu piirame intensiivsust");
+  if (goal) reasons.push(`Eesmark: ${goal}`);
+
+  return {
+    date: healthSummary.date || todayKey(),
+    source: healthSummary.source || "mock",
+    recommendedIntensity: intensity,
+    intensityLabel: intensity === "recovery" ? "Taastav" : intensity === "high" ? "Korge" : intensity === "low" ? "Kerge" : "Keskmine",
+    programId: template.programId,
+    workoutType: template.type,
+    title: template.title,
+    durationMin: template.durationMin,
+    details: template.details,
+    reason: reasons.join(". "),
+    adaptiveMessage: adaptive.suggestedWorkoutAdjustment
+  };
+}
+
+function getTodayDailyRecommendation() {
+  const health = ensureHealthState();
+  const date = todayKey();
+  if (health.dailyRecommendations[date]) return health.dailyRecommendations[date];
+  const summary = getTodayHealthSummary();
+  const recovery = getTodayRecoverySnapshot();
+  const recommendation = generateDailyWorkoutRecommendation(summary, recovery);
+  health.dailyRecommendations[date] = recommendation;
+  return recommendation;
+}
+
+function renderDailyRecommendationCard(recommendation = getTodayDailyRecommendation()) {
+  return `
+    <div class="sleep-home-card" onclick="generateProgramPlan('${recommendation.programId}'); showPage('programDetail')">
+      <strong>${recommendation.intensityLabel}: ${recommendation.title}</strong>
+      <small>${recommendation.durationMin} min &middot; ${recommendation.workoutType} &middot; ${recommendation.details}</small>
+      <small>${recommendation.reason}</small>
+    </div>
+  `;
 }
 
 function workoutMuscleGroups(workoutName = "") {
@@ -7954,16 +8248,7 @@ function renderProgressInsightPanel() {
 function getTodayRecoverySnapshot() {
   const saved = appData.recovery?.[todayKey()];
   if (saved?.recoveryScore) return saved;
-  return calculateRecoveryScore({
-    sleepDuration: Number(saved?.sleepDuration || saved?.sleep || 7),
-    sleepQualityScore: Number(saved?.sleepQualityScore || appData.profile.sleepQuality || 72),
-    restingHeartRate: Number(saved?.restingHeartRate || 58),
-    hrv: Number(saved?.hrv || 55),
-    previousWorkoutLoad: Number(saved?.previousWorkoutLoad || latestWorkoutLoadScore()),
-    sorenessLevel: Number(saved?.sorenessLevel || saved?.soreness || 4),
-    sleepStages: saved?.sleepStages || defaultSleepStages(Number(saved?.sleepDuration || saved?.sleep || 7)),
-    wristMovement: saved?.wristMovement || defaultWristMovementSignal()
-  });
+  return calculateRecoveryScore(recoveryInputFromHealthSummary(getTodayHealthSummary()));
 }
 
 function renderRecoveryDashboardCard(recovery) {
@@ -8006,7 +8291,26 @@ function renderRecoveryDashboardCard(recovery) {
 
 function saveRecovery() {
   const recovery = calculateRecoveryScore(recoveryInputFromForm());
-  const recommendation = generateAdaptiveWorkoutRecommendation(recovery);
+  const summary = saveHealthDailySummary({
+    ...mockHealthKitDailySummary(todayKey()),
+    source: "manual",
+    permissionStatus: "manual",
+    sleep: {
+      totalMinutes: Math.round(recovery.sleepDuration * 60),
+      qualityScore: recovery.sleepQualityScore,
+      stages: {
+        awakeMinutes: recovery.sleepStages.awake,
+        remMinutes: recovery.sleepStages.rem,
+        coreMinutes: recovery.sleepStages.core,
+        deepMinutes: recovery.sleepStages.deep
+      }
+    },
+    vitals: {
+      restingHeartRate: recovery.restingHeartRate,
+      hrv: recovery.hrv
+    }
+  }, { skipSave: true });
+  const recommendation = generateDailyWorkoutRecommendation(summary, recovery);
   // Future Apple Watch / HealthKit / WatchConnectivity bridge:
   // replace form values with HKQuantity sleep, resting HR, HRV and workout load samples here.
   // Wrist movement stays a supporting signal only; this app is not doing automatic rep counting yet.
@@ -8017,6 +8321,7 @@ function saveRecovery() {
   };
   appData.wearableMovement = appData.wearableMovement || {};
   appData.wearableMovement[todayKey()] = recovery.wristMovement || defaultWristMovementSignal();
+  ensureHealthState().dailyRecommendations[todayKey()] = recommendation;
   saveData();
   showRecoveryPopup(recovery);
   toast("Taastumine salvestatud");
@@ -8570,6 +8875,8 @@ function renderDashboard() {
   const recoverySnapshot = getTodayRecoverySnapshot();
   const adaptiveRecommendation = generateAdaptiveWorkoutRecommendation(recoverySnapshot);
   const sleepSnapshot = sleepAnalysisFromRecovery(recoverySnapshot);
+  const healthSummary = getTodayHealthSummary();
+  const dailyRecommendation = getTodayDailyRecommendation();
 
   document.getElementById("homeSummary").innerHTML = `
     <div class="dashboard-top">
@@ -8589,6 +8896,11 @@ function renderDashboard() {
       <strong>Uneskoor ${recoverySnapshot.sleepQualityScore}: ${adaptiveRecommendation.intensityLabel}</strong>
       <small>${formatSleepMinutes(sleepSnapshot.total)} und · ${adaptiveRecommendation.suggestedWorkoutAdjustment}</small>
     </div>
+    <div class="sleep-home-card" onclick="showPage('recovery')">
+      <strong>Health source: ${healthSummary.source}</strong>
+      <small>Status: ${healthSummary.permissionStatus} / synced ${healthSummary.syncedAt ? new Date(healthSummary.syncedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "--"}</small>
+    </div>
+    ${renderDailyRecommendationCard(dailyRecommendation)}
     ${renderCoachSummary(recoverySnapshot)}
     <div class="metric-grid">
       <div class="metric-tile"><span class="metric-mark">TR</span><strong>${weekly.length}</strong><small>${dl.workouts7}</small></div>
