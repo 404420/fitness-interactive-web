@@ -1791,7 +1791,7 @@ li {
 }
 
 .program-live-tracker.collapsed {
-  transform: translateX(calc(-1 * (100vw - 18px)));
+  transform: translateX(calc(-100% - 24px));
 }
 
 .program-live-toggle {
@@ -1815,8 +1815,12 @@ li {
 }
 
 .program-live-tracker.collapsed .program-live-toggle {
-  right: 0;
-  transform: translate(100%, -50%);
+  position: fixed;
+  left: 0;
+  right: auto;
+  top: 42vh;
+  transform: none;
+  z-index: 50;
 }
 
 .program-live-toggle span {
