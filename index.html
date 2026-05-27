@@ -790,25 +790,19 @@ li {
 .outdoor-photo-placeholder {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 6px;
-  padding: 16px;
+  display: block;
   background:
-    linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.84)),
-    repeating-linear-gradient(135deg, rgba(212,175,55,0.12) 0 1px, transparent 1px 14px);
+    radial-gradient(circle at 26% 24%, rgba(212,175,55,0.18), transparent 28%),
+    linear-gradient(135deg, rgba(212,175,55,0.18), rgba(0,0,0,0) 42%),
+    repeating-linear-gradient(135deg, rgba(212,175,55,0.12) 0 1px, transparent 1px 14px),
+    #080808;
 }
 
-.outdoor-photo-placeholder strong {
-  color: #ffd86b;
-  font-size: 18px;
-  line-height: 1.12;
-}
-
-.outdoor-photo-placeholder small {
-  color: #fff4c2;
-  line-height: 1.32;
+.outdoor-photo-placeholder::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.72));
 }
 
 .outdoor-category-grid,
@@ -6112,12 +6106,7 @@ function outdoorGymPhotoPath(gym) {
 }
 
 function outdoorGymPhotoPlaceholder(gym) {
-  const labels = {
-    et: { title: "Google Maps foto lisamata", text: "Lisa selle koha Places Photo fail kausta assets/outdoor-gyms." },
-    en: { title: "Google Maps photo missing", text: "Add this place photo into assets/outdoor-gyms." },
-    ru: { title: "Фото Google Maps не добавлено", text: "Добавь фото места в assets/outdoor-gyms." }
-  }[currentLang] || {};
-  return `<span class="outdoor-photo-placeholder"><strong>${labels.title}</strong><small>${gym.name}<br>${labels.text}</small></span>`;
+  return `<span class="outdoor-photo-placeholder" aria-hidden="true"></span>`;
 }
 
 function renderOutdoorGymPhoto(gym, extraClass = "") {
@@ -6141,6 +6130,10 @@ function outdoorEquipmentImage(name, gym) {
   if (key.includes("biitseps")) return exerciseMedia["Dumbbell curl"]?.img || "https://commons.wikimedia.org/wiki/Special:FilePath/Outdoor%20gym%20machine.jpg";
   if (key.includes("kere") || key.includes("dragon") || key.includes("bench") || key.includes("pink")) return "https://commons.wikimedia.org/wiki/Special:FilePath/Sandown%20outdoor%20gym%20sit%20ups%20equipment.JPG";
   return "https://commons.wikimedia.org/wiki/Special:FilePath/Outdoor%20gym%20machine.jpg";
+}
+
+function outdoorEquipmentPhoto(item, gym) {
+  return item.photo || outdoorEquipmentImage(item.name, gym);
 }
 
 function outdoorExerciseName(equipmentName) {
@@ -6264,7 +6257,7 @@ function openOutdoorGym(index) {
     <div class="outdoor-equipment-grid">
       ${gym.equipment.map(item => `
         <div class="equipment-card">
-          <img class="equipment-photo" src="${outdoorEquipmentImage(item.name, gym)}" alt="${item.name}" loading="lazy">
+          <img class="equipment-photo" src="${outdoorEquipmentPhoto(item, gym)}" alt="${item.name}" loading="lazy" onerror="this.onerror=null;this.src='${outdoorEquipmentImage(item.name, gym)}'">
           <strong>${outdoorEquipmentTitle(item.name)}</strong>
           <small>${item.work}</small>
         </div>
@@ -6298,12 +6291,12 @@ function openOutdoorPlan(index) {
   if (!gym) return;
   const labels = outdoorGymLabels();
   const planRows = gym.equipment.map((item, itemIndex) => {
-    const equipmentPhoto = outdoorEquipmentImage(item.name, gym);
+    const equipmentPhoto = outdoorEquipmentPhoto(item, gym);
     const displayName = outdoorEquipmentDisplayName(item.name);
     const step = primaryOutdoorPlanStep(item);
     return `
       <div class="outdoor-plan-row">
-        <img class="equipment-photo" src="${equipmentPhoto}" alt="${item.name}" loading="lazy">
+        <img class="equipment-photo" src="${equipmentPhoto}" alt="${item.name}" loading="lazy" onerror="this.onerror=null;this.src='${outdoorEquipmentImage(item.name, gym)}'">
         <div>
           <strong>${itemIndex + 1}. ${displayName}</strong>
           <small><strong>${labels.exercise}:</strong> ${step.title}<br><strong>${t[currentLang].sets}:</strong> ${step.sets}<br>${step.cue}</small>

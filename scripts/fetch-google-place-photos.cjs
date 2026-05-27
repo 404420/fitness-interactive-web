@@ -11,7 +11,7 @@ const root = path.resolve(__dirname, "..");
 const indexPath = path.join(root, "index.html");
 const outputDir = path.join(root, "assets", "outdoor-gyms");
 const manifestPath = path.join(outputDir, "harjumaa-google-places.json");
-const searchQuery = process.env.OUTDOOR_GYM_QUERY || "välijõusaal Harjumaa";
+const searchQuery = process.env.OUTDOOR_GYM_QUERY || "v\u00e4lij\u00f5usaal Harjumaa";
 
 function slug(value) {
   return String(value)
@@ -21,6 +21,10 @@ function slug(value) {
     .replace(/[äÄ]/g, "a")
     .replace(/[öÖ]/g, "o")
     .replace(/[üÜ]/g, "u")
+    .replace(/[ĆµĆ•]/g, "o")
+    .replace(/[Ć¤Ć„]/g, "a")
+    .replace(/[Ć¶Ć–]/g, "o")
+    .replace(/[Ć¼Ć]/g, "u")
     .replace(/[^a-zA-Z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .toLowerCase();
@@ -106,44 +110,47 @@ async function downloadPhoto(photoReference, filePath) {
   await fs.writeFile(filePath, buffer);
 }
 
-async function main() {
-  await fs.mkdir(outputDir, { recursive: true });
-  if (process.argv.includes("--discover-harjumaa")) {
-    const places = await searchOutdoorGymsFromGoogle();
-    const manifest = {
-      query: searchQuery,
-      fetchedAt: new Date().toISOString(),
-      count: places.length,
-      places
-    };
-    await fs.writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
-    console.log(`saved ${path.relative(root, manifestPath)} (${places.length} places)`);
+async function discoverHarjumaa() {
+  const places = await searchOutdoorGymsFromGoogle();
+  const manifest = {
+    query: searchQuery,
+    fetchedAt: new Date().toISOString(),
+    count: places.length,
+    places
+  };
+  await fs.writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  console.log(`saved ${path.relative(root, manifestPath)} (${places.length} places)`);
 
-    for (const place of places) {
-      const photoReference = place.photoReferences[0];
-      if (!photoReference) {
-        console.warn(`no photo found for ${place.name}`);
-        continue;
-      }
-      const filePath = path.join(outputDir, `${place.slug}.jpg`);
-      try {
-        await fs.access(filePath);
-        console.log(`skip existing ${place.slug}.jpg`);
-        continue;
-      } catch {}
-      await downloadPhoto(photoReference, filePath);
-      console.log(`saved ${path.relative(root, filePath)}`);
+  for (const place of places) {
+    const photoReference = place.photoReferences[0];
+    if (!photoReference) {
+      console.warn(`no photo found for ${place.name}`);
+      continue;
     }
-    return;
+    const filePath = path.join(outputDir, `${place.slug}.jpg`);
+    try {
+      await fs.access(filePath);
+      console.log(`skip existing ${place.slug}.jpg`);
+      continue;
+    } catch {}
+    await downloadPhoto(photoReference, filePath);
+    console.log(`saved ${path.relative(root, filePath)}`);
   }
+}
 
+async function fetchKnownAppGyms() {
   const html = await fs.readFile(indexPath, "utf8");
   const start = html.indexOf("const outdoorGyms = [");
   const end = html.indexOf("function outdoorGymLabels", start);
   if (start < 0 || end < 0) throw new Error("Could not locate outdoorGyms block in index.html");
+
   const block = html.slice(start, end);
-  const gymMatches = [...block.matchAll(/name:\s*"([^"]+)"[\s\S]*?address:\s*"([^"]+)"/g)];
-  const gyms = gymMatches.map(match => ({ name: match[1], address: match[2], slug: slug(match[1]) }));
+  const gymMatches = [...block.matchAll(/\{\s*name:\s*"([^"]+)"[\s\S]*?address:\s*"([^"]+)"[\s\S]*?photoSlug:\s*"([^"]+)"/g)];
+  const gyms = gymMatches.map(match => ({
+    name: match[1],
+    address: match[2],
+    slug: match[3] || slug(match[1])
+  }));
 
   for (const gym of gyms) {
     const filePath = path.join(outputDir, `${gym.slug}.jpg`);
@@ -163,6 +170,15 @@ async function main() {
     await downloadPhoto(photoReference, filePath);
     console.log(`saved ${path.relative(root, filePath)}`);
   }
+}
+
+async function main() {
+  await fs.mkdir(outputDir, { recursive: true });
+  if (process.argv.includes("--discover-harjumaa")) {
+    await discoverHarjumaa();
+    return;
+  }
+  await fetchKnownAppGyms();
 }
 
 main().catch(error => {
