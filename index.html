@@ -368,26 +368,25 @@ button:active { transform: translateY(1px); }
 
 .type-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-  margin-top: 10px;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 12px;
 }
 
 .type-pill {
-  padding: 12px 8px;
-  border-radius: 14px;
+  padding: 10px;
+  border-radius: 16px;
   border: 1px solid rgba(212,175,55,0.35);
   background: rgba(10,10,10,0.9);
   color: var(--text);
-  text-align: center;
+  text-align: left;
   cursor: pointer;
   font-weight: bold;
-  min-height: 138px;
-  display: flex;
-  flex-direction: column;
+  min-height: 154px;
+  display: grid;
+  grid-template-columns: 132px 1fr;
   align-items: center;
-  justify-content: space-between;
-  gap: 7px;
+  gap: 12px;
 }
 
 .type-pill.active {
@@ -397,8 +396,8 @@ button:active { transform: translateY(1px); }
 }
 
 .body-preview {
-  width: 100%;
-  height: 92px;
+  width: 132px;
+  height: 132px;
   display: block;
   overflow: hidden;
   border-radius: 12px;
@@ -415,21 +414,37 @@ button:active { transform: translateY(1px); }
   height: 100%;
   display: block;
   object-fit: cover;
-  object-position: center top;
+  object-position: center center;
 }
 
 .type-pill strong {
   display: block;
   color: white;
-  font-size: 13px;
-  line-height: 1.12;
+  font-size: 18px;
+  line-height: 1.08;
 }
 
 .type-pill small {
   display: block;
   color: var(--muted);
-  font-size: 10px;
-  line-height: 1.2;
+  font-size: 13px;
+  line-height: 1.28;
+  margin-top: 6px;
+}
+
+.type-pill .type-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  margin-bottom: 7px;
+  background: rgba(212,175,55,0.16);
+  border: 1px solid rgba(212,175,55,0.4);
+  color: #ffd86b;
+  font-size: 16px;
+  font-weight: 900;
 }
 
 .workout-type-grid {
@@ -5094,34 +5109,34 @@ const bodyTypes = currentBodyTypes;
 const bodyTypeImages = {
   male: {
     current: {
-      A: "https://images.pexels.com/photos/6799566/pexels-photo-6799566.jpeg?auto=compress&cs=tinysrgb&w=900",
-      B: "https://images.pexels.com/photos/5932421/pexels-photo-5932421.jpeg?auto=compress&cs=tinysrgb&w=900",
-      C: "https://images.pexels.com/photos/10619456/pexels-photo-10619456.jpeg?auto=compress&cs=tinysrgb&w=900",
-      D: "https://images.pexels.com/photos/7298427/pexels-photo-7298427.jpeg?auto=compress&cs=tinysrgb&w=900",
-      E: "https://images.pexels.com/photos/11385977/pexels-photo-11385977.jpeg?auto=compress&cs=tinysrgb&w=900"
+      A: "assets/body-types/male-current-A.jpg",
+      B: "assets/body-types/male-current-B.jpg",
+      C: "assets/body-types/male-current-C.jpg",
+      D: "assets/body-types/male-current-D.jpg",
+      E: "assets/body-types/male-current-E.jpg"
     },
     target: {
-      A: "https://images.pexels.com/photos/5932421/pexels-photo-5932421.jpeg?auto=compress&cs=tinysrgb&w=900",
-      B: "https://images.pexels.com/photos/8875036/pexels-photo-8875036.jpeg?auto=compress&cs=tinysrgb&w=900",
-      C: "https://images.pexels.com/photos/11385977/pexels-photo-11385977.jpeg?auto=compress&cs=tinysrgb&w=900",
-      D: "https://images.pexels.com/photos/8874380/pexels-photo-8874380.jpeg?auto=compress&cs=tinysrgb&w=900",
-      E: "https://images.pexels.com/photos/8875036/pexels-photo-8875036.jpeg?auto=compress&cs=tinysrgb&w=900"
+      A: "assets/body-types/male-target-A.jpg",
+      B: "assets/body-types/male-target-B.jpg",
+      C: "assets/body-types/male-target-C.jpg",
+      D: "assets/body-types/male-target-D.jpg",
+      E: "assets/body-types/male-target-E.jpg"
     }
   },
   female: {
     current: {
-      A: "https://images.pexels.com/photos/7065291/pexels-photo-7065291.jpeg?auto=compress&cs=tinysrgb&w=900",
-      B: "https://images.pexels.com/photos/4970985/pexels-photo-4970985.jpeg?auto=compress&cs=tinysrgb&w=900",
-      C: "https://images.pexels.com/photos/6456321/pexels-photo-6456321.jpeg?auto=compress&cs=tinysrgb&w=900",
-      D: "https://images.pexels.com/photos/6550828/pexels-photo-6550828.jpeg?auto=compress&cs=tinysrgb&w=900",
-      E: "https://images.pexels.com/photos/136409/pexels-photo-136409.jpeg?auto=compress&cs=tinysrgb&w=900"
+      A: "assets/body-types/male-current-A.jpg",
+      B: "assets/body-types/male-current-B.jpg",
+      C: "assets/body-types/male-current-C.jpg",
+      D: "assets/body-types/male-current-D.jpg",
+      E: "assets/body-types/male-current-E.jpg"
     },
     target: {
-      A: "https://images.pexels.com/photos/196640/pexels-photo-196640.jpeg?auto=compress&cs=tinysrgb&w=900",
-      B: "https://images.pexels.com/photos/136409/pexels-photo-136409.jpeg?auto=compress&cs=tinysrgb&w=900",
-      C: "https://images.pexels.com/photos/15494408/pexels-photo-15494408.jpeg?auto=compress&cs=tinysrgb&w=900",
-      D: "https://images.pexels.com/photos/7991916/pexels-photo-7991916.jpeg?auto=compress&cs=tinysrgb&w=900",
-      E: "https://images.pexels.com/photos/136409/pexels-photo-136409.jpeg?auto=compress&cs=tinysrgb&w=900"
+      A: "assets/body-types/male-target-A.jpg",
+      B: "assets/body-types/male-target-B.jpg",
+      C: "assets/body-types/male-target-C.jpg",
+      D: "assets/body-types/male-target-D.jpg",
+      E: "assets/body-types/male-target-E.jpg"
     }
   }
 };
@@ -8721,8 +8736,11 @@ function bodyTypeCard(key, selected, onclick, mode = "current") {
   return `
     <div class="type-pill ${selected ? "active" : ""}" onclick="${onclick}">
       <span class="body-preview">${bodyTypePreview(key, gender, mode)}</span>
-      <strong>${key} · ${langText(type.title)}</strong>
-      <small>${langText(type.text)}</small>
+      <span>
+        <span class="type-label">${key}</span>
+        <strong>${langText(type.title)}</strong>
+        <small>${langText(type.text)}</small>
+      </span>
     </div>
   `;
 }
@@ -9259,24 +9277,6 @@ showOnboarding();
 .compact-fit-page h3 {
   font-size: 14px;
 }
-.compact-fit-page .type-grid {
-  gap: 6px;
-  margin-top: 6px;
-}
-.compact-fit-page .type-pill {
-  min-height: 116px;
-  padding: 8px 5px;
-  border-radius: 11px;
-}
-.compact-fit-page .body-preview {
-  height: 66px;
-}
-.compact-fit-page .type-pill strong {
-  font-size: 11px;
-}
-.compact-fit-page .type-pill small {
-  font-size: 9px;
-}
 .compact-fit-page button,
 .compact-fit-page input,
 .compact-fit-page select,
@@ -9335,7 +9335,6 @@ showOnboarding();
 </style>
 <script>
 const eliteFitnessFullScreenPages = [
-  "myProfile",
   "goals",
   "progress",
   "timer",
@@ -9343,7 +9342,6 @@ const eliteFitnessFullScreenPages = [
   "watch"
 ];
 const eliteFitnessCompactPages = [
-  "myProfile",
   "goals",
   "progress",
   "recovery",
