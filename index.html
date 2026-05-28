@@ -3587,6 +3587,13 @@ body.menu-open #menuPanel .menu-card span {
   font-weight: 800;
 }
 
+.exercise-attribution {
+  flex-basis: 100%;
+  color: rgba(255,255,255,0.62);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
 @media (max-width: 370px) {
   .nutrition-target-strip {
     grid-template-columns: 1fr;
@@ -5482,11 +5489,15 @@ Object.assign(exerciseMedia, {
 });
 
 Object.assign(exerciseMedia, {
-  "Bench press": { ...exerciseMedia["Bench press"], animationUrl: "assets/exercise-animations/bench-press.webm", animationType: "webm", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta." },
-  "Back squat": { ...exerciseMedia["Back squat"], animationUrl: "assets/exercise-animations/back-squat.webm", animationType: "webm", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta." },
-  "Push-up": { ...exerciseMedia["Push-up"], animationUrl: "assets/exercise-animations/push-up.webm", animationType: "webm", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta." },
-  "Lat pulldown": { ...exerciseMedia["Lat pulldown"], animationUrl: "assets/exercise-animations/lat-pulldown.webm", animationType: "webm", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta." },
-  "Kettlebell swing": { ...exerciseMedia["Kettlebell swing"], animationUrl: "assets/exercise-animations/kettlebell-swing.webm", animationType: "webm", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta." }
+  "Push-up": { ...exerciseMedia["Push-up"], imageUrl: exerciseMedia["Push-up"]?.img, animationUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Pushups.gif", animationType: "gif", sourceName: "Wikimedia Commons - Pushups.gif", sourceUrl: "https://commons.wikimedia.org/wiki/File:Pushups.gif", license: "CC BY-SA 4.0", attributionText: "Pushups.gif by Wensceslao via Wikimedia Commons, CC BY-SA 4.0." },
+  "Back squat": { ...exerciseMedia["Back squat"], imageUrl: exerciseMedia["Back squat"]?.img, animationUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Squats.gif", animationType: "gif", sourceName: "Wikimedia Commons - Squats.gif", sourceUrl: "https://commons.wikimedia.org/wiki/File:Squats.gif", license: "CC BY-SA 4.0", attributionText: "Squats.gif by Wensceslao via Wikimedia Commons, CC BY-SA 4.0." },
+  "Squat": { ...exerciseMedia["Squat"], imageUrl: exerciseMedia["Squat"]?.img, animationUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Squats.gif", animationType: "gif", sourceName: "Wikimedia Commons - Squats.gif", sourceUrl: "https://commons.wikimedia.org/wiki/File:Squats.gif", license: "CC BY-SA 4.0", attributionText: "Squats.gif by Wensceslao via Wikimedia Commons, CC BY-SA 4.0." },
+  "Pull-up": { ...exerciseMedia["Pull-up"], imageUrl: exerciseMedia["Pull-up"]?.img, animationUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Pullup.gif", animationType: "gif", sourceName: "Wikimedia Commons - Pullup.gif", sourceUrl: "https://commons.wikimedia.org/wiki/File:Pullup.gif", license: "CC BY-SA 3.0 / GFDL", attributionText: "Pullup.gif by Extremistpullup via Wikimedia Commons, CC BY-SA 3.0 / GFDL." },
+  "Burpee": { ...exerciseMedia["Burpee"], imageUrl: exerciseMedia["Burpee"]?.img, animationUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Burpee.gif", animationType: "gif", sourceName: "Wikimedia Commons - Burpee.gif", sourceUrl: "https://commons.wikimedia.org/wiki/File:Burpee.gif", license: "CC BY-SA 4.0", attributionText: "Burpee.gif by Taco fleur via Wikimedia Commons, CC BY-SA 4.0." },
+  "Hanging leg raise": { ...exerciseMedia["Hanging leg raise"], imageUrl: exerciseMedia["Hanging leg raise"]?.img, animationUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Sit-ups_or_Crunch.gif", animationType: "gif", sourceName: "Wikimedia Commons - Sit-ups or Crunch.gif", sourceUrl: "https://commons.wikimedia.org/wiki/File:Sit-ups_or_Crunch.gif", license: "CC BY 3.0", attributionText: "Sit-ups or Crunch.gif by Zimmermanns via Wikimedia Commons, CC BY 3.0. Used as core-motion fallback." },
+  "Bench press": { ...exerciseMedia["Bench press"], imageUrl: exerciseMedia["Bench press"]?.img, animationUrl: "assets/exercise-animations/bench-press.webm", animationType: "webm", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta." },
+  "Lat pulldown": { ...exerciseMedia["Lat pulldown"], imageUrl: exerciseMedia["Lat pulldown"]?.img, animationUrl: "assets/exercise-animations/lat-pulldown.webm", animationType: "webm", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta." },
+  "Kettlebell swing": { ...exerciseMedia["Kettlebell swing"], imageUrl: exerciseMedia["Kettlebell swing"]?.img, animationUrl: "assets/exercise-animations/kettlebell-swing.webm", animationType: "webm", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta." }
 });
 
 const plans = {
@@ -6543,22 +6554,31 @@ function ExerciseMotionPreview(exerciseName) {
         ${fallbackExerciseGraphic(exerciseName)}
         <div class="exercise-source-row"><a class="exercise-source" href="https://www.google.com/search?tbm=isch&q=${query}" target="_blank">${currentLang === "en" ? "Find guide" : "Otsi juhendit"}</a><span class="exercise-license-pill">No media</span></div>
       </div>
-    `;
+      `;
   }
-  const altImg = media.altImg || "";
+  const imageUrl = media.imageUrl || media.img || "";
+  const altImg = media.altImg || imageUrl;
   const altPage = media.altPage || media.page;
   const sourceUrl = media.sourceUrl || altPage;
   const animationType = media.animationType || "none";
   const canAnimate = media.animationUrl && ["gif", "webm", "mp4"].includes(animationType);
+  const fallbackHtml = imageUrl
+    ? `<img class=&quot;exercise-motion-media&quot; src=&quot;${imageUrl}&quot; alt=&quot;${exerciseName}&quot; loading=&quot;lazy&quot;>`
+    : `<div class=&quot;exercise-motion-fallback&quot;>${localizedExerciseName(exerciseName)}</div>`;
   const mediaHtml = canAnimate
-    ? `<video class="exercise-motion-media" src="${media.animationUrl}" poster="${media.img}" autoplay loop muted playsinline preload="none" data-fallback-src="${media.img}" onloadeddata="this.nextElementSibling.style.display='none'" onerror="this.outerHTML='<img class=&quot;exercise-motion-media&quot; src=&quot;${media.img}&quot; alt=&quot;${exerciseName}&quot; loading=&quot;lazy&quot;>'"></video><span class="exercise-motion-loading">Laen liikumist...</span>`
-    : `<img class="exercise-motion-media" src="${media.img}" data-alt-src="${altImg}" alt="${exerciseName}" loading="lazy" onerror="if(this.dataset.altSrc && !this.dataset.usedAlt){this.dataset.usedAlt='1';this.src=this.dataset.altSrc;}else{this.outerHTML='<div class=&quot;exercise-motion-fallback&quot;>${t[currentLang].imageFailed}</div>';}" />`;
+    ? animationType === "gif"
+      ? `<img class="exercise-motion-media" src="${media.animationUrl}" data-alt-src="${imageUrl}" alt="${exerciseName}" loading="lazy" onerror="if(this.dataset.altSrc && !this.dataset.usedAlt){this.dataset.usedAlt='1';this.src=this.dataset.altSrc;}else{this.outerHTML='<div class=&quot;exercise-motion-fallback&quot;>${t[currentLang].imageFailed}</div>';}" />`
+      : `<video class="exercise-motion-media exercise-motion-video" src="${media.animationUrl}" poster="${imageUrl}" autoplay loop muted playsinline preload="none" data-fallback-html="${fallbackHtml}" onloadeddata="this.nextElementSibling.style.display='none'" onerror="this.nextElementSibling.style.display='none';this.outerHTML=this.dataset.fallbackHtml;"></video><span class="exercise-motion-loading">Laen liikumist...</span>`
+    : imageUrl
+      ? `<img class="exercise-motion-media" src="${imageUrl}" data-alt-src="${altImg}" alt="${exerciseName}" loading="lazy" onerror="if(this.dataset.altSrc && !this.dataset.usedAlt){this.dataset.usedAlt='1';this.src=this.dataset.altSrc;}else{this.outerHTML='<div class=&quot;exercise-motion-fallback&quot;>${t[currentLang].imageFailed}</div>';}" />`
+      : `<div class="exercise-motion-fallback">${localizedExerciseName(exerciseName)}</div>`;
   return `
     <div class="exercise-motion-preview" data-animation-type="${animationType}">
       ${mediaHtml}
       <div class="exercise-source-row">
         <a class="exercise-source" href="${sourceUrl}" target="_blank">${media.sourceName || t[currentLang].source}</a>
         <span class="exercise-license-pill">${media.license || "image fallback"}</span>
+        ${media.attributionText ? `<span class="exercise-attribution">${media.attributionText}</span>` : ""}
       </div>
     </div>
   `;
@@ -6566,6 +6586,22 @@ function ExerciseMotionPreview(exerciseName) {
 
 function exercisePhoto(exerciseName) {
   return ExerciseMotionPreview(exerciseName);
+}
+
+function initExerciseMotionObservers(root = document) {
+  const videos = Array.from(root.querySelectorAll?.(".exercise-motion-video") || []);
+  if (!videos.length || !("IntersectionObserver" in window)) return;
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      const video = entry.target;
+      if (entry.isIntersecting) {
+        video.play?.().catch?.(() => {});
+      } else {
+        video.pause?.();
+      }
+    });
+  }, { rootMargin: "160px 0px", threshold: 0.05 });
+  videos.forEach(video => observer.observe(video));
 }
 
 function outdoorGymLabels() {
@@ -7963,6 +7999,7 @@ function generateProgramPlan(programId = appData.selectedProgram || "generalMusc
 
   html += renderProgramNutritionPanel(programId);
   document.getElementById("planOutput").innerHTML = html;
+  initExerciseMotionObservers(document.getElementById("planOutput"));
   updateProgramLiveData();
   return true;
 }
