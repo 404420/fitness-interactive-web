@@ -70,6 +70,32 @@ npm run build
 
 Vercel will generate `config.js` during build. Do not commit `config.js`.
 
+## Preview Deployment Checklist
+
+Use a Vercel preview deployment before merging this branch to production:
+
+1. Push the `backend-auth-database-foundation` branch to GitHub.
+2. Let Vercel create a preview deployment for that branch.
+3. Confirm the preview build runs `npm run build`.
+4. Confirm the preview has only these Supabase env vars:
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY`
+5. Do not add any Supabase service-role key to Vercel.
+
+## Manual Supabase Test Plan
+
+After the migration is applied and the Vercel preview has env vars:
+
+1. Open the preview URL.
+2. Go to Settings and create a test account with email/password.
+3. Log out, then log back in with the same account.
+4. Save profile fields, goals, one progress entry, one workout log, and one nutrition entry.
+5. Refresh the page and confirm the same data loads back after session restore.
+6. Create a second account in a different browser/profile.
+7. Confirm the second account does not see the first account's profile, goals, progress, workout logs, or nutrition entries.
+8. In Supabase Table Editor, verify rows have the expected `user_id`.
+9. Temporarily run a preview/local build without `SUPABASE_URL` and `SUPABASE_ANON_KEY`; the app should show local-only fallback text and keep data only on that device.
+
 ## GitHub Pages Deployment
 
 The current workflow deploys static files directly. To use Supabase on GitHub Pages, update the workflow to run `npm run build` before uploading the Pages artifact, with repository/environment secrets mapped to `SUPABASE_URL` and `SUPABASE_ANON_KEY`.

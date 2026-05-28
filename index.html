@@ -3643,7 +3643,7 @@ body.menu-open #menuPanel .menu-card span {
 #menuPanel.stable-menu-panel .menu-grid {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  grid-template-rows: repeat(6, minmax(0, 1fr)) !important;
+  grid-template-rows: repeat(5, minmax(0, 1fr)) !important;
   grid-auto-rows: 0 !important;
   grid-auto-flow: row !important;
   gap: 8px !important;
@@ -3654,6 +3654,10 @@ body.menu-open #menuPanel .menu-card span {
   margin: 0 !important;
   overflow: hidden !important;
   align-items: stretch !important;
+}
+
+body.local-admin-prototype-enabled #menuPanel.stable-menu-panel .menu-grid {
+  grid-template-rows: repeat(6, minmax(0, 1fr)) !important;
 }
 
 #menuPanel.stable-menu-panel .menu-item.menu-card {
@@ -10596,7 +10600,13 @@ let activeAdminSection = "exercises";
 let adminSearch = "";
 function isLocalAdminPrototypeEnabled() { return ENABLE_LOCAL_ADMIN_PROTOTYPE === true; }
 function updateAdminPrototypeVisibility() {
-  document.body?.classList?.toggle("local-admin-prototype-enabled", isLocalAdminPrototypeEnabled());
+  const enabled = isLocalAdminPrototypeEnabled();
+  document.body?.classList?.toggle("local-admin-prototype-enabled", enabled);
+  const adminMenuItem = document.getElementById("adminMenuItem");
+  if (!enabled && adminMenuItem) {
+    if (typeof adminMenuItem.remove === "function") adminMenuItem.remove();
+    else adminMenuItem.style.display = "none";
+  }
 }
 function ensureAdminContent() {
   appData.adminContent = { exercises: [], trainingPlans: [], foods: [], recipes: [], mealTemplates: [], nutritionRules: [], ...(appData.adminContent || {}) };
