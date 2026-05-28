@@ -3740,7 +3740,8 @@ body.menu-open #menuPanel .menu-card span {
   <div id="home" class="page active">
     <button class="home-onboarding-btn dark-btn" onclick="showOnboarding(true)" data-i18n="restartOnboarding">Käivita sissejuhatus uuesti</button>
     <h1>Elite Fitness</h1>
-    <p class="subtitle" data-i18n="subtitle">Premium treeningkogemus sinu nutikellaga</p>`r`n`r`n<div class="fitness-dashboard" id="homeSummary"></div>
+    <p class="subtitle" data-i18n="subtitle">Premium treeningkogemus sinu nutikellaga</p>
+    <div class="fitness-dashboard" id="homeSummary"></div>
   </div>
 
     <div id="myProfile" class="page">
@@ -4276,7 +4277,7 @@ let programWorkoutState = { active: false, title: "", duration: 0, calories: 0, 
 let statsCalendarMonth = "";
 let selectedStatsDate = "";
 
-const onboardingSteps = ["welcome", "account", "gender", "goal", "metrics", "health", "days", "equipment", "watch"];
+const onboardingSteps = ["welcome", "account", "gender", "goal", "metrics", "activity", "health", "days", "nutrition", "risk", "equipment", "watch"];
 const goalProgramMap = { fat: "fatLossCircuit", strength: "powerlifting", muscle: "generalMuscle", endurance: "crossfit" };
 
 const todayKey = () => new Date().toISOString().slice(0, 10);
@@ -6308,6 +6309,10 @@ function initOnboardingState() {
     sleepQuality: Number(appData.profile.sleepQuality || 72),
     limitation: appData.profile.limitation || "",
     days: Number(appData.goals.weeklyWorkouts || 4),
+    activityLevel: appData.nutritionProfile?.activityLevel || "moderate",
+    dietPreferences: [...(appData.nutritionProfile?.dietPreferences || [])],
+    allergies: [...(appData.nutritionProfile?.allergies || [])],
+    healthRisks: [...(appData.nutritionProfile?.healthRisks || [])],
     equipment: [...(appData.equipment || ["fullGym"])],
     watch: Boolean(connectedWatch)
   };
@@ -6370,6 +6375,14 @@ function onboardingToggleEquipment(value) {
   renderOnboarding();
 }
 
+function onboardingToggleList(key, value) {
+  const set = new Set(onboardingState[key] || []);
+  if (set.has(value)) set.delete(value);
+  else set.add(value);
+  onboardingState[key] = [...set];
+  renderOnboarding();
+}
+
 function onboardingConnectWatch() {
   onboardingState.watch = true;
   connectWatch("Apple Watch");
@@ -6394,6 +6407,15 @@ function completeOnboarding() {
   };
   appData.selectedGoal = onboardingState.goal || "fat";
   appData.selectedProgram = goalProgramMap[appData.selectedGoal] || "generalMuscle";
+  appData.nutritionProfile = {
+    ...appData.nutritionProfile,
+    activityLevel: onboardingState.activityLevel || "moderate",
+    trainingDays: Number(onboardingState.days || 4),
+    allergies: onboardingState.allergies || [],
+    dietPreferences: onboardingState.dietPreferences || [],
+    healthRisks: onboardingState.healthRisks || [],
+    mealsPerDay: 4
+  };
   appData.equipment = onboardingState.equipment?.length ? onboardingState.equipment : ["fullGym"];
   appData.goals = {
     ...appData.goals,
@@ -6478,6 +6500,16 @@ function renderOnboarding() {
       </div>
     `;
   }
+  if (step === "activity") {
+    const labels = { sedentary: "Madal aktiivsus", light: "Kerge aktiivsus", moderate: "Keskmine aktiivsus", active: "Kõrge aktiivsus", athlete: "Väga kõrge aktiivsus" };
+    html = `
+      <h1>Aktiivsus</h1>
+      <p>Vali, kui aktiivne oled tavaliselt. See mõjutab kalorite ja makrode arvutust.</p>
+      <div class="onboarding-list">
+        ${Object.entries(labels).map(([id, label], index) => onboardingOption(label, "", String(index + 1), onboardingState.activityLevel === id, `onboardingPick('activityLevel','${id}')`)).join("")}
+      </div>
+    `;
+  }
   if (step === "health") {
     const labels = currentLang === "en"
       ? { title: "Recovery profile", text: "This helps the app scale load before you overtrain.", exp: "Training experience", beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced", sleep: "Usual sleep score", limit: "Injury or limitation" }
@@ -6498,12 +6530,49 @@ function renderOnboarding() {
       </div>
     `;
   }
+  if (step === "activity") {
+    const labels = { sedentary: "Madal aktiivsus", light: "Kerge aktiivsus", moderate: "Keskmine aktiivsus", active: "Kõrge aktiivsus", athlete: "Väga kõrge aktiivsus" };
+    html = `
+      <h1>Aktiivsus</h1>
+      <p>Vali, kui aktiivne oled tavaliselt. See mõjutab kalorite ja makrode arvutust.</p>
+      <div class="onboarding-list">
+        ${Object.entries(labels).map(([id, label], index) => onboardingOption(label, "", String(index + 1), onboardingState.activityLevel === id, `onboardingPick('activityLevel','${id}')`)).join("")}
+      </div>
+    `;
+  }
   if (step === "days") {
     html = `
       <h1>${copy.daysTitle}</h1>
       <p>${copy.daysText}</p>
       <div class="onboarding-list">
         ${[1,2,3,4,5,6,7].map(days => onboardingOption(`${days} ${copy.days}`, "", String(days), onboardingState.days === days, `onboardingPick('days',${days})`)).join("")}
+      </div>
+    `;
+  }
+  if (step === "nutrition") {
+    const prefs = { omnivore: "Segatoit", vegetarian: "Taimetoit", vegan: "Vegan", highProtein: "Kõrge valk", budget: "Soodne", quickMeals: "Kiired söögid" };
+    const allergies = { gluten:"Gluteen", dairy:"Piim", egg:"Muna", fish:"Kala", soy:"Soja", nuts:"Pähklid" };
+    html = `
+      <h1>Toidueelistused</h1>
+      <p>Vali sobivad eelistused ja allergiad. Äpp välistab retseptid, mis nendega ei sobi.</p>
+      <h3>Toidueelistused</h3>
+      <div class="onboarding-list">
+        ${Object.entries(prefs).map(([id, label]) => onboardingOption(label, "", id.slice(0,2).toUpperCase(), onboardingState.dietPreferences?.includes(id), `onboardingToggleList('dietPreferences','${id}')`)).join("")}
+      </div>
+      <h3>Allergiad</h3>
+      <div class="onboarding-list">
+        ${Object.entries(allergies).map(([id, label]) => onboardingOption(label, "", id.slice(0,2).toUpperCase(), onboardingState.allergies?.includes(id), `onboardingToggleList('allergies','${id}')`)).join("")}
+      </div>
+    `;
+  }
+  if (step === "risk") {
+    const risks = { pregnancy:"Rasedus", diabetes:"Diabeet", eatingDisorder:"Söömishäire", kidneyDisease:"Neeruhaigus", other:"Muu kõrge terviserisk" };
+    html = `
+      <h1>Terviseriski kontroll</h1>
+      <p>See toitumiskava on üldine fitness-soovitus ega asenda arsti või dietoloogi nõu. Kui märgid kõrge riski, ei loo äpp agressiivset dieeti.</p>
+      <div class="nutrition-disclaimer">Raseduse, diabeedi, söömishäire, neeruhaiguse või muu kõrge terviseriski korral küsi enne dieedi muutmist spetsialisti nõu.</div>
+      <div class="onboarding-list">
+        ${Object.entries(risks).map(([id, label]) => onboardingOption(label, "", "!", onboardingState.healthRisks?.includes(id), `onboardingToggleList('healthRisks','${id}')`)).join("")}
       </div>
     `;
   }
@@ -6548,7 +6617,7 @@ function fallbackExerciseGraphic(exerciseName) {
 function renderExerciseSourceRow(media = {}, sourceUrl = "#") {
   return `
     <div class="exercise-source-row">
-      <a class="exercise-source" href="${escapeAttr(sourceUrl || "#")}" target="_blank">${media.sourceName || t[currentLang].source}</a>
+      <a class="exercise-source" href="${escapeAttr(sourceUrl || "#")}" target="_blank">View exercise motion · ${media.sourceName || t[currentLang].source}</a>
       <span class="exercise-license-pill">${media.license || "image fallback"}</span>
       ${media.attributionText ? `<span class="exercise-attribution">${media.attributionText}</span>` : ""}
     </div>
@@ -6569,6 +6638,35 @@ function ExerciseMotionPreview(exerciseName) {
         <div class="exercise-source-row"><a class="exercise-source" href="https://www.google.com/search?tbm=isch&q=${query}" target="_blank">${currentLang === "en" ? "Find guide" : "Otsi juhendit"}</a><span class="exercise-license-pill">No media</span></div>
       </div>
       `;
+  }
+  const step = "";
+  let html = "";
+  if (step === "nutrition") {
+    const prefs = { omnivore: "Segatoit", vegetarian: "Taimetoit", vegan: "Vegan", highProtein: "Kõrge valk", budget: "Soodne", quickMeals: "Kiired söögid" };
+    const allergies = { gluten:"Gluteen", dairy:"Piim", egg:"Muna", fish:"Kala", soy:"Soja", nuts:"Pähklid" };
+    html = `
+      <h1>Toidueelistused</h1>
+      <p>Vali sobivad eelistused ja allergiad. Äpp välistab retseptid, mis nendega ei sobi.</p>
+      <h3>Toidueelistused</h3>
+      <div class="onboarding-list">
+        ${Object.entries(prefs).map(([id, label]) => onboardingOption(label, "", id.slice(0,2).toUpperCase(), onboardingState.dietPreferences?.includes(id), `onboardingToggleList('dietPreferences','${id}')`)).join("")}
+      </div>
+      <h3>Allergiad</h3>
+      <div class="onboarding-list">
+        ${Object.entries(allergies).map(([id, label]) => onboardingOption(label, "", id.slice(0,2).toUpperCase(), onboardingState.allergies?.includes(id), `onboardingToggleList('allergies','${id}')`)).join("")}
+      </div>
+    `;
+  }
+  if (step === "risk") {
+    const risks = { pregnancy:"Rasedus", diabetes:"Diabeet", eatingDisorder:"Söömishäire", kidneyDisease:"Neeruhaigus", other:"Muu kõrge terviserisk" };
+    html = `
+      <h1>Terviseriski kontroll</h1>
+      <p>See toitumiskava on üldine fitness-soovitus ega asenda arsti või dietoloogi nõu. Kui märgid kõrge riski, ei loo äpp agressiivset dieeti.</p>
+      <div class="nutrition-disclaimer">Raseduse, diabeedi, söömishäire, neeruhaiguse või muu kõrge terviseriski korral küsi enne dieedi muutmist spetsialisti nõu.</div>
+      <div class="onboarding-list">
+        ${Object.entries(risks).map(([id, label]) => onboardingOption(label, "", "!", onboardingState.healthRisks?.includes(id), `onboardingToggleList('healthRisks','${id}')`)).join("")}
+      </div>
+    `;
   }
   const imageUrl = media.imageUrl || media.img || "";
   const altImg = media.altImg || imageUrl;
@@ -7112,14 +7210,24 @@ function planCard(card, compact = false) {
 }
 
 function renderPlanGalleries() {
-  document.getElementById("featuredWorkoutPlans").innerHTML = workoutPlanCards.map(card => planCard(card)).join("");
+  const missing = profileMissingFields();
+  document.getElementById("featuredWorkoutPlans").innerHTML = missing.length
+    ? emptyState("Profiil puudub", `Treeningkava valimiseks lisa esmalt: ${missing.join(", ")}.`, "Complete profile", "showPage('settings')")
+    : workoutPlanCards.map(card => planCard(card)).join("");
   document.getElementById("goalPlanCards").innerHTML = `
     <p class="subtitle">${t[currentLang].groupedPlans}</p>
+    <button class="dark-btn" onclick="generatePlan()">Generate training plan</button>
     ${groupedPlanCards.map(card => planCard(card)).join("")}
   `;
 }
 
 function selectProgramCard(programId) {
+  const missing = profileMissingFields();
+  if (missing.length) {
+    toast(`Treeningkava jaoks puudub: ${missing.join(", ")}.`);
+    showPage("settings");
+    return;
+  }
   const card = [...workoutPlanCards, ...groupedPlanCards].find(item => item.id === programId);
   appData.selectedProgram = programId;
   appData.selectedGoal = card?.goal || trainingPrograms[programId]?.goal || "muscle";
@@ -8016,6 +8124,12 @@ function generateProgramPlan(programId = appData.selectedProgram || "generalMusc
 }
 
 function generatePlan() {
+  const missing = profileMissingFields();
+  if (missing.length) {
+    toast(`Treeningkava jaoks puudub: ${missing.join(", ")}.`);
+    showPage("settings");
+    return false;
+  }
   if (generateProgramPlan(appData.selectedProgram || "generalMuscle")) {
     showPage("programDetail");
   }
@@ -8210,6 +8324,28 @@ function latestNutritionPlan(trainingPlanId = appData.selectedProgram || "genera
   return (appData.generatedMealPlans || []).find(plan => plan.trainingPlanId === trainingPlanId);
 }
 
+function profileMissingFields() {
+  const profile = nutritionProfile();
+  const missing = [];
+  if (!profile.age || profile.age < 13) missing.push("vanus");
+  if (!profile.height || profile.height < 120) missing.push("pikkus");
+  if (!profile.weight || profile.weight < 35) missing.push("kaal");
+  if (!profile.goal) missing.push("eesmärk");
+  if (!profile.activityLevel) missing.push("aktiivsus");
+  if (!profile.trainingPlanId) missing.push("treeningkava");
+  return missing;
+}
+
+function emptyState(title, text, buttonText = "", action = "") {
+  return `
+    <div class="flow-empty-state">
+      <strong>${title}</strong>
+      <p>${text}</p>
+      ${buttonText && action ? `<button class="dark-btn" onclick="${action}">${buttonText}</button>` : ""}
+    </div>
+  `;
+}
+
 function trainingProgramTitle(programId) {
   const program = trainingPrograms[programId] || {};
   const cards = [...workoutPlanCards, ...groupedPlanCards];
@@ -8238,6 +8374,7 @@ function saveNutritionProfileFromForm(preferredTrainingPlanId = "") {
   appData.goals.weeklyWorkouts = appData.nutritionProfile.trainingDays;
   saveData();
   renderNutritionProfileForm();
+  renderPlanGalleries();
   toast("Toitumisprofiil salvestatud");
 }
 
@@ -8246,11 +8383,13 @@ function renderNutritionProfileForm() {
   if (!root) return;
   ensureNutritionSeedData();
   const profile = nutritionProfile();
+  const missing = profileMissingFields();
   const programOptions = Object.keys(trainingPrograms).map(id => `<option value="${id}" ${profile.trainingPlanId === id ? "selected" : ""}>${trainingProgramTitle(id)}</option>`).join("");
   const allergyLabels = { gluten:"Gluteen", dairy:"Piim", egg:"Muna", fish:"Kala", soy:"Soja", nuts:"Pähklid" };
   const prefLabels = { omnivore:"Segatoit", vegetarian:"Taimetoit", vegan:"Vegan", highProtein:"Kõrge valk", budget:"Soodne", quickMeals:"Kiired söögid" };
   const riskLabels = { pregnancy:"Rasedus", diabetes:"Diabeet", eatingDisorder:"Söömishäire", kidneyDisease:"Neeruhaigus", other:"Muu kõrge terviserisk" };
   root.innerHTML = `
+    ${missing.length ? emptyState("Profiil puudub", `Täida enne jätkamist: ${missing.join(", ")}.`, "Complete profile", "showPage('settings')") : ""}
     <div class="nutrition-profile-grid">
       <label>Sugu<select id="nutritionGender"><option value="male" ${profile.gender === "male" ? "selected" : ""}>Mees</option><option value="female" ${profile.gender === "female" ? "selected" : ""}>Naine</option></select></label>
       <label>Vanus<input id="nutritionAge" type="number" value="${profile.age || ""}"></label>
@@ -8266,6 +8405,7 @@ function renderNutritionProfileForm() {
     <h3>Toidueelistused</h3>
     <div class="nutrition-checkbox-grid">${appData.dietPreferences.map(item => `<label class="nutrition-check"><input type="checkbox" data-nutrition-pref value="${item}" ${profile.dietPreferences.includes(item) ? "checked" : ""}>${prefLabels[item] || item}</label>`).join("")}</div>
     <h3>Terviseriskid</h3>
+    <div class="nutrition-disclaimer">Kui märgid raseduse, diabeedi, söömishäire, neeruhaiguse või muu kõrge terviseriski, loob äpp ainult üldise mõõduka soovituse ja suunab spetsialisti nõu juurde.</div>
     <div class="nutrition-checkbox-grid">${Object.entries(riskLabels).map(([id, label]) => `<label class="nutrition-check"><input type="checkbox" data-nutrition-risk value="${id}" ${profile.healthRisks.includes(id) ? "checked" : ""}>${label}</label>`).join("")}</div>
   `;
 }
@@ -8327,6 +8467,14 @@ function updateGeneratedNutritionOutputs(trainingPlanId, content) {
 function generateNutritionPlanForSelectedProgram(trainingPlanId = document.getElementById("nutritionTrainingPlan")?.value || appData.selectedProgram || "generalMuscle", triggerButton = null) {
   setNutritionButtonLoading(triggerButton, true);
   saveNutritionProfileFromForm(trainingPlanId);
+  const missing = profileMissingFields();
+  if (missing.length) {
+    const message = `Toitumiskava jaoks puudub: ${missing.join(", ")}. Täida profiil ja proovi uuesti.`;
+    updateGeneratedNutritionOutputs(trainingPlanId, emptyState("Profiil puudub", message, "Complete profile", "showPage('settings')"));
+    toast(message);
+    setNutritionButtonLoading(triggerButton, false);
+    return { ok: false, error: message };
+  }
   const result = generateNutritionPlan("local", trainingPlanId);
   if (!result.ok) {
     updateGeneratedNutritionOutputs(trainingPlanId, `<div class="nutrition-disclaimer">${result.error}</div>`);
@@ -8342,12 +8490,16 @@ function generateNutritionPlanForSelectedProgram(trainingPlanId = document.getEl
 
 function renderProgramNutritionPanel(trainingPlanId) {
   const plan = latestNutritionPlan(trainingPlanId);
+  const missing = profileMissingFields();
+  const empty = missing.length
+    ? emptyState("Profiil puudub", `Toitumiskava loomiseks lisa: ${missing.join(", ")}.`, "Complete profile", "showPage('settings')")
+    : emptyState("Toitumiskava pole veel genereeritud", "Kui treeningkava on valitud, loo selle alla sobiv 7 päeva toitumiskava.", "Generate nutrition plan", `generateNutritionPlanForSelectedProgram('${trainingPlanId}')`);
   return `
     <div class="feature-card">
       <h2>Nutrition Plan</h2>
       <p class="small">Kava sõltub sellest treeningkavast ja sinu toitumisprofiilist.</p>
       <button onclick="generateNutritionPlanForSelectedProgram('${trainingPlanId}', this)">Generate nutrition plan</button>
-      <div id="programNutritionPlanOutput">${plan ? renderGeneratedNutritionPlan(plan) : `<div class="nutrition-disclaimer">Toitumiskava pole veel genereeritud. Kui profiilis puuduvad vanus, pikkus või kaal, täida need enne genereerimist.</div>`}</div>
+      <div id="programNutritionPlanOutput">${plan ? renderGeneratedNutritionPlan(plan) : empty}</div>
     </div>
   `;
 }
@@ -8359,7 +8511,12 @@ function renderNutritionPlan() {
   appData.selectedGoal = goal;
   const plan = latestNutritionPlan(appData.selectedProgram || "generalMuscle");
   const output = document.getElementById("nutritionPlanOutput");
-  if (output) output.innerHTML = plan ? renderGeneratedNutritionPlan(plan) : renderWeeklyNutrition(goal);
+  const missing = profileMissingFields();
+  if (output) output.innerHTML = plan
+    ? renderGeneratedNutritionPlan(plan)
+    : missing.length
+      ? emptyState("Profiil puudub", `Toitumiskava jaoks lisa: ${missing.join(", ")}.`, "Complete profile", "showPage('settings')")
+      : renderWeeklyNutrition(goal);
 }
 function addMeal() {
   const meal = {
@@ -10117,7 +10274,29 @@ function clearAllData() {
 setLanguage("et");
 showOnboarding();
 </script>
-  <style>
+<style>
+.flow-empty-state {
+  border: 1px solid rgba(212,175,55,0.34);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 12px 0;
+  background: linear-gradient(135deg, rgba(212,175,55,0.12), rgba(74,222,128,0.06)), rgba(0,0,0,0.64);
+  color: #fff7d1;
+}
+.flow-empty-state strong {
+  display: block;
+  color: var(--gold);
+  font-size: 17px;
+  margin-bottom: 6px;
+}
+.flow-empty-state p {
+  margin: 0 0 10px;
+  color: rgba(255,255,255,0.82);
+  line-height: 1.4;
+}
+.flow-empty-state button {
+  margin-top: 4px;
+}
 .onboarding-grid.goal-grid {
   grid-template-columns: 1fr 1fr;
   gap: 12px;
@@ -10357,9 +10536,22 @@ const eliteFitnessOriginalInitOnboardingState = initOnboardingState;
 initOnboardingState = function() {
   eliteFitnessOriginalInitOnboardingState();
   onboardingState.watchDevice = connectedWatch || "Apple Watch";
+  onboardingState.activityLevel = appData.nutritionProfile?.activityLevel || "moderate";
+  onboardingState.dietPreferences = [...(appData.nutritionProfile?.dietPreferences || [])];
+  onboardingState.allergies = [...(appData.nutritionProfile?.allergies || [])];
+  onboardingState.healthRisks = [...(appData.nutritionProfile?.healthRisks || [])];
 };
 const eliteFitnessOriginalCompleteOnboarding = completeOnboarding;
 completeOnboarding = function() {
+  appData.nutritionProfile = {
+    ...appData.nutritionProfile,
+    activityLevel: onboardingState.activityLevel || "moderate",
+    trainingDays: Number(onboardingState.days || 4),
+    allergies: onboardingState.allergies || [],
+    dietPreferences: onboardingState.dietPreferences || [],
+    healthRisks: onboardingState.healthRisks || [],
+    mealsPerDay: 4
+  };
   eliteFitnessOriginalCompleteOnboarding();
   setTimeout(() => showPage("myProfile"), 0);
 };
