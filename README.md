@@ -82,6 +82,8 @@ Use a Vercel preview deployment before merging this branch to production:
    - `SUPABASE_ANON_KEY`
 5. Do not add any Supabase service-role key to Vercel.
 
+Use `SUPABASE_PREVIEW_TESTING.md` for the full runtime checklist and acceptance criteria.
+
 ## Manual Supabase Test Plan
 
 After the migration is applied and the Vercel preview has env vars:
