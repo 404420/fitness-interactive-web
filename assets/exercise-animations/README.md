@@ -16,4 +16,4 @@ Owner-provided placeholder filenames:
 - `lat-pulldown.webm`
 - `kettlebell-swing.webm`
 
-Use WebM or MP4 when possible. GIF also works, but is heavier and cannot be paused by IntersectionObserver. For every file, keep `imageUrl`, `animationUrl`, `animationType`, `sourceName`, `sourceUrl`, `license`, and `attributionText` in the exercise metadata. Do not add random Google images or videos unless the license explicitly allows this use.
+Use WebM or MP4 when possible. GIF also works, but is heavier and cannot be paused by IntersectionObserver. For every file, keep `imageUrl`, `animationUrl`, `animationType`, `sourceName`, `sourceUrl`, `license`, and `attributionText` in the exercise metadata. Keep placeholder slots as `animationType: "none"` until the licensed file exists, so the app shows the static `imageUrl` fallback instead of a broken loading state. Do not add random Google images or videos unless the license explicitly allows this use.

@@ -5495,9 +5495,9 @@ Object.assign(exerciseMedia, {
   "Pull-up": { ...exerciseMedia["Pull-up"], imageUrl: exerciseMedia["Pull-up"]?.img, animationUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Pullup.gif", animationType: "gif", sourceName: "Wikimedia Commons - Pullup.gif", sourceUrl: "https://commons.wikimedia.org/wiki/File:Pullup.gif", license: "CC BY-SA 3.0 / GFDL", attributionText: "Pullup.gif by Extremistpullup via Wikimedia Commons, CC BY-SA 3.0 / GFDL." },
   "Burpee": { ...exerciseMedia["Burpee"], imageUrl: exerciseMedia["Burpee"]?.img, animationUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Burpee.gif", animationType: "gif", sourceName: "Wikimedia Commons - Burpee.gif", sourceUrl: "https://commons.wikimedia.org/wiki/File:Burpee.gif", license: "CC BY-SA 4.0", attributionText: "Burpee.gif by Taco fleur via Wikimedia Commons, CC BY-SA 4.0." },
   "Hanging leg raise": { ...exerciseMedia["Hanging leg raise"], imageUrl: exerciseMedia["Hanging leg raise"]?.img, animationUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Sit-ups_or_Crunch.gif", animationType: "gif", sourceName: "Wikimedia Commons - Sit-ups or Crunch.gif", sourceUrl: "https://commons.wikimedia.org/wiki/File:Sit-ups_or_Crunch.gif", license: "CC BY 3.0", attributionText: "Sit-ups or Crunch.gif by Zimmermanns via Wikimedia Commons, CC BY 3.0. Used as core-motion fallback." },
-  "Bench press": { ...exerciseMedia["Bench press"], imageUrl: exerciseMedia["Bench press"]?.img, animationUrl: "assets/exercise-animations/bench-press.webm", animationType: "webm", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta." },
-  "Lat pulldown": { ...exerciseMedia["Lat pulldown"], imageUrl: exerciseMedia["Lat pulldown"]?.img, animationUrl: "assets/exercise-animations/lat-pulldown.webm", animationType: "webm", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta." },
-  "Kettlebell swing": { ...exerciseMedia["Kettlebell swing"], imageUrl: exerciseMedia["Kettlebell swing"]?.img, animationUrl: "assets/exercise-animations/kettlebell-swing.webm", animationType: "webm", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta." }
+  "Bench press": { ...exerciseMedia["Bench press"], imageUrl: exerciseMedia["Bench press"]?.img, animationUrl: "assets/exercise-animations/bench-press.webm", animationType: "none", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta ja muuda animationType webm/mp4 peale." },
+  "Lat pulldown": { ...exerciseMedia["Lat pulldown"], imageUrl: exerciseMedia["Lat pulldown"]?.img, animationUrl: "assets/exercise-animations/lat-pulldown.webm", animationType: "none", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta ja muuda animationType webm/mp4 peale." },
+  "Kettlebell swing": { ...exerciseMedia["Kettlebell swing"], imageUrl: exerciseMedia["Kettlebell swing"]?.img, animationUrl: "assets/exercise-animations/kettlebell-swing.webm", animationType: "none", sourceName: "Owner-provided exercise animation slot", sourceUrl: "assets/exercise-animations/README.md", license: "Pending licensed asset", attributionText: "Lisa litsentseeritud WebM/MP4 fail assets/exercise-animations kausta ja muuda animationType webm/mp4 peale." }
 });
 
 const plans = {
@@ -6545,6 +6545,20 @@ function fallbackExerciseGraphic(exerciseName) {
   `;
 }
 
+function renderExerciseSourceRow(media = {}, sourceUrl = "#") {
+  return `
+    <div class="exercise-source-row">
+      <a class="exercise-source" href="${escapeAttr(sourceUrl || "#")}" target="_blank">${media.sourceName || t[currentLang].source}</a>
+      <span class="exercise-license-pill">${media.license || "image fallback"}</span>
+      ${media.attributionText ? `<span class="exercise-attribution">${media.attributionText}</span>` : ""}
+    </div>
+  `;
+}
+
+function exerciseMediaErrorFallback(label) {
+  return `<div class=&quot;exercise-motion-fallback&quot;>${label}</div>`;
+}
+
 function ExerciseMotionPreview(exerciseName) {
   const media = exerciseMedia[exerciseName];
   if (!media) {
@@ -6562,24 +6576,21 @@ function ExerciseMotionPreview(exerciseName) {
   const sourceUrl = media.sourceUrl || altPage;
   const animationType = media.animationType || "none";
   const canAnimate = media.animationUrl && ["gif", "webm", "mp4"].includes(animationType);
+  const fallbackLabel = t[currentLang].imageFailed || localizedExerciseName(exerciseName);
   const fallbackHtml = imageUrl
     ? `<img class=&quot;exercise-motion-media&quot; src=&quot;${imageUrl}&quot; alt=&quot;${exerciseName}&quot; loading=&quot;lazy&quot;>`
-    : `<div class=&quot;exercise-motion-fallback&quot;>${localizedExerciseName(exerciseName)}</div>`;
+    : exerciseMediaErrorFallback(localizedExerciseName(exerciseName));
   const mediaHtml = canAnimate
     ? animationType === "gif"
-      ? `<img class="exercise-motion-media" src="${media.animationUrl}" data-alt-src="${imageUrl}" alt="${exerciseName}" loading="lazy" onerror="if(this.dataset.altSrc && !this.dataset.usedAlt){this.dataset.usedAlt='1';this.src=this.dataset.altSrc;}else{this.outerHTML='<div class=&quot;exercise-motion-fallback&quot;>${t[currentLang].imageFailed}</div>';}" />`
+      ? `<img class="exercise-motion-media" src="${media.animationUrl}" data-alt-src="${imageUrl}" alt="${exerciseName}" loading="lazy" onerror="if(this.dataset.altSrc && !this.dataset.usedAlt){this.dataset.usedAlt='1';this.src=this.dataset.altSrc;}else{this.outerHTML='${exerciseMediaErrorFallback(fallbackLabel)}';}" />`
       : `<video class="exercise-motion-media exercise-motion-video" src="${media.animationUrl}" poster="${imageUrl}" autoplay loop muted playsinline preload="none" data-fallback-html="${fallbackHtml}" onloadeddata="this.nextElementSibling.style.display='none'" onerror="this.nextElementSibling.style.display='none';this.outerHTML=this.dataset.fallbackHtml;"></video><span class="exercise-motion-loading">Laen liikumist...</span>`
     : imageUrl
-      ? `<img class="exercise-motion-media" src="${imageUrl}" data-alt-src="${altImg}" alt="${exerciseName}" loading="lazy" onerror="if(this.dataset.altSrc && !this.dataset.usedAlt){this.dataset.usedAlt='1';this.src=this.dataset.altSrc;}else{this.outerHTML='<div class=&quot;exercise-motion-fallback&quot;>${t[currentLang].imageFailed}</div>';}" />`
+      ? `<img class="exercise-motion-media" src="${imageUrl}" data-alt-src="${altImg}" alt="${exerciseName}" loading="lazy" onerror="if(this.dataset.altSrc && !this.dataset.usedAlt){this.dataset.usedAlt='1';this.src=this.dataset.altSrc;}else{this.outerHTML='${exerciseMediaErrorFallback(fallbackLabel)}';}" />`
       : `<div class="exercise-motion-fallback">${localizedExerciseName(exerciseName)}</div>`;
   return `
     <div class="exercise-motion-preview" data-animation-type="${animationType}">
       ${mediaHtml}
-      <div class="exercise-source-row">
-        <a class="exercise-source" href="${sourceUrl}" target="_blank">${media.sourceName || t[currentLang].source}</a>
-        <span class="exercise-license-pill">${media.license || "image fallback"}</span>
-        ${media.attributionText ? `<span class="exercise-attribution">${media.attributionText}</span>` : ""}
-      </div>
+      ${renderExerciseSourceRow(media, sourceUrl)}
     </div>
   `;
 }
@@ -8153,7 +8164,9 @@ function pickRecipe(meal, profile, index) {
 
 function generateNutritionPlan(userId = "local", trainingPlanId = appData.selectedProgram || "generalMuscle") {
   ensureNutritionSeedData();
-  const profile = nutritionProfile();
+  const program = trainingPrograms[trainingPlanId] || trainingPrograms.generalMuscle;
+  const goal = program.goal || appData.selectedGoal || "maintenance";
+  const profile = { ...nutritionProfile(), trainingPlanId, goal };
   const missing = [];
   if (!profile.gender) missing.push("sugu");
   if (!profile.age) missing.push("vanus");
@@ -8161,8 +8174,6 @@ function generateNutritionPlan(userId = "local", trainingPlanId = appData.select
   if (!profile.weight) missing.push("kaal");
   if (missing.length) return { ok: false, error: `Puudub vajalik profiiliinfo: ${missing.join(", ")}.` };
 
-  const program = trainingPrograms[trainingPlanId] || trainingPrograms.generalMuscle;
-  const goal = program.goal || profile.goal || "maintenance";
   const trainingDays = Math.max(1, Math.min(6, Number(profile.trainingDays || program.days?.length || 4)));
   const highRisk = (profile.healthRisks || []).length > 0;
   const dayNames = ["Päev 1", "Päev 2", "Päev 3", "Päev 4", "Päev 5", "Päev 6", "Päev 7"];
@@ -8205,16 +8216,17 @@ function trainingProgramTitle(programId) {
   return langText(cards.find(card => card.id === program.cardId)?.title || { et: programId, en: programId, ru: programId });
 }
 
-function saveNutritionProfileFromForm() {
+function saveNutritionProfileFromForm(preferredTrainingPlanId = "") {
   const allergies = Array.from(document.querySelectorAll("[data-nutrition-allergy]:checked")).map(input => input.value);
   const dietPreferences = Array.from(document.querySelectorAll("[data-nutrition-pref]:checked")).map(input => input.value);
   const healthRisks = Array.from(document.querySelectorAll("[data-nutrition-risk]:checked")).map(input => input.value);
+  const selectedTrainingPlan = preferredTrainingPlanId || document.getElementById("nutritionTrainingPlan")?.value || appData.selectedProgram || "generalMuscle";
   appData.profile.gender = document.getElementById("nutritionGender")?.value || appData.profile.gender;
   appData.profile.age = Number(document.getElementById("nutritionAge")?.value || appData.profile.age || 0);
   appData.profile.height = Number(document.getElementById("nutritionHeight")?.value || appData.profile.height || 0);
   appData.profile.weight = Number(document.getElementById("nutritionWeight")?.value || appData.profile.weight || 0);
-  appData.selectedGoal = document.getElementById("nutritionProfileGoal")?.value || appData.selectedGoal;
-  appData.selectedProgram = document.getElementById("nutritionTrainingPlan")?.value || appData.selectedProgram;
+  appData.selectedGoal = preferredTrainingPlanId ? (trainingPrograms[selectedTrainingPlan]?.goal || appData.selectedGoal) : (document.getElementById("nutritionProfileGoal")?.value || appData.selectedGoal);
+  appData.selectedProgram = selectedTrainingPlan;
   appData.nutritionProfile = {
     activityLevel: document.getElementById("nutritionActivity")?.value || "moderate",
     trainingDays: Number(document.getElementById("nutritionTrainingDays")?.value || appData.goals.weeklyWorkouts || 4),
@@ -8291,16 +8303,40 @@ function renderGeneratedNutritionPlan(plan) {
   `;
 }
 
-function generateNutritionPlanForSelectedProgram(trainingPlanId = document.getElementById("nutritionTrainingPlan")?.value || appData.selectedProgram || "generalMuscle") {
-  saveNutritionProfileFromForm();
-  const result = generateNutritionPlan("local", trainingPlanId);
+function setNutritionButtonLoading(button, isLoading) {
+  if (!button) return;
+  if (isLoading) {
+    button.dataset.originalText = button.textContent;
+    button.textContent = "Koostan...";
+    button.disabled = true;
+    return;
+  }
+  button.textContent = button.dataset.originalText || button.textContent;
+  button.disabled = false;
+}
+
+function updateGeneratedNutritionOutputs(trainingPlanId, content) {
   const output = document.getElementById("nutritionPlanOutput");
+  if (output) output.innerHTML = content;
+  const programOutput = document.getElementById("programNutritionPlanOutput");
+  if (programOutput && appData.selectedProgram === trainingPlanId) {
+    programOutput.innerHTML = content;
+  }
+}
+
+function generateNutritionPlanForSelectedProgram(trainingPlanId = document.getElementById("nutritionTrainingPlan")?.value || appData.selectedProgram || "generalMuscle", triggerButton = null) {
+  setNutritionButtonLoading(triggerButton, true);
+  saveNutritionProfileFromForm(trainingPlanId);
+  const result = generateNutritionPlan("local", trainingPlanId);
   if (!result.ok) {
-    if (output) output.innerHTML = `<div class="nutrition-disclaimer">${result.error}</div>`;
+    updateGeneratedNutritionOutputs(trainingPlanId, `<div class="nutrition-disclaimer">${result.error}</div>`);
+    setNutritionButtonLoading(triggerButton, false);
     return result;
   }
-  if (output) output.innerHTML = renderGeneratedNutritionPlan(result.plan);
+  updateGeneratedNutritionOutputs(trainingPlanId, renderGeneratedNutritionPlan(result.plan));
+  renderNutritionProfileForm();
   toast("Toitumiskava genereeritud");
+  setNutritionButtonLoading(triggerButton, false);
   return result;
 }
 
@@ -8310,8 +8346,8 @@ function renderProgramNutritionPanel(trainingPlanId) {
     <div class="feature-card">
       <h2>Nutrition Plan</h2>
       <p class="small">Kava sõltub sellest treeningkavast ja sinu toitumisprofiilist.</p>
-      <button onclick="generateNutritionPlanForSelectedProgram('${trainingPlanId}')">Generate nutrition plan</button>
-      <div>${renderGeneratedNutritionPlan(plan)}</div>
+      <button onclick="generateNutritionPlanForSelectedProgram('${trainingPlanId}', this)">Generate nutrition plan</button>
+      <div id="programNutritionPlanOutput">${plan ? renderGeneratedNutritionPlan(plan) : `<div class="nutrition-disclaimer">Toitumiskava pole veel genereeritud. Kui profiilis puuduvad vanus, pikkus või kaal, täida need enne genereerimist.</div>`}</div>
     </div>
   `;
 }
