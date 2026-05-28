@@ -4060,6 +4060,12 @@ body.menu-open #menuPanel .menu-card span {
     <p class="subtitle" data-i18n="settingsSubtitle">Sinu konto, tellimus ja maksed</p>
 
     <div class="plan-box">
+      <h2>Konto ja pilvesalvestus</h2>
+      <p class="help-text">Logi sisse, et profiil, eesmärgid, progress ja treeninguajalugu salvestuksid Supabase andmebaasi. Kui Supabase pole seadistatud, töötab äpp ajutiselt ainult selles seadmes.</p>
+      <div id="authPanel" class="auth-panel"></div>
+    </div>
+
+    <div class="plan-box">
       <h2 data-i18n="myAccount">Minu konto</h2>
       <p class="help-text" data-i18n="profileFormHelp">Täida oma andmed otse pildikaartide sees. Neid andmeid kasutatakse treeningkavade, kalorite ja progressi arvutamiseks.</p>
 
@@ -4263,6 +4269,8 @@ body.menu-open #menuPanel .menu-card span {
   </div>
 </div>
 
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 let currentLang = "et";
 let connectedWatch = null;
@@ -6101,9 +6109,299 @@ function loadData() {
   }
 }
 
-function saveData() {
+function saveData(options = {}) {
   localStorage.setItem("eliteFitnessData", JSON.stringify(appData));
+  if (!options.skipRemote) queueSupabaseSync();
   renderDashboard();
+}
+
+const supabaseRuntimeConfig = window.ELITE_SUPABASE_CONFIG || {};
+const supabaseClient = (supabaseRuntimeConfig.url && supabaseRuntimeConfig.anonKey && window.supabase?.createClient)
+  ? window.supabase.createClient(supabaseRuntimeConfig.url, supabaseRuntimeConfig.anonKey)
+  : null;
+const authState = {
+  user: null,
+  loading: Boolean(supabaseClient),
+  error: "",
+  syncStatus: supabaseClient ? "Valmis sünkima" : "Supabase pole seadistatud. Andmed on ajutiselt localStorage-is."
+};
+let supabaseSyncTimer = null;
+
+function hasSupabase() { return Boolean(supabaseClient); }
+function requireSupabaseAuth() { return hasSupabase() && authState.user?.id; }
+function authEmailValue() { return String(document.getElementById("authEmail")?.value || "").trim(); }
+function authPasswordValue() { return String(document.getElementById("authPassword")?.value || ""); }
+function validateAuthInput(email, password) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Sisesta korrektne e-post.";
+  if (password.length < 8) return "Parool peab olema vähemalt 8 märki.";
+  return "";
+}
+
+function renderAuthPanel() {
+  const panel = document.getElementById("authPanel");
+  if (!panel) return;
+  if (!hasSupabase()) {
+    panel.innerHTML = `<div class="empty-state"><strong>Pilvesalvestus pole seadistatud</strong><p class="small">Lisa Supabase URL ja anon key Vercel/GitHub Pages buildi configusse. Seni jäävad kasutajaandmed ainult seadmesse.</p></div>`;
+    return;
+  }
+  if (authState.loading) {
+    panel.innerHTML = `<div class="empty-state"><strong>Kontrollin sessiooni...</strong><p class="small">Palun oota.</p></div>`;
+    return;
+  }
+  if (authState.user) {
+    panel.innerHTML = `
+      <div class="auth-status-card">
+        <strong>Sisse logitud</strong>
+        <small>${authState.user.email || ""}</small>
+        <small>${authState.syncStatus || ""}</small>
+      </div>
+      <button onclick="syncSupabaseNow()">Sünkroniseeri nüüd</button>
+      <button class="dark-btn" onclick="logoutUser()">Logi välja</button>
+      ${authState.error ? `<p class="small warning">${authState.error}</p>` : ""}
+    `;
+    return;
+  }
+  panel.innerHTML = `
+    <div class="profile-field">
+      <label for="authEmail">E-post</label>
+      <input id="authEmail" type="email" autocomplete="email">
+    </div>
+    <div class="profile-field">
+      <label for="authPassword">Parool</label>
+      <input id="authPassword" type="password" autocomplete="current-password">
+    </div>
+    <div class="row">
+      <button onclick="loginUser()">Logi sisse</button>
+      <button class="dark-btn" onclick="signupUser()">Loo konto</button>
+    </div>
+    <p class="small">${authState.error || "Parool peab olema vähemalt 8 märki. Salajasi võtmeid brauserisse ei panda."}</p>
+  `;
+}
+
+async function signupUser() {
+  if (!hasSupabase()) return;
+  const email = authEmailValue();
+  const password = authPasswordValue();
+  const error = validateAuthInput(email, password);
+  if (error) { authState.error = error; renderAuthPanel(); return; }
+  authState.loading = true; authState.error = ""; renderAuthPanel();
+  const result = await supabaseClient.auth.signUp({ email, password });
+  authState.loading = false;
+  if (result.error) authState.error = result.error.message;
+  else authState.syncStatus = "Konto loodud. Kui e-posti kinnitust nõutakse, kinnita aadress enne sisselogimist.";
+  renderAuthPanel();
+}
+
+async function loginUser() {
+  if (!hasSupabase()) return;
+  const email = authEmailValue();
+  const password = authPasswordValue();
+  const error = validateAuthInput(email, password);
+  if (error) { authState.error = error; renderAuthPanel(); return; }
+  authState.loading = true; authState.error = ""; renderAuthPanel();
+  const result = await supabaseClient.auth.signInWithPassword({ email, password });
+  authState.loading = false;
+  if (result.error) authState.error = result.error.message;
+  renderAuthPanel();
+}
+
+async function logoutUser() {
+  if (!hasSupabase()) return;
+  await supabaseClient.auth.signOut();
+  authState.user = null;
+  authState.syncStatus = "Välja logitud. Kohalik fallback jääb seadmesse.";
+  renderAuthPanel();
+}
+
+async function initSupabaseAuth() {
+  renderAuthPanel();
+  if (!hasSupabase()) return;
+  const { data, error } = await supabaseClient.auth.getSession();
+  authState.loading = false;
+  if (error) authState.error = error.message;
+  authState.user = data?.session?.user || null;
+  renderAuthPanel();
+  if (authState.user) await loadSupabaseUserData();
+  supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+    authState.user = session?.user || null;
+    authState.loading = false;
+    authState.error = "";
+    renderAuthPanel();
+    if (authState.user) await loadSupabaseUserData();
+  });
+}
+
+function queueSupabaseSync() {
+  if (!requireSupabaseAuth()) return;
+  clearTimeout(supabaseSyncTimer);
+  supabaseSyncTimer = setTimeout(() => { syncSupabaseNow(); }, 700);
+}
+
+function profileRow() {
+  return {
+    id: authState.user.id,
+    email: authState.user.email || appData.profile.email || null,
+    full_name: String(appData.profile.name || "").slice(0, 160),
+    gender: appData.profile.gender || null,
+    age: Number(appData.profile.age || 0) || null,
+    height_cm: Number(appData.profile.height || 0) || null,
+    weight_kg: Number(appData.profile.weight || 0) || null,
+    selected_goal: appData.selectedGoal || null,
+    selected_program: appData.selectedProgram || null,
+    current_body_type: appData.profile.currentBodyType || appData.profile.currentType || null,
+    desired_body_type: appData.profile.desiredBodyType || appData.profile.targetType || null,
+    nutrition_profile: appData.nutritionProfile || {}
+  };
+}
+
+function goalsRow() {
+  return {
+    user_id: authState.user.id,
+    weekly_workouts: Number(appData.goals.weeklyWorkouts || 0),
+    weekly_calories: Number(appData.goals.weeklyCalories || 0),
+    daily_steps: Number(appData.goals.dailySteps || 0),
+    daily_water_ml: Number(appData.goals.dailyWater || 0)
+  };
+}
+
+function workoutLogRows() {
+  return (appData.history || []).slice(0, 200).map(item => ({
+    user_id: authState.user.id,
+    local_id: String(item.id || item.date),
+    workout_name: String(item.workout || "Workout").slice(0, 160),
+    duration_minutes: Number(item.duration || 0),
+    calories: Number(item.calories || 0),
+    steps: Number(item.steps || 0),
+    avg_heart_rate: Number(item.avgHeart || 0) || null,
+    occurred_at: item.date || new Date().toISOString(),
+    raw_data: item
+  }));
+}
+
+function progressRows() {
+  return (appData.progress || []).slice(0, 200).map(item => ({
+    user_id: authState.user.id,
+    local_id: String(item.id || item.date),
+    entry_date: item.date || new Date().toISOString(),
+    weight_kg: Number(item.weight || 0) || null,
+    waist_cm: Number(item.waist || 0) || null,
+    note: String(item.note || "").slice(0, 500)
+  }));
+}
+
+function nutritionRows() {
+  return (appData.meals || []).slice(0, 250).map(item => ({
+    user_id: authState.user.id,
+    local_id: String(item.id || `${item.date}-${item.name || item.meal || "meal"}`),
+    entry_date: item.date || todayKey(),
+    meal_type: String(item.meal || item.type || "").slice(0, 60),
+    name: String(item.name || item.title || "Meal").slice(0, 160),
+    calories: Number(item.calories || 0),
+    protein_g: Number(item.protein || 0),
+    carbs_g: Number(item.carbs || 0),
+    fat_g: Number(item.fat || 0),
+    raw_data: item
+  }));
+}
+
+async function syncSupabaseNow() {
+  if (!requireSupabaseAuth()) { renderAuthPanel(); return; }
+  try {
+    authState.syncStatus = "Sünkroniseerin...";
+    renderAuthPanel();
+    await supabaseClient.from("profiles").upsert(profileRow());
+    await supabaseClient.from("goals").upsert(goalsRow(), { onConflict: "user_id" });
+    const workouts = workoutLogRows();
+    if (workouts.length) await supabaseClient.from("workout_logs").upsert(workouts, { onConflict: "user_id,local_id" });
+    const progress = progressRows();
+    if (progress.length) await supabaseClient.from("progress_entries").upsert(progress, { onConflict: "user_id,local_id" });
+    const nutrition = nutritionRows();
+    if (nutrition.length) await supabaseClient.from("nutrition_entries").upsert(nutrition, { onConflict: "user_id,local_id" });
+    authState.syncStatus = `Pilves salvestatud ${new Date().toLocaleTimeString()}`;
+    authState.error = "";
+  } catch (error) {
+    authState.error = error.message || "Supabase sync ebaõnnestus.";
+    authState.syncStatus = "Sync vajab tähelepanu.";
+  }
+  renderAuthPanel();
+}
+
+async function loadSupabaseUserData() {
+  if (!requireSupabaseAuth()) return;
+  try {
+    authState.syncStatus = "Laen pilveandmeid...";
+    renderAuthPanel();
+    const [{ data: profile }, { data: goals }, { data: workoutLogs }, { data: progressEntries }, { data: nutritionEntries }] = await Promise.all([
+      supabaseClient.from("profiles").select("*").eq("id", authState.user.id).maybeSingle(),
+      supabaseClient.from("goals").select("*").eq("user_id", authState.user.id).maybeSingle(),
+      supabaseClient.from("workout_logs").select("*").eq("user_id", authState.user.id).order("occurred_at", { ascending: false }).limit(200),
+      supabaseClient.from("progress_entries").select("*").eq("user_id", authState.user.id).order("entry_date", { ascending: false }).limit(200),
+      supabaseClient.from("nutrition_entries").select("*").eq("user_id", authState.user.id).order("entry_date", { ascending: false }).limit(250)
+    ]);
+    if (profile) {
+      appData.profile = {
+        ...appData.profile,
+        name: profile.full_name || appData.profile.name,
+        email: profile.email || authState.user.email || appData.profile.email,
+        gender: profile.gender || appData.profile.gender,
+        age: profile.age || appData.profile.age,
+        height: profile.height_cm || appData.profile.height,
+        weight: profile.weight_kg || appData.profile.weight,
+        currentBodyType: profile.current_body_type || appData.profile.currentBodyType,
+        desiredBodyType: profile.desired_body_type || appData.profile.desiredBodyType
+      };
+      appData.selectedGoal = profile.selected_goal || appData.selectedGoal;
+      appData.selectedProgram = profile.selected_program || appData.selectedProgram;
+      appData.nutritionProfile = { ...appData.nutritionProfile, ...(profile.nutrition_profile || {}) };
+    }
+    if (goals) {
+      appData.goals = {
+        ...appData.goals,
+        weeklyWorkouts: goals.weekly_workouts || appData.goals.weeklyWorkouts,
+        weeklyCalories: goals.weekly_calories || appData.goals.weeklyCalories,
+        dailySteps: goals.daily_steps || appData.goals.dailySteps,
+        dailyWater: goals.daily_water_ml || appData.goals.dailyWater
+      };
+    }
+    if (Array.isArray(workoutLogs) && workoutLogs.length) {
+      appData.history = workoutLogs.map(row => row.raw_data || ({
+        id: row.local_id,
+        date: row.occurred_at,
+        workout: row.workout_name,
+        duration: row.duration_minutes,
+        calories: row.calories,
+        steps: row.steps,
+        avgHeart: row.avg_heart_rate
+      }));
+    }
+    if (Array.isArray(progressEntries) && progressEntries.length) {
+      appData.progress = progressEntries.map(row => ({
+        id: row.local_id,
+        date: row.entry_date,
+        weight: row.weight_kg,
+        waist: row.waist_cm,
+        note: row.note || ""
+      }));
+    }
+    if (Array.isArray(nutritionEntries) && nutritionEntries.length) {
+      appData.meals = nutritionEntries.map(row => row.raw_data || ({
+        id: row.local_id,
+        date: row.entry_date,
+        meal: row.meal_type,
+        name: row.name,
+        calories: row.calories,
+        protein: row.protein_g,
+        carbs: row.carbs_g,
+        fat: row.fat_g
+      }));
+    }
+    localStorage.setItem("eliteFitnessData", JSON.stringify(appData));
+    authState.syncStatus = "Pilveandmed laaditud.";
+    renderDashboard();
+  } catch (error) {
+    authState.error = error.message || "Pilveandmete laadimine ebaõnnestus.";
+  }
+  renderAuthPanel();
 }
 
 function total(items, key) {
@@ -10234,6 +10532,7 @@ function renderDashboard() {
   document.getElementById("age").value = appData.profile.age || "";
   document.getElementById("gender").value = appData.profile.gender || "male";
   document.getElementById("nutritionGoal").value = appData.selectedGoal || "fat";
+  renderAuthPanel();
   renderNutritionProfileForm();
   renderNutritionPlan();
   renderBodyTypeSelectors();
@@ -10424,6 +10723,7 @@ updateAdminPrototypeVisibility();
 applyAdminContent();
 setLanguage("et");
 showOnboarding();
+initSupabaseAuth();
 </script>
 <style>
 .local-admin-only {
