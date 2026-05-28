@@ -62,12 +62,14 @@ vm.createContext(context);
 for (const [index, code] of scripts.entries()) {
   const runnable = code
     .replace("let appData = loadData();", "var appData = loadData();")
+    .replace("const ENABLE_LOCAL_ADMIN_PROTOTYPE = false;", "const ENABLE_LOCAL_ADMIN_PROTOTYPE = true;")
     .replace("const exerciseMedia = {", "var exerciseMedia = {")
     .replace("const trainingPrograms = {", "var trainingPrograms = {");
   vm.runInContext(runnable, context, { filename: `script-${index + 1}.js` });
 }
 
 assert.equal(context.isAdmin(), false);
+context.appData.adminPin = "2468";
 document.getElementById("adminPin").value = "wrong";
 assert.equal(context.adminLogin(), false);
 document.getElementById("adminPin").value = "2468";
