@@ -7207,8 +7207,11 @@ function closeMenu() {
 
 function showPage(pageId) {
   closeWatchSetup();
+  const targetPage = document.getElementById(pageId) || document.getElementById("home");
+  if (!targetPage) return;
+  pageId = targetPage.id || "home";
   document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
-  document.getElementById(pageId).classList.add("active");
+  targetPage.classList.add("active");
   document.querySelector(".app").classList.toggle("screen-fit", ["timer"].includes(pageId));
   closeMenu();
   if (pageId !== "programDetail") {
@@ -8159,6 +8162,12 @@ function latestNutritionPlan(trainingPlanId = appData.selectedProgram || "genera
   return (appData.generatedMealPlans || []).find(plan => plan.trainingPlanId === trainingPlanId);
 }
 
+function trainingProgramTitle(programId) {
+  const program = trainingPrograms[programId] || {};
+  const cards = [...workoutPlanCards, ...groupedPlanCards];
+  return langText(cards.find(card => card.id === program.cardId)?.title || { et: programId, en: programId, ru: programId });
+}
+
 function saveNutritionProfileFromForm() {
   const allergies = Array.from(document.querySelectorAll("[data-nutrition-allergy]:checked")).map(input => input.value);
   const dietPreferences = Array.from(document.querySelectorAll("[data-nutrition-pref]:checked")).map(input => input.value);
@@ -8188,7 +8197,7 @@ function renderNutritionProfileForm() {
   if (!root) return;
   ensureNutritionSeedData();
   const profile = nutritionProfile();
-  const programOptions = Object.entries(trainingPrograms).map(([id, program]) => `<option value="${id}" ${profile.trainingPlanId === id ? "selected" : ""}>${langText(programCards.find(card => card.id === program.cardId)?.title || { et:id, en:id, ru:id })}</option>`).join("");
+  const programOptions = Object.keys(trainingPrograms).map(id => `<option value="${id}" ${profile.trainingPlanId === id ? "selected" : ""}>${trainingProgramTitle(id)}</option>`).join("");
   const allergyLabels = { gluten:"Gluteen", dairy:"Piim", egg:"Muna", fish:"Kala", soy:"Soja", nuts:"Pähklid" };
   const prefLabels = { omnivore:"Segatoit", vegetarian:"Taimetoit", vegan:"Vegan", highProtein:"Kõrge valk", budget:"Soodne", quickMeals:"Kiired söögid" };
   const riskLabels = { pregnancy:"Rasedus", diabetes:"Diabeet", eatingDisorder:"Söömishäire", kidneyDisease:"Neeruhaigus", other:"Muu kõrge terviserisk" };
@@ -8220,7 +8229,7 @@ function renderGeneratedNutritionPlan(plan) {
       <div class="generated-nutrition-summary">
         <div class="card"><strong>${plan.bmr}</strong><small>BMR</small></div>
         <div class="card"><strong>${plan.tdee}</strong><small>TDEE</small></div>
-        <div class="card"><strong>${langText(programCards.find(card => card.id === trainingPrograms[plan.trainingPlanId]?.cardId)?.title || { et: plan.trainingPlanId })}</strong><small>treeningkava</small></div>
+        <div class="card"><strong>${trainingProgramTitle(plan.trainingPlanId)}</strong><small>treeningkava</small></div>
         <div class="card"><strong>${plan.profileSnapshot.trainingDays}</strong><small>trennipäeva</small></div>
       </div>
       ${plan.warning ? `<div class="nutrition-disclaimer">${plan.warning}</div>` : ""}
