@@ -3734,7 +3734,7 @@ body.menu-open #menuPanel .menu-card span {
       <div class="menu-item menu-card" onclick="showPage('recovery')" style="--menu-img:url('https://images.unsplash.com/photo-1540558870477-e8c59bf88421?auto=format&fit=crop&w=900&q=85')"><span data-i18n="recovery">Taastumine</span></div>
       <div class="menu-item menu-card" onclick="showPage('settings')" style="--menu-img:url('https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=900&q=85')"><span data-i18n="settings">Seaded</span></div>
       <div class="menu-item menu-card" onclick="showPage('watch')" style="--menu-img:url('https://images.unsplash.com/photo-1551816230-ef5deaed4a26?auto=format&fit=crop&w=900&q=85')"><span data-i18n="connectWatch">Ühenda kell</span></div>
-      <div class="menu-item menu-card" onclick="showPage('admin')" style="--menu-img:url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=900&q=85')"><span>Admin</span></div>
+      <div id="adminMenuItem" class="menu-item menu-card local-admin-only" onclick="showPage('admin')" style="--menu-img:url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=900&q=85')"><span>Admin</span></div>
     </div>
   </div>
 
@@ -4309,7 +4309,7 @@ const defaultData = {
   userDietPreferences: [],
   nutritionRules: [],
   userRole: "user",
-  adminPin: "2468",
+  adminPin: "",
   adminSession: false,
   adminContent: { exercises: [], trainingPlans: [], foods: [], recipes: [], mealTemplates: [], nutritionRules: [] },
   equipment: ["fullGym"],
@@ -10292,14 +10292,19 @@ const adminSections = [
   { id: "mealTemplates", title: "Meal Templates" },
   { id: "nutritionRules", title: "Nutrition Rules" }
 ];
+const ENABLE_LOCAL_ADMIN_PROTOTYPE = false;
 let activeAdminSection = "exercises";
 let adminSearch = "";
+function isLocalAdminPrototypeEnabled() { return ENABLE_LOCAL_ADMIN_PROTOTYPE === true; }
+function updateAdminPrototypeVisibility() {
+  document.body?.classList?.toggle("local-admin-prototype-enabled", isLocalAdminPrototypeEnabled());
+}
 function ensureAdminContent() {
   appData.adminContent = { exercises: [], trainingPlans: [], foods: [], recipes: [], mealTemplates: [], nutritionRules: [], ...(appData.adminContent || {}) };
   appData.userRole = appData.userRole || "user";
-  appData.adminPin = appData.adminPin || "2468";
+  appData.adminPin = appData.adminPin || "";
 }
-function isAdmin() { return appData.userRole === "admin" && appData.adminSession === true; }
+function isAdmin() { return isLocalAdminPrototypeEnabled() && appData.userRole === "admin" && appData.adminSession === true; }
 function sanitizeAdminText(value, max = 900) { return String(value ?? "").replace(/[<>]/g, "").trim().slice(0, max); }
 function sanitizeAdminUrl(value) {
   const cleaned = sanitizeAdminText(value, 4000);
@@ -10309,12 +10314,15 @@ function sanitizeAdminUrl(value) {
 }
 function adminLogin() {
   ensureAdminContent();
+  if (!isLocalAdminPrototypeEnabled()) { toast("Admin CMS is disabled in this build."); renderAdminPage(); return false; }
+  if (!appData.adminPin) { toast("Admin PIN puudub selles buildis."); renderAdminPage(); return false; }
   if ((document.getElementById("adminPin")?.value || "") !== appData.adminPin) { toast("Admin PIN ei sobi"); renderAdminPage(); return false; }
   appData.userRole = "admin"; appData.adminSession = true; saveData(); renderAdminPage(); toast("Admin sisse logitud"); return true;
 }
 function adminLogout() { appData.adminSession = false; appData.userRole = "user"; saveData(); renderAdminPage(); }
 function applyAdminContent() {
   ensureAdminContent(); ensureNutritionSeedData();
+  if (!isLocalAdminPrototypeEnabled()) return;
   (appData.adminContent.exercises || []).forEach(item => {
     if (!item.name) return;
     exerciseMedia[item.name] = { ...(exerciseMedia[item.name] || {}), description: item.description || "", muscleGroup: item.muscleGroup || "", img: item.imageUrl || item.img || exerciseMedia[item.name]?.img || "", imageUrl: item.imageUrl || item.img || exerciseMedia[item.name]?.imageUrl || "", animationUrl: item.animationUrl || "", animationType: item.animationType || "none", sourceName: item.sourceName || "", sourceUrl: item.sourceUrl || "", license: item.license || "", attributionText: item.attributionText || "" };
@@ -10341,10 +10349,16 @@ function adminItemTitle(item) { return item.name || item.id || item.goal || "Uus
 function adminThumb(item) { return item.imageUrl || item.img || nutritionHeroImage(item.goal || "fat"); }
 function renderAdminPage() {
   ensureAdminContent();
+  updateAdminPrototypeVisibility();
   const auth = document.getElementById("adminAuthPanel"), dash = document.getElementById("adminDashboard");
   if (!auth || !dash) return;
+  if (!isLocalAdminPrototypeEnabled()) {
+    auth.innerHTML = `<h2>Admin CMS lukus</h2><p class="small">Admin CMS is disabled in this build. This frontend-only prototype is not production-ready.</p>`;
+    dash.innerHTML = emptyState("Admin CMS disabled", "Selles buildis puudub päris auth, database, server-side authorization, storage ja RLS. Admin UI on alles ainult lokaalse prototüübi jaoks.", "", "");
+    return;
+  }
   if (!isAdmin()) {
-    auth.innerHTML = `<h2>Admin login</h2><p class="small">MVP-s on admin roll lokaalne. Vaikimisi PIN: 2468. Serveripoolne auth tuleb lisada siis, kui tekib päris backend.</p><input id="adminPin" type="password" placeholder="Admin PIN"><button onclick="adminLogin()">Logi adminina sisse</button>`;
+    auth.innerHTML = `<h2>Admin login</h2><p class="small">Lokaalne admin prototüüp on lubatud ainult privaatseks testimiseks. Serveripoolne auth tuleb lisada enne production kasutust.</p><input id="adminPin" type="password" placeholder="Admin PIN"><button onclick="adminLogin()">Logi adminina sisse</button>`;
     dash.innerHTML = emptyState("Admin lukus", "Tavakasutaja saab contenti ainult vaadata ja plaane genereerida.", "", "");
     return;
   }
@@ -10406,11 +10420,20 @@ function adminHandleUpload(input, targetId, kind = "image") {
   reader.onerror = () => toast("Faili lugemine ebaõnnestus");
   reader.readAsDataURL(file);
 }
+updateAdminPrototypeVisibility();
 applyAdminContent();
 setLanguage("et");
 showOnboarding();
 </script>
 <style>
+.local-admin-only {
+  display: none !important;
+}
+
+body.local-admin-prototype-enabled .local-admin-only {
+  display: flex !important;
+}
+
 .admin-tabs {
   display: flex;
   gap: 8px;

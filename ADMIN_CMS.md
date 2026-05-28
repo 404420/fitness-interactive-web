@@ -1,70 +1,66 @@
-# Admin CMS MVP
+# Admin CMS Prototype
 
-This project is a static single-page MVP. There is no backend, API server, database migration system, or real auth provider yet. The admin CMS therefore follows the existing architecture: content is stored in `localStorage` inside `eliteFitnessData`.
+The current Admin CMS is a frontend-only local prototype. It is intentionally disabled in normal builds with:
 
-## Admin access
+```js
+const ENABLE_LOCAL_ADMIN_PROTOTYPE = false;
+```
 
-Open **Admin** from the menu and enter the local admin PIN.
+This prototype is not production-ready. It has no real backend auth, no database, no server-side authorization, no object storage, and no RLS/access-policy layer.
 
-- Default PIN: `2468`
-- Role storage: `appData.userRole`
-- Session flag: `appData.adminSession`
+## Current Mitigation
 
-This is a frontend-only MVP gate. Before production, replace it with backend auth and server-side role checks.
+- Admin menu entry is hidden while `ENABLE_LOCAL_ADMIN_PROTOTYPE` is `false`.
+- Directly opening the Admin page shows a locked warning.
+- No default admin PIN is shipped in `defaultData`.
+- Local admin content is not applied to the public app while the prototype flag is disabled.
 
-## Manage exercises and animations
+## Private Local Testing
 
-Admin can edit:
+For local/private testing only:
 
-- name
-- description
-- muscle group
-- `imageUrl`
-- `animationUrl`
-- `animationType`: `none`, `gif`, `webm`, `mp4`, `lottie`
-- `sourceName`, `sourceUrl`, `license`, `attributionText`
+1. Change `ENABLE_LOCAL_ADMIN_PROTOTYPE` to `true` in `index.html`.
+2. Set `appData.adminPin` locally before logging in, for example through an imported local backup or browser console.
+3. Do not deploy that change publicly.
 
-Uploaded images/videos are stored as data URLs if they are under 2 MB. Larger videos should be placed in `assets/exercise-animations/` and referenced by URL.
+The local test script enables the prototype in a VM-only replacement and sets a test PIN during execution. That does not change the production build.
 
-## Manage nutrition content
+## What The Prototype Can Manage
 
-Admin can edit:
+When explicitly enabled for private testing, the UI can edit local browser data for:
 
+- exercises
+- exercise animations
+- training plans
 - foods
 - recipes
 - meal templates
 - nutrition rules
 
-Recipes use comma-separated food IDs in the ingredient field. Allergy and diet filtering uses food `tags` and recipe `preferences`.
+Changes are stored in `localStorage` under `eliteFitnessData`.
 
-## Manage training plans
+## Upload Validation
 
-Training plans can be added or edited with:
-
-- `id`
-- `cardId`
-- `goal`
-- summary
-- `days` JSON
-
-The `days` JSON follows the existing `trainingPrograms` shape.
-
-## Upload validation
-
-Allowed files:
+The prototype validates uploads in the browser only:
 
 - Images: PNG, JPG, WebP, GIF
 - Motion: GIF, MP4, WebM
 - Max size: 2 MB
 
-The app rejects unsupported formats and oversized files in the admin form.
+Uploaded files are stored as data URLs in local browser data. Larger videos should be placed in `assets/exercise-animations/` and referenced by URL during local testing.
 
-## Production follow-up
+## Production Requirements
 
-For a production CMS, add:
+A production Admin CMS must replace this prototype with:
 
-- backend auth and admin roles
-- real database tables/migrations
-- server-side validation and sanitization
+- backend authentication
+- persisted admin roles
+- database schema and migrations
+- server-side CRUD endpoints
+- server-side input validation and sanitization
 - object storage for images/videos
-- audit log and publish/draft workflow
+- access policies or RLS so admins can manage content and normal users can only read published content
+- audit logging and a publish/draft workflow
+- environment variables documented in `.env.example`
+
+Do not treat the current local prototype as a secure production CMS.
