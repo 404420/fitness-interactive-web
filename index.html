@@ -10297,7 +10297,13 @@ let activeAdminSection = "exercises";
 let adminSearch = "";
 function isLocalAdminPrototypeEnabled() { return ENABLE_LOCAL_ADMIN_PROTOTYPE === true; }
 function updateAdminPrototypeVisibility() {
-  document.body?.classList?.toggle("local-admin-prototype-enabled", isLocalAdminPrototypeEnabled());
+  const enabled = isLocalAdminPrototypeEnabled();
+  document.body?.classList?.toggle("local-admin-prototype-enabled", enabled);
+  const adminMenuItem = document.getElementById("adminMenuItem");
+  if (!enabled && adminMenuItem) {
+    if (typeof adminMenuItem.remove === "function") adminMenuItem.remove();
+    else adminMenuItem.style.display = "none";
+  }
 }
 function ensureAdminContent() {
   appData.adminContent = { exercises: [], trainingPlans: [], foods: [], recipes: [], mealTemplates: [], nutritionRules: [], ...(appData.adminContent || {}) };
