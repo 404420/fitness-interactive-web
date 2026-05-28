@@ -4,6 +4,7 @@
     "test:nutrition": "node scripts/nutrition-mvp-tests.cjs",
     "test:motion": "node scripts/exercise-motion-tests.cjs",
     "test:program": "node scripts/program-integration-tests.cjs",
+    "test:admin": "node scripts/admin-cms-tests.cjs",
     "fetch:outdoor-photos": "node scripts/fetch-google-place-photos.cjs",
     "fetch:harjumaa-outdoor-gyms": "node scripts/fetch-google-place-photos.cjs --discover-harjumaa"
   }

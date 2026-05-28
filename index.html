@@ -3643,7 +3643,7 @@ body.menu-open #menuPanel .menu-card span {
 #menuPanel.stable-menu-panel .menu-grid {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  grid-template-rows: repeat(5, minmax(0, 1fr)) !important;
+  grid-template-rows: repeat(6, minmax(0, 1fr)) !important;
   grid-auto-rows: 0 !important;
   grid-auto-flow: row !important;
   gap: 8px !important;
@@ -3734,6 +3734,7 @@ body.menu-open #menuPanel .menu-card span {
       <div class="menu-item menu-card" onclick="showPage('recovery')" style="--menu-img:url('https://images.unsplash.com/photo-1540558870477-e8c59bf88421?auto=format&fit=crop&w=900&q=85')"><span data-i18n="recovery">Taastumine</span></div>
       <div class="menu-item menu-card" onclick="showPage('settings')" style="--menu-img:url('https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=900&q=85')"><span data-i18n="settings">Seaded</span></div>
       <div class="menu-item menu-card" onclick="showPage('watch')" style="--menu-img:url('https://images.unsplash.com/photo-1551816230-ef5deaed4a26?auto=format&fit=crop&w=900&q=85')"><span data-i18n="connectWatch">Ühenda kell</span></div>
+      <div class="menu-item menu-card" onclick="showPage('admin')" style="--menu-img:url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=900&q=85')"><span>Admin</span></div>
     </div>
   </div>
 
@@ -3872,6 +3873,13 @@ body.menu-open #menuPanel .menu-card span {
       <div id="nutritionSummary"></div>
       <div id="mealList"></div>
     </div>
+  </div>
+
+  <div id="admin" class="page">
+    <h1>Admin CMS</h1>
+    <p class="subtitle">Halda harjutusi, animatsioone, treeningkavasid, toiduaineid, retsepte ja nutrition rule'e ilma koodi muutmata.</p>
+    <div id="adminAuthPanel" class="feature-card"></div>
+    <div id="adminDashboard" class="feature-card"></div>
   </div>
 
   <div id="handbook" class="page">
@@ -4300,6 +4308,10 @@ const defaultData = {
   dietPreferences: [],
   userDietPreferences: [],
   nutritionRules: [],
+  userRole: "user",
+  adminPin: "2468",
+  adminSession: false,
+  adminContent: { exercises: [], trainingPlans: [], foods: [], recipes: [], mealTemplates: [], nutritionRules: [] },
   equipment: ["fullGym"],
   onboardingDone: false,
   planMonth: "",
@@ -10271,10 +10283,218 @@ function clearAllData() {
   toast("Andmed kustutatud");
 }
 
+const adminSections = [
+  { id: "exercises", title: "Exercises" },
+  { id: "animations", title: "Exercise Animations" },
+  { id: "trainingPlans", title: "Training Plans" },
+  { id: "foods", title: "Foods" },
+  { id: "recipes", title: "Recipes" },
+  { id: "mealTemplates", title: "Meal Templates" },
+  { id: "nutritionRules", title: "Nutrition Rules" }
+];
+let activeAdminSection = "exercises";
+let adminSearch = "";
+function ensureAdminContent() {
+  appData.adminContent = { exercises: [], trainingPlans: [], foods: [], recipes: [], mealTemplates: [], nutritionRules: [], ...(appData.adminContent || {}) };
+  appData.userRole = appData.userRole || "user";
+  appData.adminPin = appData.adminPin || "2468";
+}
+function isAdmin() { return appData.userRole === "admin" && appData.adminSession === true; }
+function sanitizeAdminText(value, max = 900) { return String(value ?? "").replace(/[<>]/g, "").trim().slice(0, max); }
+function sanitizeAdminUrl(value) {
+  const cleaned = sanitizeAdminText(value, 4000);
+  if (!cleaned) return "";
+  if (/^(https?:\/\/|assets\/|data:image\/|data:video\/)/i.test(cleaned)) return cleaned;
+  throw new Error("URL peab algama https://, assets/, data:image/ või data:video/.");
+}
+function adminLogin() {
+  ensureAdminContent();
+  if ((document.getElementById("adminPin")?.value || "") !== appData.adminPin) { toast("Admin PIN ei sobi"); renderAdminPage(); return false; }
+  appData.userRole = "admin"; appData.adminSession = true; saveData(); renderAdminPage(); toast("Admin sisse logitud"); return true;
+}
+function adminLogout() { appData.adminSession = false; appData.userRole = "user"; saveData(); renderAdminPage(); }
+function applyAdminContent() {
+  ensureAdminContent(); ensureNutritionSeedData();
+  (appData.adminContent.exercises || []).forEach(item => {
+    if (!item.name) return;
+    exerciseMedia[item.name] = { ...(exerciseMedia[item.name] || {}), description: item.description || "", muscleGroup: item.muscleGroup || "", img: item.imageUrl || item.img || exerciseMedia[item.name]?.img || "", imageUrl: item.imageUrl || item.img || exerciseMedia[item.name]?.imageUrl || "", animationUrl: item.animationUrl || "", animationType: item.animationType || "none", sourceName: item.sourceName || "", sourceUrl: item.sourceUrl || "", license: item.license || "", attributionText: item.attributionText || "" };
+  });
+  (appData.adminContent.trainingPlans || []).forEach(plan => {
+    if (!plan.id) return;
+    trainingPrograms[plan.id] = { ...(trainingPrograms[plan.id] || {}), cardId: plan.cardId || plan.id, goal: plan.goal || "muscle", summary: { et: plan.summary || plan.id, en: plan.summary || plan.id, ru: plan.summary || plan.id }, days: Array.isArray(plan.days) ? plan.days : [] };
+  });
+}
+function adminSetSection(section) { activeAdminSection = section; renderAdminPage(); }
+function adminSetSearch(value) { adminSearch = value || ""; renderAdminPage(); }
+function adminData(section = activeAdminSection) {
+  ensureAdminContent(); applyAdminContent();
+  if (section === "exercises" || section === "animations") return Object.entries(exerciseMedia).map(([name, media]) => ({ id: name, name, description: media.description || "", muscleGroup: media.muscleGroup || "", imageUrl: media.imageUrl || media.img || "", animationUrl: media.animationUrl || "", animationType: media.animationType || "none", sourceName: media.sourceName || "", sourceUrl: media.sourceUrl || media.page || "", license: media.license || "", attributionText: media.attributionText || "" }));
+  if (section === "trainingPlans") return Object.entries(trainingPrograms).map(([id, plan]) => ({ id, cardId: plan.cardId || id, goal: plan.goal || "muscle", summary: langText(plan.summary) || id, days: plan.days || [] }));
+  if (section === "foods") return appData.foods || [];
+  if (section === "recipes") return appData.recipes || [];
+  if (section === "mealTemplates") return (appData.mealTemplates || []).map(item => typeof item === "string" ? { id: item, name: item } : item);
+  if (section === "nutritionRules") return appData.nutritionRules || [];
+  return [];
+}
+function adminFilteredData() { const query = adminSearch.toLowerCase(); return adminData().filter(item => JSON.stringify(item).toLowerCase().includes(query)).slice(0, 80); }
+function adminItemTitle(item) { return item.name || item.id || item.goal || "Uus kirje"; }
+function adminThumb(item) { return item.imageUrl || item.img || nutritionHeroImage(item.goal || "fat"); }
+function renderAdminPage() {
+  ensureAdminContent();
+  const auth = document.getElementById("adminAuthPanel"), dash = document.getElementById("adminDashboard");
+  if (!auth || !dash) return;
+  if (!isAdmin()) {
+    auth.innerHTML = `<h2>Admin login</h2><p class="small">MVP-s on admin roll lokaalne. Vaikimisi PIN: 2468. Serveripoolne auth tuleb lisada siis, kui tekib päris backend.</p><input id="adminPin" type="password" placeholder="Admin PIN"><button onclick="adminLogin()">Logi adminina sisse</button>`;
+    dash.innerHTML = emptyState("Admin lukus", "Tavakasutaja saab contenti ainult vaadata ja plaane genereerida.", "", "");
+    return;
+  }
+  auth.innerHTML = `<h2>Admin aktiivne</h2><p class="small">Muudatused salvestuvad lokaalselt appData sisse ja mõjutavad treeningu/toitumise MVP-d kohe.</p><button class="dark-btn" onclick="adminLogout()">Logi välja</button>`;
+  const rows = adminFilteredData();
+  dash.innerHTML = `<div class="admin-tabs">${adminSections.map(section => `<button class="${activeAdminSection === section.id ? "active" : ""}" onclick="adminSetSection('${section.id}')">${section.title}</button>`).join("")}</div><div class="admin-toolbar"><input value="${escapeAttr(adminSearch)}" oninput="adminSetSearch(this.value)" placeholder="Search / filter"><button onclick="openAdminEditor('${activeAdminSection}')">Lisa uus</button></div><div class="admin-help">Upload toetab JPG/PNG/WebP/GIF, MP4 ja WebM faile kuni 2 MB. Suuremad videod pane assets/exercise-animations kausta ja lisa siia URL.</div><div class="admin-list">${rows.length ? rows.map(item => `<div class="admin-row"><img class="admin-thumb" src="${escapeAttr(adminThumb(item))}" alt="${escapeAttr(adminItemTitle(item))}" loading="lazy" onerror="this.style.display='none'"><div><strong>${adminItemTitle(item)}</strong><div class="admin-help">${activeAdminSection} · ${item.goal || item.meal || item.muscleGroup || item.animationType || ""}</div><div class="admin-row-actions"><button onclick="openAdminEditor('${activeAdminSection}','${escapeAttr(item.id || item.name)}')">Muuda</button><button class="dark-btn" onclick="deleteAdminItem('${activeAdminSection}','${escapeAttr(item.id || item.name)}')">Kustuta</button></div></div></div>`).join("") : emptyState("Tulemusi pole", "Lisa esimene kirje või muuda filtrit.", "Lisa uus", `openAdminEditor('${activeAdminSection}')`)}</div><div id="adminEditor" class="admin-editor hidden"></div>`;
+}
+function adminField(label, id, value = "", type = "text") { return `<label>${label}<input id="${id}" type="${type}" value="${escapeAttr(value)}"></label>`; }
+function adminArea(label, id, value = "") { return `<label>${label}<textarea id="${id}">${escapeAttr(value)}</textarea></label>`; }
+function openAdminEditor(section, itemId = "") {
+  if (!isAdmin()) return renderAdminPage();
+  const item = adminData(section).find(entry => String(entry.id || entry.name) === String(itemId)) || {};
+  const editor = document.getElementById("adminEditor") || document.createElement("div");
+  editor.className = "admin-editor";
+  editor.innerHTML = `<h2>${itemId ? "Muuda" : "Lisa"} · ${section}</h2>${renderAdminEditorFields(section, item)}<div class="admin-row-actions"><button onclick="saveAdminItem('${section}','${escapeAttr(itemId)}')">Salvesta</button><button class="dark-btn" onclick="closeAdminEditor()">Sulge</button></div>`;
+}
+function renderAdminEditorFields(section, item) {
+  if (section === "exercises" || section === "animations") return `${adminField("Nimi", "admin_name", item.name || item.id || "")}${adminArea("Kirjeldus", "admin_description", item.description || "")}${adminField("Lihasgrupp", "admin_muscleGroup", item.muscleGroup || "")}${adminField("imageUrl", "admin_imageUrl", item.imageUrl || "")}<input id="admin_imageFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" onchange="adminHandleUpload(this,'admin_imageUrl','image')">${adminField("animationUrl", "admin_animationUrl", item.animationUrl || "")}<input id="admin_animationFile" type="file" accept="image/gif,video/mp4,video/webm" onchange="adminHandleUpload(this,'admin_animationUrl','media')"><label>animationType<select id="admin_animationType"><option value="none" ${item.animationType === "none" ? "selected" : ""}>none</option><option value="gif" ${item.animationType === "gif" ? "selected" : ""}>gif</option><option value="webm" ${item.animationType === "webm" ? "selected" : ""}>webm</option><option value="mp4" ${item.animationType === "mp4" ? "selected" : ""}>mp4</option><option value="lottie" ${item.animationType === "lottie" ? "selected" : ""}>lottie</option></select></label>${adminField("sourceName", "admin_sourceName", item.sourceName || "")}${adminField("sourceUrl", "admin_sourceUrl", item.sourceUrl || "")}${adminField("license", "admin_license", item.license || "")}${adminArea("attributionText", "admin_attributionText", item.attributionText || "")}`;
+  if (section === "trainingPlans") return `${adminField("ID", "admin_id", item.id || "")}${adminField("cardId", "admin_cardId", item.cardId || "")}${adminField("goal", "admin_goal", item.goal || "muscle")}${adminArea("summary", "admin_summary", item.summary || "")}${adminArea("days JSON", "admin_days", JSON.stringify(item.days || [], null, 2))}`;
+  if (section === "foods") return `${adminField("ID", "admin_id", item.id || "")}${adminField("Nimi", "admin_name", item.name || "")}${adminField("Kalorid", "admin_calories", item.calories || 0, "number")}${adminField("Valk", "admin_protein", item.protein || 0, "number")}${adminField("Süsivesikud", "admin_carbs", item.carbs || 0, "number")}${adminField("Rasv", "admin_fat", item.fat || 0, "number")}${adminField("Portsjon", "admin_serving", item.serving || "100 g")}${adminField("Kategooria", "admin_category", item.category || "")}${adminField("Allergia/tag markerid komaga", "admin_tags", (item.tags || []).join(","))}`;
+  if (section === "recipes") return `${adminField("ID", "admin_id", item.id || "")}${adminField("Nimi", "admin_name", item.name || "")}${adminField("Meal type", "admin_meal", item.meal || "breakfast")}${adminField("Koostisosad ID komaga", "admin_ingredients", (item.ingredients || []).join(","))}${adminField("Kalorid", "admin_calories", item.calories || 0, "number")}${adminField("Valk", "admin_protein", item.protein || 0, "number")}${adminField("Süsivesikud", "admin_carbs", item.carbs || 0, "number")}${adminField("Rasv", "admin_fat", item.fat || 0, "number")}${adminField("Preferences komaga", "admin_preferences", (item.preferences || []).join(","))}${adminField("imageUrl", "admin_imageUrl", item.imageUrl || "")}<input id="admin_recipeImageFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" onchange="adminHandleUpload(this,'admin_imageUrl','image')">${adminArea("Preparation steps", "admin_steps", (item.steps || []).join("\n"))}`;
+  if (section === "mealTemplates") return `${adminField("ID", "admin_id", item.id || "")}${adminField("Nimi", "admin_name", item.name || "")}`;
+  if (section === "nutritionRules") return `${adminField("ID", "admin_id", item.id || "")}${adminField("Goal", "admin_goal", item.goal || "")}${adminField("calorieDelta", "admin_calorieDelta", item.calorieDelta || 0, "number")}${adminField("proteinPerKg", "admin_proteinPerKg", item.proteinPerKg || 1.8, "number")}${adminField("fatPerKg", "admin_fatPerKg", item.fatPerKg || 0.8, "number")}${adminField("trainingCarbShift", "admin_trainingCarbShift", item.trainingCarbShift || 120, "number")}${adminField("restCarbShift", "admin_restCarbShift", item.restCarbShift || -100, "number")}`;
+  return "";
+}
+function closeAdminEditor() { document.getElementById("adminEditor")?.classList.add("hidden"); }
+function adminId(value) { return sanitizeAdminText(value || `item-${Date.now()}`, 80).replace(/\s+/g, "-"); }
+function readAdminItem(section, oldId = "") {
+  if (section === "exercises" || section === "animations") { const name = sanitizeAdminText(document.getElementById("admin_name")?.value || oldId, 120); if (!name) throw new Error("Harjutuse nimi puudub."); const animationType = document.getElementById("admin_animationType")?.value || "none"; if (!["gif","webm","mp4","lottie","none"].includes(animationType)) throw new Error("Vale animationType."); return { id: name, name, description: sanitizeAdminText(document.getElementById("admin_description")?.value, 1200), muscleGroup: sanitizeAdminText(document.getElementById("admin_muscleGroup")?.value, 100), imageUrl: sanitizeAdminUrl(document.getElementById("admin_imageUrl")?.value || ""), animationUrl: sanitizeAdminUrl(document.getElementById("admin_animationUrl")?.value || ""), animationType, sourceName: sanitizeAdminText(document.getElementById("admin_sourceName")?.value, 180), sourceUrl: sanitizeAdminUrl(document.getElementById("admin_sourceUrl")?.value || ""), license: sanitizeAdminText(document.getElementById("admin_license")?.value, 120), attributionText: sanitizeAdminText(document.getElementById("admin_attributionText")?.value, 300) }; }
+  if (section === "trainingPlans") return { id: adminId(document.getElementById("admin_id")?.value || oldId), cardId: sanitizeAdminText(document.getElementById("admin_cardId")?.value, 80), goal: sanitizeAdminText(document.getElementById("admin_goal")?.value, 40), summary: sanitizeAdminText(document.getElementById("admin_summary")?.value, 1000), days: JSON.parse(document.getElementById("admin_days")?.value || "[]") };
+  if (section === "foods") return { id: adminId(document.getElementById("admin_id")?.value || oldId), name: sanitizeAdminText(document.getElementById("admin_name")?.value, 160), calories: Number(document.getElementById("admin_calories")?.value || 0), protein: Number(document.getElementById("admin_protein")?.value || 0), carbs: Number(document.getElementById("admin_carbs")?.value || 0), fat: Number(document.getElementById("admin_fat")?.value || 0), serving: sanitizeAdminText(document.getElementById("admin_serving")?.value, 80), category: sanitizeAdminText(document.getElementById("admin_category")?.value, 80), tags: (document.getElementById("admin_tags")?.value || "").split(",").map(item => sanitizeAdminText(item, 40)).filter(Boolean) };
+  if (section === "recipes") return { id: adminId(document.getElementById("admin_id")?.value || oldId), name: sanitizeAdminText(document.getElementById("admin_name")?.value, 160), meal: sanitizeAdminText(document.getElementById("admin_meal")?.value, 60), ingredients: (document.getElementById("admin_ingredients")?.value || "").split(",").map(item => sanitizeAdminText(item, 80)).filter(Boolean), calories: Number(document.getElementById("admin_calories")?.value || 0), protein: Number(document.getElementById("admin_protein")?.value || 0), carbs: Number(document.getElementById("admin_carbs")?.value || 0), fat: Number(document.getElementById("admin_fat")?.value || 0), preferences: (document.getElementById("admin_preferences")?.value || "").split(",").map(item => sanitizeAdminText(item, 40)).filter(Boolean), imageUrl: sanitizeAdminUrl(document.getElementById("admin_imageUrl")?.value || ""), steps: (document.getElementById("admin_steps")?.value || "").split("\n").map(item => sanitizeAdminText(item, 240)).filter(Boolean) };
+  if (section === "mealTemplates") return { id: adminId(document.getElementById("admin_id")?.value || oldId), name: sanitizeAdminText(document.getElementById("admin_name")?.value, 100) };
+  if (section === "nutritionRules") return { id: adminId(document.getElementById("admin_id")?.value || oldId), goal: sanitizeAdminText(document.getElementById("admin_goal")?.value, 40), calorieDelta: Number(document.getElementById("admin_calorieDelta")?.value || 0), proteinPerKg: Number(document.getElementById("admin_proteinPerKg")?.value || 1.8), fatPerKg: Number(document.getElementById("admin_fatPerKg")?.value || 0.8), trainingCarbShift: Number(document.getElementById("admin_trainingCarbShift")?.value || 120), restCarbShift: Number(document.getElementById("admin_restCarbShift")?.value || -100) };
+  return {};
+}
+function upsertById(list, item, oldId = "") { const id = String(item.id || item.name); return [item, ...list.filter(entry => String(entry.id || entry.name) !== id && String(entry.id || entry.name) !== String(oldId))]; }
+function saveAdminItem(section, oldId = "") {
+  if (!isAdmin()) return false;
+  try { const item = readAdminItem(section, oldId); if (section === "exercises" || section === "animations") appData.adminContent.exercises = upsertById(appData.adminContent.exercises || [], item, oldId); if (section === "trainingPlans") appData.adminContent.trainingPlans = upsertById(appData.adminContent.trainingPlans || [], item, oldId); if (section === "foods") appData.foods = upsertById(appData.foods || [], item, oldId); if (section === "recipes") appData.recipes = upsertById(appData.recipes || [], item, oldId); if (section === "mealTemplates") appData.mealTemplates = upsertById(adminData("mealTemplates"), item, oldId).map(entry => entry.name || entry.id); if (section === "nutritionRules") appData.nutritionRules = upsertById(appData.nutritionRules || [], item, oldId); applyAdminContent(); saveData(); renderAdminPage(); renderNutritionProfileForm(); toast("Admin muudatus salvestatud"); return true; } catch (error) { toast(error.message || "Admin salvestus ebaõnnestus"); return false; }
+}
+function deleteAdminItem(section, id) {
+  if (!isAdmin() || !confirm("Kustutan kirje?")) return;
+  if (section === "exercises" || section === "animations") { appData.adminContent.exercises = (appData.adminContent.exercises || []).filter(item => String(item.id || item.name) !== String(id)); delete exerciseMedia[id]; }
+  if (section === "trainingPlans") appData.adminContent.trainingPlans = (appData.adminContent.trainingPlans || []).filter(item => String(item.id) !== String(id));
+  if (section === "foods") appData.foods = (appData.foods || []).filter(item => String(item.id) !== String(id));
+  if (section === "recipes") appData.recipes = (appData.recipes || []).filter(item => String(item.id) !== String(id));
+  if (section === "mealTemplates") appData.mealTemplates = (appData.mealTemplates || []).filter(item => String(item.id || item) !== String(id));
+  if (section === "nutritionRules") appData.nutritionRules = (appData.nutritionRules || []).filter(item => String(item.id) !== String(id));
+  saveData(); renderAdminPage(); toast("Kirje kustutatud");
+}
+function adminHandleUpload(input, targetId, kind = "image") {
+  const file = input.files?.[0]; if (!file) return;
+  const allowed = kind === "image" ? ["image/png","image/jpeg","image/webp","image/gif"] : ["image/gif","video/mp4","video/webm"];
+  if (!allowed.includes(file.type)) { toast("Failiformaat ei sobi"); input.value = ""; return; }
+  if (file.size > 2 * 1024 * 1024) { toast("Fail on liiga suur. Maksimum on 2 MB."); input.value = ""; return; }
+  const reader = new FileReader();
+  reader.onload = () => { document.getElementById(targetId).value = reader.result; if (targetId === "admin_animationUrl") document.getElementById("admin_animationType").value = file.type.includes("webm") ? "webm" : file.type.includes("mp4") ? "mp4" : "gif"; toast("Fail lisatud vormi"); };
+  reader.onerror = () => toast("Faili lugemine ebaõnnestus");
+  reader.readAsDataURL(file);
+}
+applyAdminContent();
 setLanguage("et");
 showOnboarding();
 </script>
 <style>
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.admin-tabs button {
+  min-width: max-content;
+  padding: 10px 12px;
+  margin: 0;
+}
+.admin-tabs button.active {
+  background: linear-gradient(135deg, var(--gold), #facc15);
+  color: #050505;
+}
+.admin-toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  margin: 12px 0;
+}
+.admin-toolbar input,
+.admin-toolbar select {
+  margin: 0;
+}
+.admin-list {
+  display: grid;
+  gap: 10px;
+}
+.admin-row {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid rgba(212,175,55,0.24);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(0,0,0,0.52);
+}
+.admin-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #050505;
+}
+.admin-row-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.admin-row-actions button {
+  min-height: 34px;
+  padding: 8px 10px;
+  margin: 0;
+  font-size: 12px;
+}
+.admin-editor {
+  position: fixed;
+  inset: auto 0 0 0;
+  max-width: 430px;
+  margin: 0 auto;
+  max-height: 86svh;
+  overflow: auto;
+  z-index: 130;
+  border: 1px solid rgba(212,175,55,0.55);
+  border-radius: 20px 20px 0 0;
+  padding: 16px;
+  background: rgba(5,5,5,0.98);
+  box-shadow: 0 -22px 60px rgba(0,0,0,0.62);
+}
+.admin-editor textarea {
+  min-height: 130px;
+}
+.admin-editor.hidden {
+  display: none;
+}
+.admin-help {
+  color: rgba(255,255,255,0.68);
+  font-size: 12px;
+  line-height: 1.35;
+}
 .flow-empty-state {
   border: 1px solid rgba(212,175,55,0.34);
   border-radius: 16px;
@@ -10664,6 +10884,7 @@ showPage = function(pageId) {
   if (page && eliteFitnessCompactPages.includes(pageId)) {
     page.classList.add("compact-fit-page");
   }
+  if (pageId === "admin") renderAdminPage();
 };
 if (document.querySelector(".page.active")) {
   showPage(document.querySelector(".page.active").id);
