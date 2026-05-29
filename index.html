@@ -6213,8 +6213,12 @@ async function logoutUser() {
   if (!hasSupabase()) return;
   await supabaseClient.auth.signOut();
   authState.user = null;
+  authState.error = "";
   authState.syncStatus = "Välja logitud. Kohalik fallback jääb seadmesse.";
+  appData = structuredClone(defaultData);
+  localStorage.removeItem("eliteFitnessData");
   renderAuthPanel();
+  renderDashboard();
 }
 
 async function initSupabaseAuth() {
