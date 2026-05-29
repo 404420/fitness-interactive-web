@@ -66,9 +66,13 @@ If `config.js` is missing, the app runs in local-only fallback mode.
 npm run build
 ```
 
-3. Use the repository root as the static output directory.
+3. Set Vercel Output Directory to:
 
-Vercel will generate `config.js` during build. Do not commit `config.js`.
+```bash
+public
+```
+
+Vercel will generate `config.js` during build and copy only `index.html` plus `config.js` into `public/`. Do not commit `config.js` or `public/`.
 
 ## Preview Deployment Checklist
 
