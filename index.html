@@ -6135,8 +6135,8 @@ let supabaseSyncTimer = null;
 
 function hasSupabase() { return Boolean(supabaseClient); }
 function requireSupabaseAuth() { return hasSupabase() && authState.user?.id; }
-function authEmailValue() { return String(document.getElementById("authEmail")?.value || "").trim(); }
-function authPasswordValue() { return String(document.getElementById("authPassword")?.value || ""); }
+function authEmailValue() { return String(document.getElementById("authEmail")?.value || document.getElementById("ob_email")?.value || "").trim(); }
+function authPasswordValue() { return String(document.getElementById("authPassword")?.value || document.getElementById("ob_password")?.value || ""); }
 function validateAuthInput(email, password) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Sisesta korrektne e-post.";
   if (password.length < 8) return "Parool peab olema vähemalt 8 märki.";
@@ -6203,13 +6203,21 @@ function renderAuthPanel() {
     ${authState.error ? `<p class="small warning">${authState.error}</p>` : ""}
   `;
 }
+function refreshAuthViews() {
+  renderAuthPanel();
+  const onboarding = document.getElementById("onboarding");
+  if (onboarding && !onboarding.classList.contains("hidden") && onboardingSteps[onboardingStep] === "account") {
+    renderOnboarding();
+  }
+}
 async function signupUser() {
   if (!hasSupabase()) return;
+  if (document.getElementById("ob_email")) captureOnboardingFields();
   const email = authEmailValue();
   const password = authPasswordValue();
   const error = validateAuthInput(email, password);
-  if (error) { authState.error = error; authState.message = ""; renderAuthPanel(); return; }
-  authState.loading = true; authState.error = ""; authState.message = ""; renderAuthPanel();
+  if (error) { authState.error = error; authState.message = ""; refreshAuthViews(); return; }
+  authState.loading = true; authState.error = ""; authState.message = ""; refreshAuthViews();
   const result = await supabaseClient.auth.signUp({ email, password });
   authState.loading = false;
   if (result.error) authState.error = authFriendlyError(result.error.message);
@@ -6219,16 +6227,17 @@ async function signupUser() {
     authState.syncStatus = authState.message;
     if (authState.user) await loadSupabaseUserData();
   }
-  renderAuthPanel();
+  refreshAuthViews();
 }
 
 async function loginUser() {
   if (!hasSupabase()) return;
+  if (document.getElementById("ob_email")) captureOnboardingFields();
   const email = authEmailValue();
   const password = authPasswordValue();
   const error = validateAuthInput(email, password);
-  if (error) { authState.error = error; authState.message = ""; renderAuthPanel(); return; }
-  authState.loading = true; authState.error = ""; authState.message = ""; renderAuthPanel();
+  if (error) { authState.error = error; authState.message = ""; refreshAuthViews(); return; }
+  authState.loading = true; authState.error = ""; authState.message = ""; refreshAuthViews();
   const result = await supabaseClient.auth.signInWithPassword({ email, password });
   authState.loading = false;
   if (result.error) authState.error = authFriendlyError(result.error.message);
@@ -6238,7 +6247,7 @@ async function loginUser() {
     authState.syncStatus = "Sisse logitud. Laen pilveandmeid...";
     if (authState.user) await loadSupabaseUserData();
   }
-  renderAuthPanel();
+  refreshAuthViews();
 }
 async function logoutUser() {
   if (!hasSupabase()) return;
@@ -6249,7 +6258,7 @@ async function logoutUser() {
   authState.syncStatus = "Välja logitud. Kohalik fallback jääb seadmesse.";
   appData = structuredClone(defaultData);
   localStorage.removeItem("eliteFitnessData");
-  renderAuthPanel();
+  refreshAuthViews();
   renderDashboard();
 }
 
@@ -6260,13 +6269,13 @@ async function initSupabaseAuth() {
   authState.loading = false;
   if (error) authState.error = error.message;
   authState.user = data?.session?.user || null;
-  renderAuthPanel();
+  refreshAuthViews();
   if (authState.user) await loadSupabaseUserData();
   supabaseClient.auth.onAuthStateChange(async (_event, session) => {
     authState.user = session?.user || null;
     authState.loading = false;
     authState.error = "";
-    renderAuthPanel();
+    refreshAuthViews();
     if (authState.user) await loadSupabaseUserData();
   });
 }
@@ -6345,7 +6354,7 @@ function nutritionRows() {
 }
 
 async function syncSupabaseNow() {
-  if (!requireSupabaseAuth()) { renderAuthPanel(); return; }
+  if (!requireSupabaseAuth()) { refreshAuthViews(); return; }
   try {
     authState.syncStatus = "Sünkroniseerin...";
     renderAuthPanel();
@@ -6811,10 +6820,33 @@ function renderOnboarding() {
     html = `
       <h1>${copy.accountTitle}</h1>
       <p>${copy.accountText}</p>
+      ${authState.user ? `
+        <div class="auth-status-card">
+          <strong>Oled sisse logitud</strong>
+          <small>${authState.user.email || onboardingState.email || ""}</small>
+        </div>
+        <button class="dark-btn" onclick="logoutUser()">Logi välja</button>
+      ` : `
+        <div class="auth-status-card">
+          <strong>Logi sisse või loo konto</strong>
+          <small>Konto seob profiili e-postiga ja lubab pilvesalvestuse.</small>
+        </div>
+      `}
       <div class="onboarding-form">
         <div class="onboarding-input-card"><label>${copy.name}</label><input id="ob_name" type="text" value="${escapeAttr(onboardingState.name || "")}"></div>
         <div class="onboarding-input-card"><label>${copy.email}</label><input id="ob_email" type="email" value="${escapeAttr(onboardingState.email || "")}"></div>
+        ${authState.user ? "" : `<div class="onboarding-input-card"><label>Parool</label><input id="ob_password" type="password" autocomplete="new-password" placeholder="Vähemalt 8 märki"></div>`}
       </div>
+      ${authState.user ? "" : `
+        <div class="row">
+          <button onclick="signupUser()" ${hasSupabase() ? "" : "disabled"}>Loo konto</button>
+          <button class="dark-btn" onclick="loginUser()" ${hasSupabase() ? "" : "disabled"}>Logi sisse</button>
+        </div>
+        <button class="dark-btn" onclick="onboardingNext()">Jätka ajutiselt selles seadmes</button>
+        ${hasSupabase() ? "" : `<p class="small warning">Supabase pole seadistatud. Kontot saab luua preview/prod keskkonnas, kus SUPABASE_URL ja SUPABASE_ANON_KEY on lisatud.</p>`}
+      `}
+      ${authState.message ? `<p class="small success">${authState.message}</p>` : ""}
+      ${authState.error ? `<p class="small warning">${authState.error}</p>` : ""}
     `;
   }
   if (step === "gender") {
@@ -11170,10 +11202,33 @@ renderOnboarding = function() {
     html = `
       <h1>${copy.accountTitle}</h1>
       <p>${copy.accountText}</p>
+      ${authState.user ? `
+        <div class="auth-status-card">
+          <strong>Oled sisse logitud</strong>
+          <small>${authState.user.email || onboardingState.email || ""}</small>
+        </div>
+        <button class="dark-btn" onclick="logoutUser()">Logi välja</button>
+      ` : `
+        <div class="auth-status-card">
+          <strong>Logi sisse või loo konto</strong>
+          <small>Konto seob profiili e-postiga ja lubab pilvesalvestuse.</small>
+        </div>
+      `}
       <div class="onboarding-form">
         <div class="onboarding-input-card"><label>${copy.name}</label><input id="ob_name" type="text" value="${escapeAttr(onboardingState.name || "")}"></div>
         <div class="onboarding-input-card"><label>${copy.email}</label><input id="ob_email" type="email" value="${escapeAttr(onboardingState.email || "")}"></div>
+        ${authState.user ? "" : `<div class="onboarding-input-card"><label>Parool</label><input id="ob_password" type="password" autocomplete="new-password" placeholder="Vähemalt 8 märki"></div>`}
       </div>
+      ${authState.user ? "" : `
+        <div class="row">
+          <button onclick="signupUser()" ${hasSupabase() ? "" : "disabled"}>Loo konto</button>
+          <button class="dark-btn" onclick="loginUser()" ${hasSupabase() ? "" : "disabled"}>Logi sisse</button>
+        </div>
+        <button class="dark-btn" onclick="onboardingNext()">Jätka ajutiselt selles seadmes</button>
+        ${hasSupabase() ? "" : `<p class="small warning">Supabase pole seadistatud. Kontot saab luua preview/prod keskkonnas, kus SUPABASE_URL ja SUPABASE_ANON_KEY on lisatud.</p>`}
+      `}
+      ${authState.message ? `<p class="small success">${authState.message}</p>` : ""}
+      ${authState.error ? `<p class="small warning">${authState.error}</p>` : ""}
     `;
   }
   if (step === "gender") {
