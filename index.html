@@ -4072,6 +4072,7 @@ body.local-admin-prototype-enabled #menuPanel.stable-menu-panel .menu-grid {
     <div class="plan-box">
       <h2 data-i18n="myAccount">Minu konto</h2>
       <p class="help-text" data-i18n="profileFormHelp">Täida oma andmed otse pildikaartide sees. Neid andmeid kasutatakse treeningkavade, kalorite ja progressi arvutamiseks.</p>
+      <p id="profileSaveMode" class="small"></p>
 
       <div class="image-card profile-input-card" style="--card-img:url('https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=900&q=85')">
         <div class="profile-field">
@@ -6127,6 +6128,7 @@ const authState = {
   user: null,
   loading: Boolean(supabaseClient),
   error: "",
+  message: "",
   syncStatus: supabaseClient ? "Valmis sünkima" : "Supabase pole seadistatud. Andmed on ajutiselt localStorage-is."
 };
 let supabaseSyncTimer = null;
@@ -6141,11 +6143,25 @@ function validateAuthInput(email, password) {
   return "";
 }
 
+function authFriendlyError(message = "") {
+  const text = String(message || "").toLowerCase();
+  if (text.includes("invalid login") || text.includes("invalid credentials")) return "Sisselogimine ebaĆµnnestus. Kontrolli e-posti ja parooli.";
+  if (text.includes("email")) return "Kontrolli e-posti aadressi.";
+  if (text.includes("password")) return "Parool peab olema vĆ¤hemalt 8 mĆ¤rki.";
+  return message || "Autentimine ebaĆµnnestus. Proovi uuesti.";
+}
+
 function renderAuthPanel() {
   const panel = document.getElementById("authPanel");
   if (!panel) return;
   if (!hasSupabase()) {
-    panel.innerHTML = `<div class="empty-state"><strong>Pilvesalvestus pole seadistatud</strong><p class="small">Lisa Supabase URL ja anon key Vercel/GitHub Pages buildi configusse. Seni jäävad kasutajaandmed ainult seadmesse.</p></div>`;
+    panel.innerHTML = `
+      <div class="empty-state">
+        <strong>Logi sisse või loo konto</strong>
+        <p class="small">Konto lubab profiili, eesmärgid, progressi ja treeninguajalugu pilve salvestada.</p>
+        <p class="small warning">Supabase pole seadistatud. Äpp töötab praegu local-only režiimis ja andmed jäävad ainult sellesse seadmesse.</p>
+      </div>
+    `;
     return;
   }
   if (authState.loading) {
@@ -6155,17 +6171,21 @@ function renderAuthPanel() {
   if (authState.user) {
     panel.innerHTML = `
       <div class="auth-status-card">
-        <strong>Sisse logitud</strong>
+        <strong>Oled sisse logitud</strong>
         <small>${authState.user.email || ""}</small>
-        <small>${authState.syncStatus || ""}</small>
+        <small>Pilvesalvestus: ${authState.syncStatus || "Valmis"}</small>
       </div>
-      <button onclick="syncSupabaseNow()">Sünkroniseeri nüüd</button>
+      ${authState.message ? `<p class="small success">${authState.message}</p>` : ""}
       <button class="dark-btn" onclick="logoutUser()">Logi välja</button>
       ${authState.error ? `<p class="small warning">${authState.error}</p>` : ""}
     `;
     return;
   }
   panel.innerHTML = `
+    <div class="auth-status-card">
+      <strong>Logi sisse või loo konto</strong>
+      <small>Konto lubab profiili, eesmärgid, progressi ja treeninguajalugu pilve salvestada.</small>
+    </div>
     <div class="profile-field">
       <label for="authEmail">E-post</label>
       <input id="authEmail" type="email" autocomplete="email">
@@ -6178,21 +6198,27 @@ function renderAuthPanel() {
       <button onclick="loginUser()">Logi sisse</button>
       <button class="dark-btn" onclick="signupUser()">Loo konto</button>
     </div>
-    <p class="small">${authState.error || "Parool peab olema vähemalt 8 märki. Salajasi võtmeid brauserisse ei panda."}</p>
+    <p class="small">Parool peab olema vähemalt 8 märki.</p>
+    ${authState.message ? `<p class="small success">${authState.message}</p>` : ""}
+    ${authState.error ? `<p class="small warning">${authState.error}</p>` : ""}
   `;
 }
-
 async function signupUser() {
   if (!hasSupabase()) return;
   const email = authEmailValue();
   const password = authPasswordValue();
   const error = validateAuthInput(email, password);
-  if (error) { authState.error = error; renderAuthPanel(); return; }
-  authState.loading = true; authState.error = ""; renderAuthPanel();
+  if (error) { authState.error = error; authState.message = ""; renderAuthPanel(); return; }
+  authState.loading = true; authState.error = ""; authState.message = ""; renderAuthPanel();
   const result = await supabaseClient.auth.signUp({ email, password });
   authState.loading = false;
-  if (result.error) authState.error = result.error.message;
-  else authState.syncStatus = "Konto loodud. Kui e-posti kinnitust nõutakse, kinnita aadress enne sisselogimist.";
+  if (result.error) authState.error = authFriendlyError(result.error.message);
+  else {
+    authState.user = result.data?.session?.user || null;
+    authState.message = authState.user ? "Konto loodud ja sisse logitud." : "Konto loodud. Kontrolli e-posti või logi sisse.";
+    authState.syncStatus = authState.message;
+    if (authState.user) await loadSupabaseUserData();
+  }
   renderAuthPanel();
 }
 
@@ -6201,19 +6227,25 @@ async function loginUser() {
   const email = authEmailValue();
   const password = authPasswordValue();
   const error = validateAuthInput(email, password);
-  if (error) { authState.error = error; renderAuthPanel(); return; }
-  authState.loading = true; authState.error = ""; renderAuthPanel();
+  if (error) { authState.error = error; authState.message = ""; renderAuthPanel(); return; }
+  authState.loading = true; authState.error = ""; authState.message = ""; renderAuthPanel();
   const result = await supabaseClient.auth.signInWithPassword({ email, password });
   authState.loading = false;
-  if (result.error) authState.error = result.error.message;
+  if (result.error) authState.error = authFriendlyError(result.error.message);
+  else {
+    authState.user = result.data?.user || authState.user;
+    authState.message = "Sisselogimine õnnestus.";
+    authState.syncStatus = "Sisse logitud. Laen pilveandmeid...";
+    if (authState.user) await loadSupabaseUserData();
+  }
   renderAuthPanel();
 }
-
 async function logoutUser() {
   if (!hasSupabase()) return;
   await supabaseClient.auth.signOut();
   authState.user = null;
   authState.error = "";
+  authState.message = "Oled vĆ¤lja logitud.";
   authState.syncStatus = "Välja logitud. Kohalik fallback jääb seadmesse.";
   appData = structuredClone(defaultData);
   localStorage.removeItem("eliteFitnessData");
@@ -10541,6 +10573,12 @@ function renderDashboard() {
   document.getElementById("gender").value = appData.profile.gender || "male";
   document.getElementById("nutritionGoal").value = appData.selectedGoal || "fat";
   renderAuthPanel();
+  const profileSaveMode = document.getElementById("profileSaveMode");
+  if (profileSaveMode) {
+    profileSaveMode.textContent = authState.user
+      ? "Profiil salvestub Supabase pilve ja jääb seadmete vahel kättesaadavaks."
+      : "Logi sisse, et profiil pilve salvestada. Ilma kontota jäävad andmed local-only režiimi.";
+  }
   renderNutritionProfileForm();
   renderNutritionPlan();
   renderBodyTypeSelectors();
